@@ -105,7 +105,7 @@
                         </div>
 
                         <%-- TODO 기간별 선택 기능 제작 완료 후 d-none 설정 제거 --%>
-                        <div class="col-md-12 d-none">
+                        <div class="col-md-12">
                             <div class="modern-btn-group">
                                 <div id="graphAndTableButtonContainer">
                                     <span class="placeholderText">* 실적 기간 선택</span>
@@ -476,8 +476,8 @@
                 position: 'bottom'
             },
             yaxis:{
-                max: 45,
-                min: 35,            // 최소값 설정
+                max: 55,
+                min: 40,            // 최소값 설정
                 tickAmount: 15,     // 눈금 간격 설정
                 labels: {
                     formatter: function(val) {

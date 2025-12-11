@@ -11,5 +11,22 @@ public class LoginBean {
     private String memberUserName;
     private String memberRole;
     private String memberUniqueNumber;
-}
 
+
+    public String memberUserID(){
+        return memberUserID;
+    }
+    public String memberBranch(){
+        return memberBranch;
+    }
+    public String memberUserName(){
+        return memberUserName;
+    }
+
+    public String memberRole(){
+        return memberRole;
+    }
+    public String memberUniqueNumber(){
+        return memberUniqueNumber;
+    }
+}

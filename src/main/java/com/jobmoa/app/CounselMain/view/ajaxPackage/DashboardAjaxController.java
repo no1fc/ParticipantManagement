@@ -265,6 +265,8 @@ public class DashboardAjaxController {
 
         boolean conditionFlag = dashboardDTO.isDashboardFlagCondition();//Boolean.parseBoolean(dashboardDTO.getDashboardCondition());
         log.info("scoreBranchPerformanceGraphAjax 고용유지 포함 여부 [{}]",dashboardDTO.isDashboardExcludeRetention());
+        log.info("scoreBranchPerformanceGraphAjax dashboardDTO.getDashBoardStartDate() : [{}]",dashboardDTO.getDashBoardStartDate());
+        log.info("scoreBranchPerformanceGraphAjax dashboardDTO.getDashBoardEndDate() : [{}]",dashboardDTO.getDashBoardEndDate());
 
         dashboardDTO.setDashboardCondition("selectBranchAvg");
         log.info("scoreBranchPerformanceGraphAjax (1년 미만 상담사) : [{}]", conditionFlag);
@@ -294,6 +296,8 @@ public class DashboardAjaxController {
         // TODO 전달된 날짜 기준 등록 후 시작일 종료일 처리
         boolean conditionFlag = dashboardDTO.isDashboardFlagCondition();
         log.info("scoreBranchPerformanceTableAjax 고용유지 포함 여부 [{}]",dashboardDTO.isDashboardExcludeRetention());
+        log.info("scoreBranchPerformanceTableAjax dashboardDTO.getDashBoardStartDate() : [{}]",dashboardDTO.getDashBoardStartDate());
+        log.info("scoreBranchPerformanceTableAjax dashboardDTO.getDashBoardEndDate() : [{}]",dashboardDTO.getDashBoardEndDate());
 
         log.info("scoreBranchPerformanceTableAjax dashboardDTO.isDashboardBranchAndPeople() : [{}]",dashboardDTO.isDashboardBranchAndPeople());
 
