@@ -7,7 +7,7 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 /**
- * WebSocket 설정
+ * WebSocket 설정 (Spring Boot 방식)
  * STOMP 프로토콜을 사용한 메시지 브로커 설정
  */
 @Configuration
@@ -22,7 +22,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         // Simple broker를 활성화하고 destination prefix 설정
-        config.enableSimpleBroker("/topic", "/queue");
+        config.enableSimpleBroker("/topic");
 
         // 클라이언트에서 보내는 메시지의 prefix 설정
         config.setApplicationDestinationPrefixes("/app");
@@ -34,48 +34,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      */
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // WebSocket 엔드포인트 등록
+        // WebSocket 엔드포인트 등록 (Spring Boot 자동 설정 사용)
         registry.addEndpoint("/ws")
-                // ⚠️  운영 환경에서는 반드시 특정 도메인으로 제한해야 합니다!
-                // 개발: .setAllowedOriginPatterns("*")
-                // 운영: .setAllowedOrigins("https://yourdomain.com", "https://www.yourdomain.com")
-                .setAllowedOriginPatterns("*")  // TODO: 운영 환경에서는 특정 도메인으로 변경
+                .setAllowedOriginPatterns("*")  // 개발 환경용, 운영에서는 특정 도메인으로 변경
                 .withSockJS();  // SockJS fallback 옵션 활성화
 
-        // 추가 엔드포인트 (필요시)
+        // 추가 엔드포인트
         registry.addEndpoint("/ws-notification")
-                .setAllowedOriginPatterns("*")  // TODO: 운영 환경에서는 특정 도메인으로 변경
+                .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
-
-    /**
-     * 메시지 변환 설정 (선택사항)
-     * 필요시 커스텀 메시지 컨버터 추가 가능
-     */
-    // @Override
-    // public boolean configureMessageConverters(List<MessageConverter> messageConverters) {
-    //     return true;
-    // }
-
-    /**
-     * Inbound Channel 설정 (선택사항)
-     * 메시지 처리 쓰레드 풀 설정
-     */
-    // @Override
-    // public void configureClientInboundChannel(ChannelRegistration registration) {
-    //     registration.interceptors(new CustomChannelInterceptor());
-    //     registration.taskExecutor()
-    //         .corePoolSize(4)
-    //         .maxPoolSize(8);
-    // }
-
-    /**
-     * Outbound Channel 설정 (선택사항)
-     */
-    // @Override
-    // public void configureClientOutboundChannel(ChannelRegistration registration) {
-    //     registration.taskExecutor()
-    //         .corePoolSize(4)
-    //         .maxPoolSize(8);
-    // }
 }

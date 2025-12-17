@@ -78,8 +78,8 @@ public class LoginController {
                 session.setAttribute("IS_MANAGER", isManager);
                 session.setAttribute("IS_PRA_MANAGER",praRole);
 
-                //Session 시간 1시간 지정
-                session.setMaxInactiveInterval(60*60);
+                //Session 시간 6시간 지정
+                session.setMaxInactiveInterval(21600);
                 log.info("Session MaxInactiveInterval : [{}]",session.getMaxInactiveInterval());
                 session.setAttribute("SESSION_TIME",System.currentTimeMillis());
 

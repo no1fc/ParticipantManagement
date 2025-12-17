@@ -293,11 +293,12 @@ public class DashboardAjaxController {
             consumes = "application/json; charset=utf-8",
             produces = "application/json; charset=utf-8")
     public List<DashboardDTO> scoreBranchPerformanceTableAjax(@RequestBody DashboardDTO dashboardDTO){
-        // TODO 전달된 날짜 기준 등록 후 시작일 종료일 처리
         boolean conditionFlag = dashboardDTO.isDashboardFlagCondition();
         log.info("scoreBranchPerformanceTableAjax 고용유지 포함 여부 [{}]",dashboardDTO.isDashboardExcludeRetention());
         log.info("scoreBranchPerformanceTableAjax dashboardDTO.getDashBoardStartDate() : [{}]",dashboardDTO.getDashBoardStartDate());
         log.info("scoreBranchPerformanceTableAjax dashboardDTO.getDashBoardEndDate() : [{}]",dashboardDTO.getDashBoardEndDate());
+        log.info("scoreBranchPerformanceTableAjax dashboardDTO.isDashboardFlagCondition() : [{}]",dashboardDTO.isDashboardFlagCondition());
+        log.info("scoreBranchPerformanceTableAjax dashboardDTO.isDashboardExcludeRetention() : [{}]",dashboardDTO.isDashboardExcludeRetention());
 
         log.info("scoreBranchPerformanceTableAjax dashboardDTO.isDashboardBranchAndPeople() : [{}]",dashboardDTO.isDashboardBranchAndPeople());
 

@@ -22,8 +22,10 @@ public class LoginInterceptor implements HandlerInterceptor { // 스프링 MVC�
             "/**/*.api",           // 모든 API 경로
             "/**/*.do",          // 모든 .do 파일
             "/login.do",         // 로그인 페이지 (명시적으로 포함)
-            "/jobPlacement/**"  // 기업회원 페이지
+            "/jobPlacement/**",  // 기업회원 페이지
 //            "/mailSend/**"  // 메일전달용
+            "/ws/**", // WebSocket 엔드포인트 추가
+            "/ws-notification/**"  // WebSocket 알림 엔드포인트 추가
     );
 
     @Override

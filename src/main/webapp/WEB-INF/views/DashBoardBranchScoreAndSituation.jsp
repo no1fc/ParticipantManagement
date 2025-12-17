@@ -708,7 +708,8 @@
             // let data = JSON.parse(await response.json());
             let data = await response.json();
 
-            console.log(data);
+            // JSON 데이터 수정
+            data = JSON.parse(data);
             console.log(data);
             changeDataAVG(data);
             changeDataUser(data);

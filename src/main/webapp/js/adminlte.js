@@ -167,7 +167,6 @@
             this._element = element;
             this._config = Object.assign(Object.assign({}, Defaults), config);
         }
-        // TODO
         menusClose() {
             const navTreeview = document.querySelectorAll(SELECTOR_NAV_TREEVIEW);
             navTreeview.forEach(navTree => {

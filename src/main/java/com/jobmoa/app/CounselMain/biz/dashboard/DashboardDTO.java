@@ -90,6 +90,8 @@ public class DashboardDTO {
     //지점관리 대시보드 변수
     private String dashBoardStartDate; // 대시보드 상세 현황 시작 날짜
     private String dashBoardEndDate; // 대시보드 상세 현황 끝 날짜
+    private String dashBoardPASD; //(Participant Assignment Start Date) 참여자 배정 시작일
+    private String dashBoardPAED; //(Participant Assignment End Date) 참여자 배정 종료일
     private int lastYearMoney; // 작년 성공금
     private int currentYearMoney; // 이번년도 성공금
     private int falseCaseNum; // 미해당 건수

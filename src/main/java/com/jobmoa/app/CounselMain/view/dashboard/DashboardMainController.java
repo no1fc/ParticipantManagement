@@ -29,9 +29,37 @@ public class DashboardMainController {
 
     //내 성과에 표기될 문자를 입력
     private static final String[] DASHBOARD_TEXT = {"잡모아 평균","지점 평균","전담자"};
-    //FIXME 평가 실적 시작 종료일
-    private static final String FAILSTARTDATE = "2024-11-01";
-    private static final String FAILENDDATE = "2025-10-31";
+
+//    //FIXME 평가 실적 시작 종료일
+    private static void failDate(DashboardDTO dashboardDTO) throws NullPointerException{
+
+        // NullPointException 방지를 위해 오류를 반환
+        if(dashboardDTO == null){
+            throw new NullPointerException("DashboardDTO is Null");
+        }
+
+        // DashBoardDTO dashBoardYear null 이라면 현재 년도를 불러오고 null이 아니라면 그대로 사용
+        String dashBoardYear = dashboardDTO.getDashBoardYear() == null
+                ? String.valueOf(Calendar.getInstance().get(Calendar.YEAR))
+                : dashboardDTO.getDashBoardYear();
+
+        //배정인원 년도 기준 데이터 조회용
+        String startDate = dashBoardYear + "-01-01";
+        String endDate = dashBoardYear + "-12-31";
+        dashboardDTO.setDashBoardPASD(startDate);
+        dashboardDTO.setDashBoardPAED(endDate);
+
+        //데이터 일정용 작년 11월 ~ 이번년도 10월까지 데이터
+        // ex) 2024-11-01
+        String dashBoardStartDate = (Integer.parseInt(dashBoardYear)-1) + "-11-01";
+        // ex) 2025-10-31
+        String dashBoardEndDate = dashBoardYear + "-10-31";
+
+        dashboardDTO.setDashBoardStartDate(dashBoardStartDate);
+        dashboardDTO.setDashBoardEndDate(dashBoardEndDate);
+
+    }
+
 
     @GetMapping("/dashboard.login")
     public String dashboardMain(Model model, HttpSession session, DashboardDTO dashboardDTO) {
@@ -49,7 +77,7 @@ public class DashboardMainController {
                     ? String.valueOf(Calendar.getInstance().get(Calendar.YEAR))
                     : dashboardDTO.getDashBoardYear();
 
-            log.info("DashBoard login ID : [{}] / Branch : [{}]", userID, branch);
+            log.info("DashBoard login ID : [{}] / Branch : [{}] / YEAR : [{}]", userID, branch, dashBoardYear);
 
             // DTO 설정
             setupDashboardDTO(dashboardDTO, userID, branch, dashBoardYear);
@@ -74,8 +102,20 @@ public class DashboardMainController {
         dto.setDashboardUserID(userID);
         dto.setDashboardBranch(branch);
         dto.setDashBoardYear(year);
-        dto.setDashBoardStartDate(FAILSTARTDATE);
-        dto.setDashBoardEndDate(FAILENDDATE);
+
+        failDate(dto);
+
+//        //배정인원 년도 기준 데이터 조회용
+//        String startDate = year + "-01-01";
+//        String endDate = year + "-12-31";
+//        dto.setDashBoardPASD(startDate);
+//        dto.setDashBoardPAED(endDate);
+//
+//        //데이터 일정용 작년 11월 ~ 이번년도 10월까지 데이터
+//        String dashBoardStartDate = (Integer.parseInt(year)-1) + "-11-01";
+//        String dashBoardEndDate = year + "-10-31";
+//        dto.setDashBoardStartDate(dashBoardStartDate);
+//        dto.setDashBoardEndDate(dashBoardEndDate);
     }
 
     private void processDashboardData(Model model, DashboardDTO dashboardDTO, String dashBoardYear)
@@ -97,14 +137,10 @@ public class DashboardMainController {
             processSuccessMoneyData(model, branchAndUser, successMoney);
         }
 
-        // 3. 일일 대시보드
+        // 3. 일일 대시보드 (금일 업무)
         dashboardDTO.setDashboardCondition("selectDailyDashboard");
         DashboardDTO dailyParticipant = dashboardService.selectOne(dashboardDTO);
         model.addAttribute("dailyDashboard", dailyParticipant);
-        // 3-1. 취업자 인원 및 비율
-        dashboardDTO.setDashboardCondition("selectEmploymentRate");
-        DashboardDTO employmentRate = dashboardService.selectOne(dashboardDTO);
-        model.addAttribute("employmentRate", employmentRate);
 
         // 4. 참여자 현황 - 기존 changeJson 활용
         processParticipantData(model, dashboardDTO);
@@ -116,6 +152,17 @@ public class DashboardMainController {
         dashboardDTO.setDashboardCondition("myKPIDashboard");
         DashboardDTO myKPI = dashboardService.selectOne(dashboardDTO);
         model.addAttribute("myKPI", myKPI);
+
+        // 6-1. 취업자 인원 및 비율
+        dashboardDTO.setDashBoardStartDate((Integer.parseInt(dashBoardYear)-1) + "-11-01");
+        dashboardDTO.setDashBoardEndDate(dashBoardYear + "-12-31");
+        DashboardDTO employmentRate = dashboardService.selectOne(dashboardDTO);
+        if (employmentRate != null) {
+            int totalEmployed = employmentRate.getTotalEmployed() == 0 ? 0 : (int) employmentRate.getTotalEmployed();
+            employmentRate.setDashBoardEarlyEmployedCountUser(totalEmployed);
+//            employmentRate.setEmploymentRate(employmentRate.getEmploymentRate());
+        }
+        model.addAttribute("employmentRate", employmentRate);
     }
 
     private void processSuccessMoneyData(Model model, DashboardDTO branchAndUser,
@@ -217,14 +264,25 @@ public class DashboardMainController {
         //생성된 ID, 지점 변수를 DashboardDTO에 저장
         dashboardDTO.setDashboardUserID(userID);
         dashboardDTO.setDashBoardUserBranch(branch);
-        dashboardDTO.setDashBoardStartDate(FAILSTARTDATE);
-        dashboardDTO.setDashBoardEndDate(FAILENDDATE);
+
+        try{
+            failDate(dashboardDTO);
+        }
+        catch (NullPointerException e){
+            log.error("Method successMoney url[/successMoney.login] DashboardDTO is Null ", e);
+            String url="dashboard.login";
+            String icon="back";
+            String title="오류가 발생했습니다.";
+            String message="시스템 관리자에게 문의해주세요.\n 오류 내역 : Method successMoney url[/successMoney.login] DashboardDTO is Null";
+            InfoBean.info(model, url, icon, title, message);
+            return "views/info";
+        }
         //dashboard selectAll을 진행
         //selectSuccessMoneyDetails condition을 추가
         dashboardDTO.setDashboardCondition("selectSuccessMoneyDetails");
         List<DashboardDTO> datas = dashboardService.selectAll(dashboardDTO);
         if(datas == null || datas.size() == 0){
-            log.info("successMoney datas is null or datas size is 0");
+            log.error("Method successMoney url[/successMoney.login] datas is null or datas size is 0 ");
             String url="dashboard.login";
             String icon="back";
             String title="발생한 성공금이 없습니다.";
@@ -273,31 +331,52 @@ public class DashboardMainController {
 //            dashboardDTO.setDashBoardUserBranch(branch);
 //        }
         //상세보기를 클릭하면 DB에 사용자의 각 평가 현황별 % 점수를 반환해준다.
-        dashboardDTO.setDashBoardStartDate(FAILSTARTDATE);
-        dashboardDTO.setDashBoardEndDate(FAILENDDATE);
+
+        try{
+            failDate(dashboardDTO);
+        }
+        catch (NullPointerException e){
+            log.error("Method successMoney url[/scoreDashboard.login] DashboardDTO is Null ", e);
+            String url="dashboard.login";
+            String icon="back";
+            String title="오류가 발생했습니다.";
+            String message="시스템 관리자에게 문의해주세요.\n 오류 내역 : url[/scoreDashboard.login] DashboardDTO is Null";
+            InfoBean.info(model, url, icon, title, message);
+            return "views/info";
+        }
+
+
+        //고용유지 점수 데이터를 추가하기 위해 boolean 값 전달
+        dashboardDTO.setDashboardExcludeRetention(true);
         dashboardDTO.setDashboardCondition("selectScoreAndAvg");
         List<DashboardDTO> datas = dashboardService.selectAll(dashboardDTO);
         // 반환된 data를 가지고 json 형식으로 그래프를 그릴 수 있도록 반환한다.
         String responseJson = changeJson.convertListToJsonArray(datas,item ->{
             DashboardDTO dto = (DashboardDTO)item;
-            return String.format("{\"completedCount\":{" +
-                            "\"name\":\"종료자수\"," +
-                            "\"data\":\"%d\"" +
-                            "}," +
-                            "\"myScore\": {" +
-                            "    \"name\": \"개인 점수\"," +
-                            "    \"data\": [%.2f,%.2f,%.2f,%.2f,%.2f,%.2f]," +  // %d를 %.2f로 변경
-                            "    \"oneData\": [%.2f,%.2f,%.2f,%.2f,%.2f]" +
-                            "  }," +
-                            "  \"myCount\": {" +
-                            "    \"name\": \"점수 분포\"," +
-                            "    \"data\": [%d,%d,%d,%d,%d]," +
-                            "    \"avgData\": [%.2f,%.2f,%.2f,%.2f,%.2f]" +
-                            "  }}",
+            // JSON 포맷 문자열 분리 (가독성 및 유지보수 용이성 확보)
+            String jsonFormat = "{" +
+                    "\"completedCount\":{\"name\":\"종료자수\",\"data\":\"%d\"}," +
+                    "\"myScore\": {" +
+                    "    \"name\": \"개인 점수\"," +
+                    "    \"data\": [%.2f,%.2f,%.2f,%.2f,%.2f,%.2f]," +
+                    "    \"oneData\": [%.2f,%.2f,%.2f,%.2f,%.2f]" +
+                    "  }," +
+                    "  \"myCount\": {" +
+                    "    \"name\": \"점수 분포\"," +
+                    "    \"data\": [%d,%d,%d,%d,%d]," +
+                    "    \"avgData\": [%.2f,%.2f,%.2f,%.2f,%.2f]" +
+                    "  }" +
+                    "}";
+
+            return String.format(jsonFormat,
                     dto.getTotalCompleted(),
+                    // myScore.data (6개)
                     dto.getTotalScore(),dto.getEmploymentLastScore(),dto.getPlacementLastScore(),dto.getEarlyEmploymentLastScore(),dto.getRetentionLastScore(),dto.getBetterJobLastScore(),
+                    // myScore.oneData (5개)
                     dto.getEmploymentOneScore(),dto.getPlacementOneScore(),dto.getEarlyEmploymentOneScore(),dto.getRetentionOneScore(),dto.getBetterJobOneScore(),
+                    // myCount.data (5개)
                     dto.getTotalEmployed(),dto.getReferredEmploymentCount(),dto.getEarlyEmploymentCount(),dto.getRetentionCount(),dto.getBetterJobCount(),
+                    // myCount.avgData (5개)
                     dto.getEmploymentRate(),dto.getPlacementRate(),dto.getEarlyEmploymentRate(),dto.getRetentionRate(),dto.getBetterJobRate()
             );
         });
@@ -312,8 +391,18 @@ public class DashboardMainController {
     @GetMapping("scoreBranchDashboard.login")
     public String scoreBranchDashboard(Model model, DashboardDTO dashboardDTO){
         //내 지점 평균 그래프 클릭하면 DB에 사용자의 각 평가 현황별 % 점수를 반환
-        dashboardDTO.setDashBoardStartDate(FAILSTARTDATE);
-        dashboardDTO.setDashBoardEndDate(FAILENDDATE);
+        try{
+            failDate(dashboardDTO);
+        }
+        catch (NullPointerException e){
+            log.error("Method successMoney url[/scoreBranchDashboard.login] DashboardDTO is Null ", e);
+            String url="dashboard.login";
+            String icon="back";
+            String title="오류가 발생했습니다.";
+            String message="시스템 관리자에게 문의해주세요.\n 오류 내역 : url[/scoreBranchDashboard.login] DashboardDTO is Null";
+            InfoBean.info(model, url, icon, title, message);
+            return "views/info";
+        }
         //처음 접속하면 1년 미만 근무자로 검색해서 가져올 예정이기 때문에 false를 지정
         dashboardDTO.setDashboardFlagCondition(false);
         dashboardDTO.setDashboardCondition("selectBranchAvg");
@@ -329,8 +418,8 @@ public class DashboardMainController {
         log.info("scoreBranchDashboard responseJson : [{}]",responseJson);
 
         model.addAttribute("branchAvg",responseJson);
-        model.addAttribute("dashBoardStartDate",FAILSTARTDATE);
-        model.addAttribute("dashBoardEndDate",FAILENDDATE);
+        model.addAttribute("dashBoardStartDate",dashboardDTO.getDashBoardStartDate());
+        model.addAttribute("dashBoardEndDate",dashboardDTO.getDashBoardEndDate());
 
         return "views/DashBoardBranchScoreAndSituation";
     }
