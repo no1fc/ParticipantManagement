@@ -93,360 +93,179 @@
         </if>
     </sql>
 
-    <!-- 실적관리 CTE SQL 태그 -->
+    <!-- 실적관리 CTE SQL 태그 시작 -->
     <sql id="EvaluationViewCTE">
-        SET ANSI_WARNINGS OFF;
-        SET ARITHIGNORE ON;
-        SET ARITHABORT OFF;
-        WITH 최저임금 AS (
-        SELECT 2022 AS 년도, 229 AS 나은임금
-        UNION ALL SELECT 2023, 241
-        UNION ALL SELECT 2024, 247
-        UNION ALL SELECT 2025, 250
-        ),
-        통합_참여자_분석 AS (
-        SELECT
-            구직번호, 등록일, 전담자_계정, 참여자, 생년월일, 성별, 모집경로, 참여유형,
-            학교명, 전공, 주소, 경력, 특정계층, 알선요청, 취업역량, 최근상담일, 진행단계,
-            초기상담일, 구직만료일, IAP수료일, [3단계진입일], 기간만료일, 클리닉실시일,
-            희망직무, 희망급여, 취창업일, 취창업처리일, 취업유형, 취업처, 임금, 직무,
-            취업인센티브_구분, 일경험분류, 메모, 기타, 마감, 퇴사일, 지점, 간접고용서비스,
-            전담자_변경일, 초기전담자_계정, 참여자_수정일,
-            -- 실제종료일 계산
-            CASE
-                WHEN 취창업일 > '1900-01-01' AND 기간만료일 > '1900-01-01' THEN
-                CASE
-                    WHEN 취창업일 IS NOT NULL THEN 취창업일 ELSE 기간만료일 END
-                    WHEN 취창업일 > '1900-01-01' THEN 취창업일
-                    WHEN 기간만료일 > '1900-01-01' THEN 기간만료일
+    SET ANSI_WARNINGS OFF;
+    SET ARITHIGNORE ON;
+    SET ARITHABORT OFF;
+
+    WITH 최저임금 AS (
+        SELECT 2022 AS 년도, 229 AS 나은임금 UNION ALL SELECT 2023, 241
+        UNION ALL SELECT 2024, 247 UNION ALL SELECT 2025, 250
+    ),
+    기본_데이터_정규화 AS (
+        /* 1. 날짜 및 기초 필터링 */
+        SELECT *,
+            NULLIF(CASE
+                WHEN 취창업일 <![CDATA[>]]> '1900-01-01' THEN 취창업일
+                WHEN 기간만료일 <![CDATA[>]]> '1900-01-01' THEN 기간만료일
                 ELSE NULL
-            END AS 실제종료일,
-            -- 상담사변경_가중치 계산 (고용부 기준 여부에 따라 분기)
+            END, '1900-01-01') AS 실제종료일,
+            NULLIF(전담자_변경일, '1900-01-01') AS 실제변경일
+        FROM J_참여자관리
+        WHERE 지점 NOT IN ('테스트', '공통')
+          AND ISNULL(모집경로, '') <![CDATA[<>]]> '이관'
+          AND ISNULL(참여유형, '') <![CDATA[<>]]> '이관'
+          AND 진행단계 <![CDATA[<>]]> '취소'
+    ),
+    통합_참여자_분석 AS (
+        /* 2. 가중치 및 상태 플래그 */
+        SELECT *,
             <choose>
-                <when test="dashboardFlagCondition"> 1 AS 상담사변경_가중치,
-                </when>
+                <when test="dashboardFlagCondition"> 1.0 </when>
                 <otherwise>
                     CAST(CASE
-                        WHEN 전담자_변경일 <![CDATA[<]]> 초기상담일 OR (전담자_변경일 = '1900-01-01' OR 전담자_변경일 IS NULL)
-                                 OR (전담자_변경일 <![CDATA[<]]> CASE
-                                     WHEN 취창업일 > '1900-01-01' AND 기간만료일 > '1900-01-01' THEN
-                                         CASE WHEN 취창업일 IS NOT NULL THEN 취창업일 ELSE 기간만료일 END
-                                     WHEN 취창업일 > '1900-01-01' THEN 취창업일
-                                     WHEN 기간만료일 > '1900-01-01' THEN 기간만료일
-                                     ELSE NULL END AND 취업유형 = '알선') THEN 1.0
-                        WHEN 전담자_변경일 <![CDATA[<]]> CASE
-                            WHEN 취창업일 > '1900-01-01' AND 기간만료일 > '1900-01-01' THEN
-                                CASE WHEN 취창업일 IS NOT NULL THEN 취창업일 ELSE 기간만료일 END
-                            WHEN 취창업일 > '1900-01-01' THEN 취창업일
-                            WHEN 기간만료일 > '1900-01-01' THEN 기간만료일
-                            ELSE NULL END THEN 0.5
-                    ELSE 0.0
-                    END AS DECIMAL(10, 2)) AS 상담사변경_가중치,
+                        WHEN 실제변경일 <![CDATA[<]]> 초기상담일 OR 실제변경일 IS NULL THEN 1.0
+                        WHEN 취업유형 = '알선' AND 실제변경일 <![CDATA[<]]> 실제종료일 THEN 1.0
+                        WHEN 실제변경일 <![CDATA[<]]> 실제종료일 THEN 0.5
+                        ELSE 0.0
+                    END AS DECIMAL(10, 2))
                 </otherwise>
-            </choose>
-            -- 각종 플래그 계산
-            CASE
-                WHEN ((진행단계 IN ('중단', '미취업사후관리', '미취업사후종료'))
-                AND 기간만료일 > '1900-01-01' AND 기간만료일 <![CDATA[<=]]> #{dashBoardEndDate}) -- 파라미터 적용
-                OR 취창업일 > '1900-01-01'
-            THEN 1
-            ELSE 0
-            END AS 종료자_플래그,
-            CASE
-                WHEN 취창업일 IS NOT NULL AND 취창업일 >= #{dashBoardStartDate} -- 파라미터 적용
-                AND (진행단계 IN ('등록창업','고보일반', '미취업사후종료', '중단')
-                OR (진행단계 IN ('미고보') AND (취업유형 IN ('프리랜서', '특수고용') AND 임금 > 70)))
-                AND (취업인센티브_구분 NOT LIKE '%파견%' OR 취업인센티브_구분 IS NULL)
-            THEN 1
-            ELSE 0
-            END AS 취업자_플래그,
-            CASE
-                WHEN 특정계층 = 'O' OR (DATEDIFF(YEAR, 생년월일, 등록일) > 34 AND 생년월일 > '1900-01-01' AND 생년월일 IS NOT NULL)
-            THEN 1
-            ELSE 0
-            END AS 특정계층_플래그,
-            CASE
-                WHEN 취업유형 = '알선'
-            THEN 1
-            ELSE 0
-            END AS 알선취업_플래그,
-            CASE
-                WHEN IAP수료일 IS NOT NULL AND IAP수료일 > '1900-01-01' AND DATEDIFF(DAY, IAP수료일, 취창업일) <![CDATA[<=]]> 90
-            THEN 1
-            ELSE 0
-            END AS 조기취업_플래그,
-            CASE
-                WHEN ((퇴사일 IS NULL OR 퇴사일 = '1900-01-01')
-                        AND DATEDIFF(DAY, 취창업일, GETDATE()) > 180)
-                        OR (퇴사일 IS NOT NULL AND DATEDIFF(DAY, 취창업일, 퇴사일) > 180)
-            THEN 1
-            ELSE 0
-            END AS 고용유지_플래그,
-            YEAR(취창업일) AS 취업년도,
-            -- 평가대상_플래그 (날짜 파라미터 적용)
+            </choose> AS 가중치,
+            CASE WHEN 취업인센티브_구분 = '미해당[서비스 미제공]' THEN 1 ELSE 0 END AS 서비스미제공,
+            CASE WHEN 취업인센티브_구분 <![CDATA[<>]]> '미해당[서비스 미제공]' AND 취업인센티브_구분 LIKE '%미해당%' THEN 1 ELSE 0 END AS 미해당,
+            CASE WHEN 취업인센티브_구분 NOT LIKE '%미해당%' AND 취업인센티브_구분 IS NOT NULL AND 취업인센티브_구분 <![CDATA[<>]]> '' THEN 1 ELSE 0 END AS 해당,
+            CASE WHEN (진행단계 IN ('중단', '미취업사후관리', '미취업사후종료') AND 실제종료일 <![CDATA[<=]]> #{dashBoardEndDate})
+                      OR 취창업일 <![CDATA[>]]> '1900-01-01' THEN 1 ELSE 0 END AS 종료_F,
+            CASE WHEN 취창업일 <![CDATA[>=]]> #{dashBoardStartDate, jdbcType=DATE}
+                      AND (진행단계 IN ('등록창업','고보일반', '미취업사후종료', '중단')
+                      OR (진행단계 = '미고보' AND 취업유형 IN ('프리랜서', '특수고용') AND 임금 <![CDATA[>]]> 70))
+                      AND (취업인센티브_구분 NOT LIKE '%파견%' OR 취업인센티브_구분 IS NULL) THEN 1 ELSE 0 END AS 취업_F,
+            CASE WHEN 특정계층 = 'O' OR (DATEDIFF(YEAR, 생년월일, 등록일) <![CDATA[>]]> 34 AND 생년월일 <![CDATA[>]]> '1900-01-01') THEN 1 ELSE 0 END AS 특정계층_F,
+            CASE WHEN 취업유형 = '알선' THEN 1 ELSE 0 END AS 알선_F,
+            CASE WHEN IAP수료일 <![CDATA[>]]> '1900-01-01' AND DATEDIFF(DAY, IAP수료일, 취창업일) <![CDATA[<=]]> 90 THEN 1 ELSE 0 END AS 조기_F,
+            CASE WHEN ((퇴사일 IS NULL OR 퇴사일 = '1900-01-01') AND DATEDIFF(DAY, 취창업일, GETDATE()) <![CDATA[>]]> 180)
+                      OR (퇴사일 <![CDATA[>]]> '1900-01-01' AND DATEDIFF(DAY, 취창업일, 퇴사일) <![CDATA[>]]> 180) THEN 1 ELSE 0 END AS 유지_F,
             CASE
                 WHEN 지점 IN ('인천', '성남') THEN
-                    CASE -- FIXME
-                        WHEN 초기상담일 >= '2025-01-01' AND 초기상담일 <![CDATA[<=]]> GETDATE() THEN 1
-                        WHEN 등록일 >= '2025-01-01' AND 등록일 <![CDATA[<=]]> GETDATE() THEN 1
-                        ELSE 0
-                    END
-                WHEN 지점 IN ('서부', '남부', '부천', '수원', '의정부', '인천남부', '동대문', '광명', '안양', '북부', '천호', '관악') THEN
-                    CASE
-                        -- 결정된 기준일자가 기간 내에 있는지 확인
-                        WHEN (
-                            CASE
-                                -- 취창업일이 유효하면 취창업일, 아니면 기간만료일 사용
-                                WHEN 취창업일 > '1900-01-01' THEN 취창업일
-                                WHEN 기간만료일 > '1900-01-01' THEN 기간만료일
-                                ELSE NULL
-                                END
-                            ) BETWEEN #{dashBoardStartDate} AND #{dashBoardEndDate} THEN 1
-                        ELSE 0
-                        END
+                    (CASE WHEN (초기상담일 <![CDATA[>=]]> '2025-01-01' AND 초기상담일 <![CDATA[<=]]> GETDATE()) OR (등록일 <![CDATA[>=]]> '2025-01-01' AND 등록일 <![CDATA[<=]]> GETDATE()) THEN 1 ELSE 0 END)
+                WHEN 지점 IN ('서부','남부','부천','수원','의정부','인천남부','동대문','광명','안양','북부','천호','관악')
+                     AND 실제종료일 BETWEEN #{dashBoardStartDate, jdbcType=DATE} AND #{dashBoardEndDate} THEN 1
                 ELSE 0
-                END AS 평가대상_플래그,
-            CASE
-                WHEN 취업인센티브_구분 = '미해당[서비스 미제공]' THEN 1
-                    ELSE 0
-                        END AS 서비스미제공,
-            CASE
-                WHEN 취업인센티브_구분 <![CDATA[<>]]> '미해당[서비스 미제공]' AND 취업인센티브_구분 LIKE '%미해당%' THEN 1
-                    ELSE 0
-                        END AS 미해당,
-            CASE
-                WHEN 취업인센티브_구분 NOT LIKE '%미해당%' AND 취업인센티브_구분 IS NOT NULL AND 취업인센티브_구분 <![CDATA[<>]]> '' THEN 1
-                    ELSE 0
-                        END AS 해당
-        FROM J_참여자관리
-        WHERE
-            지점 NOT IN ('테스트', '공통')
-            AND (모집경로 <![CDATA[<>]]> '이관' OR 모집경로 IS NULL)
-            AND (참여유형 <![CDATA[<>]]> '이관' OR 참여유형 IS NULL)
-            AND 진행단계 <![CDATA[<>]]> '취소'
-        ),
-        나은일자리_판정 AS (
-        SELECT
-            P.*,
-            CASE
-                WHEN P.취업자_플래그 = 1 AND P.임금 >= ISNULL(CAST(M.나은임금 AS FLOAT), 999999)
-                    THEN 1
-                ELSE 0
-                END AS 나은일자리_플래그
+            END AS 대상_F
+        FROM 기본_데이터_정규화
+    ),
+    나은일자리_판정 AS (
+        /* 3. 질적 취업 판정 */
+        SELECT P.*,
+            CASE WHEN P.취업_F = 1 AND P.임금 <![CDATA[>=]]> ISNULL(CAST(M.나은임금 AS FLOAT), 999999) THEN 1 ELSE 0 END AS 나은일자리_F
         FROM 통합_참여자_분석 P
-        LEFT JOIN 최저임금 M ON P.취업년도 = M.년도
-        ),
-        통합_통계 AS (
-        SELECT
-            지점,
-            전담자_계정,
-            ROUND(SUM(종료자_플래그 * 상담사변경_가중치 * 평가대상_플래그), 2) AS 종료자수,
-            ROUND(SUM(취업자_플래그 * 상담사변경_가중치 * 평가대상_플래그), 2) AS 취업자만,
-            ROUND(SUM((취업자_플래그 + 특정계층_플래그 * 취업자_플래그 * 0.5) * 상담사변경_가중치 * 평가대상_플래그), 2) AS 특정_취업자수,
-            ROUND(SUM(특정계층_플래그 * 취업자_플래그 * 상담사변경_가중치 * 평가대상_플래그 * 0.5), 2) AS 특정계층취업자수,
-            ROUND(SUM(알선취업_플래그 * 취업자_플래그 * 상담사변경_가중치 * 평가대상_플래그), 2) AS 알선취업자수,
-            ROUND(SUM(조기취업_플래그 * 취업자_플래그 * 상담사변경_가중치 * 평가대상_플래그), 2) AS 조기취업자수,
+        LEFT JOIN 최저임금 M ON YEAR(P.취창업일) = M.년도
+    ),
+    통합_통계 AS (
+        /* 4. 전담자별 집계 */
+        SELECT 지점, 전담자_계정,
+            ROUND(SUM(종료_F * 가중치 * 대상_F), 2) AS 종료자수,
+            ROUND(SUM(취업_F * 가중치 * 대상_F), 2) AS 취업자만,
+            ROUND(SUM((취업_F + 특정계층_F * 취업_F * 0.5) * 가중치 * 대상_F), 2) AS 특정_취업자수,
+            ROUND(SUM(특정계층_F * 취업_F * 가중치 * 대상_F * 0.5), 2) AS 특정계층취업자수,
+            ROUND(SUM(알선_F * 취업_F * 가중치 * 대상_F), 2) AS 알선취업자수,
+            ROUND(SUM(조기_F * 취업_F * 가중치 * 대상_F), 2) AS 조기취업자수,
+            ROUND(SUM(나은일자리_F * 가중치 * 대상_F), 2) AS 나은일자리수,
             <choose>
-                <when test="dashboardExcludeRetention">
-                    ROUND(SUM(고용유지_플래그 * 취업자_플래그 * 상담사변경_가중치 * 평가대상_플래그), 2) AS 고용유지자수,
-                </when>
-                <otherwise>
-                    0 AS 고용유지자수,
-                </otherwise>
-            </choose>
-            ROUND(SUM(나은일자리_플래그 * 상담사변경_가중치 * 평가대상_플래그), 2) AS 나은일자리수
+                <when test="dashboardExcludeRetention"> ROUND(SUM(유지_F * 취업_F * 가중치 * 대상_F), 2) </when>
+                <otherwise> 0 </otherwise>
+            </choose> AS 고용유지자수,
+            SUM(서비스미제공 * 대상_F) AS 서비스미제공_합계,
+            SUM(미해당 * 대상_F) AS 미해당_합계,
+            SUM(해당 * 대상_F) AS 해당_합계
         FROM 나은일자리_판정
-        WHERE 실제종료일 >= #{dashBoardStartDate} AND 실제종료일 <![CDATA[<=]]> #{dashBoardEndDate} -- 파라미터 적용
-        AND 평가대상_플래그 = 1
+        WHERE 실제종료일 <![CDATA[>=]]> #{dashBoardStartDate, jdbcType=DATE} AND 실제종료일 <![CDATA[<=]]> #{dashBoardEndDate, jdbcType=DATE} AND 대상_F = 1
         GROUP BY 지점, 전담자_계정
-        ),
-        점수_계산 AS (
-        SELECT
-            *,
-            ROUND(ISNULL((특정_취업자수 * 1.0 / NULLIF(종료자수, 0)) * 100, 0), 2) AS 취업률,
-            ROUND(ISNULL((알선취업자수 * 1.0 / NULLIF(종료자수, 0)) * 100, 0), 2) AS 알선취업률,
-            ROUND(ISNULL((조기취업자수 * 1.0 / NULLIF(종료자수, 0)) * 100, 0), 2) AS 조기취업률,
-            <choose>
-                <when test="dashboardExcludeRetention">
-                    ROUND(ISNULL((고용유지자수 * 1.0 / NULLIF(종료자수, 0)) * 100, 0), 2) AS 고용유지취업률,
-                    ROUND(ISNULL((고용유지자수 * 1.0 / NULLIF(종료자수, 0)) * 15, 0), 2) AS 고용유지취업자점수,
-                </when>
-                <otherwise>
-                    0 AS 고용유지취업률,
-                    0 AS 고용유지취업자점수,
-                </otherwise>
-            </choose>
-            ROUND(ISNULL((나은일자리수 * 1.0 / NULLIF(종료자수, 0)) * 100, 0), 2) AS 나은일자리취업률,
-            ROUND(ISNULL((특정_취업자수 * 1.0 / NULLIF(종료자수, 0)) * 30, 0), 2) AS 취업자점수,
-            ROUND(ISNULL((알선취업자수 * 1.0 / NULLIF(종료자수, 0)) * 25, 0), 2) AS 알선취업자점수,
-            ROUND(ISNULL((조기취업자수 * 1.0 / NULLIF(종료자수, 0)) * 10, 0), 2) AS 조기취업자점수,
-            ROUND(ISNULL((나은일자리수 * 1.0 / NULLIF(종료자수, 0)) * 10, 0), 2) AS 나은일자리취업자점수
+    ),
+    점수_계산 AS (
+        /* 5. 비율 및 항목별 점수 산출 */
+        SELECT *,
+            ROUND(ISNULL((특정_취업자수 * 100.0 / NULLIF(종료자수, 0)), 0), 2) AS 취업률,
+            ROUND(ISNULL((알선취업자수 * 100.0 / NULLIF(종료자수, 0)), 0), 2) AS 알선취업률,
+            ROUND(ISNULL((조기취업자수 * 100.0 / NULLIF(종료자수, 0)), 0), 2) AS 조기취업률,
+            ROUND(ISNULL((고용유지자수 * 100.0 / NULLIF(종료자수, 0)), 0), 2) AS 고용유지취업률,
+            ROUND(ISNULL((나은일자리수 * 100.0 / NULLIF(종료자수, 0)), 0), 2) AS 나은일자리취업률,
+            ROUND(ISNULL((특정_취업자수 * 30.0 / NULLIF(종료자수, 0)), 0), 2) AS 취업자점수,
+            ROUND(ISNULL((알선취업자수 * 25.0 / NULLIF(종료자수, 0)), 0), 2) AS 알선취업자점수,
+            ROUND(ISNULL((조기취업자수 * 10.0 / NULLIF(종료자수, 0)), 0), 2) AS 조기취업자점수,
+            ROUND(ISNULL((고용유지자수 * 15.0 / NULLIF(종료자수, 0)), 0), 2) AS 고용유지취업자점수,
+            ROUND(ISNULL((나은일자리수 * 10.0 / NULLIF(종료자수, 0)), 0), 2) AS 나은일자리취업자점수
         FROM 통합_통계
-        ),
-        점수_합계 AS (
-        SELECT
-            *,
-            ROUND(ISNULL(취업자점수, 0) + ISNULL(알선취업자점수, 0) + ISNULL(조기취업자점수, 0) +
-            ISNULL(고용유지취업자점수, 0) + ISNULL(나은일자리취업자점수, 0), 2) AS 총점
-        FROM 점수_계산
-        ),
-        EvaluationViewCTE_통계_계산 AS (
-        SELECT
-            AVG(ISNULL(특정_취업자수, 0)) AS avg_취업자수,
-            AVG(ISNULL(알선취업자수, 0)) AS avg_알선취업자수,
-            AVG(ISNULL(조기취업자수, 0)) AS avg_조기취업자수,
-            AVG(ISNULL(고용유지자수, 0)) AS avg_고용유지자수,
-            AVG(ISNULL(나은일자리수, 0)) AS avg_나은일자리수,
-            AVG(ISNULL(취업자점수, 0)) AS avg_취업자점수,
-            AVG(ISNULL(알선취업자점수, 0)) AS avg_알선취업자점수,
-            AVG(ISNULL(조기취업자점수, 0)) AS avg_조기취업자점수,
-            AVG(ISNULL(고용유지취업자점수, 0)) AS avg_고용유지취업자점수,
-            AVG(ISNULL(나은일자리취업자점수, 0)) AS avg_나은일자리취업자점수,
-            AVG(ISNULL(총점, 0)) AS avg_총점,
-            -- 표준편차
-            NULLIF(STDEV(ISNULL(특정_취업자수, 0)), 0) AS std_취업자수,
-            NULLIF(STDEV(ISNULL(알선취업자수, 0)), 0) AS std_알선취업자수,
-            NULLIF(STDEV(ISNULL(조기취업자수, 0)), 0) AS std_조기취업자수,
-            <choose>
-                <when test="dashboardExcludeRetention">
-                    NULLIF(STDEV(ISNULL(고용유지자수, 0)), 0) AS std_고용유지자수,
-                    NULLIF(STDEV(ISNULL(고용유지취업자점수, 0)), 0) AS std_고용유지취업자점수,
-                </when>
-                <otherwise>
-                    0 AS std_고용유지자수,
-                    0 AS std_고용유지취업자점수,
-                </otherwise>
-            </choose>
-            NULLIF(STDEV(ISNULL(나은일자리수, 0)), 0) AS std_나은일자리수,
-            NULLIF(STDEV(ISNULL(취업자점수, 0)), 0) AS std_취업자점수,
-            NULLIF(STDEV(ISNULL(알선취업자점수, 0)), 0) AS std_알선취업자점수,
-            NULLIF(STDEV(ISNULL(조기취업자점수, 0)), 0) AS std_조기취업자점수,
-            NULLIF(STDEV(ISNULL(나은일자리취업자점수, 0)), 0) AS std_나은일자리취업자점수,
-            NULLIF(STDEV(ISNULL(총점, 0)), 0) AS std_총점
-        FROM 점수_합계
-        WHERE 지점 NOT IN ('성남', '인천')
-        ),
-        -- 표준화 점수 계산 (이중 NULLIF 방지 및 기본값 설정)
-        표준화_점수 AS (
-        SELECT
-            P.*,
-            S.*,
-            -- 표준화 점수 계산 (ISNULL과 NULLIF 조합으로 완전한 오류 방지)
-            ROUND(ISNULL(((30 * 0.05) * (ISNULL(P.취업자점수, 0) - ISNULL(S.avg_취업자점수, 0)) / ISNULL(S.std_취업자점수, 1)) + (30 * 0.5), 15), 2) AS 표준취업자점수,
-            ROUND(ISNULL(((25 * 0.05) * (ISNULL(P.알선취업자점수, 0) - ISNULL(S.avg_알선취업자점수, 0)) / ISNULL(S.std_알선취업자점수, 1)) + (25 * 0.5), 12.5), 2) AS 표준알선취업자점수,
-            ROUND(ISNULL(((10 * 0.05) * (ISNULL(P.조기취업자점수, 0) - ISNULL(S.avg_조기취업자점수, 0)) / ISNULL(S.std_조기취업자점수, 1)) + (10 * 0.5), 5), 2) AS 표준조기취업자점수,
-            ROUND(ISNULL(((15 * 0.05) * (ISNULL(P.고용유지취업자점수, 0) - ISNULL(S.avg_고용유지취업자점수, 0)) / ISNULL(S.std_고용유지취업자점수, 1)) + (15 * 0.5), 7.5), 2) AS 표준고용유지점수,
-            ROUND(ISNULL(((10 * 0.05) * (ISNULL(P.나은일자리취업자점수, 0) - ISNULL(S.avg_나은일자리취업자점수, 0)) / ISNULL(S.std_나은일자리취업자점수, 1)) + (10 * 0.5), 5), 2) AS 표준나은일자리취업점수,
-            -- 수량 기준 표준화 점수
-            ROUND(ISNULL(((30 * 0.05) * (ISNULL(P.특정_취업자수, 0) - ISNULL(S.avg_취업자수, 0)) / ISNULL(S.std_취업자수, 1)) + (30 * 0.5), 15), 2) AS 취업자수점수,
-            ROUND(ISNULL(((25 * 0.05) * (ISNULL(P.알선취업자수, 0) - ISNULL(S.avg_알선취업자수, 0)) / ISNULL(S.std_알선취업자수, 1)) + (25 * 0.5), 12.5), 2) AS 알선취업자수점수,
-            ROUND(ISNULL(((10 * 0.05) * (ISNULL(P.조기취업자수, 0) - ISNULL(S.avg_조기취업자수, 0)) / ISNULL(S.std_조기취업자수, 1)) + (10 * 0.5), 5), 2) AS 조기취업자수점수,
-            ROUND(ISNULL(((15 * 0.05) * (ISNULL(P.고용유지자수, 0) - ISNULL(S.avg_고용유지자수, 0)) / ISNULL(S.std_고용유지자수, 1)) + (15 * 0.5), 7.5), 2) AS 고용유지자수점수,
-            ROUND(ISNULL(((10 * 0.05) * (ISNULL(P.나은일자리수, 0) - ISNULL(S.avg_나은일자리수, 0)) / ISNULL(S.std_나은일자리수, 1)) + (10 * 0.5), 5), 2) AS 나은일자리취업자수점수
-        FROM
-            점수_합계 P
-        CROSS JOIN EvaluationViewCTE_통계_계산 S
-        ),
-        DynamicViewResult AS (
-            -- 최종 결과 출력 (가중치 소수점 값 그대로 유지)
+    ),
+    표준화_점수 AS (
+        /* 6. Z-Score 표준화 */
+        SELECT P.*,
+            ROUND(ISNULL(((30 * 0.05) * (P.취업자점수 - S.avg_취업자점수) / NULLIF(S.std_취업자점수, 0)) + 15, 15), 2) AS 표준취업자점수,
+            ROUND(ISNULL(((30 * 0.05) * (P.특정_취업자수 - S.avg_취업자수) / NULLIF(S.std_취업자수, 0)) + 15, 15), 2) AS 취업자수점수,
+            ROUND(ISNULL(((25 * 0.05) * (P.알선취업자점수 - S.avg_알선취업자점수) / NULLIF(S.std_알선취업자점수, 0)) + 12.5, 12.5), 2) AS 표준알선취업자점수,
+            ROUND(ISNULL(((25 * 0.05) * (P.알선취업자수 - S.avg_알선취업자수) / NULLIF(S.std_알선취업자수, 0)) + 12.5, 12.5), 2) AS 알선취업자수점수,
+            ROUND(ISNULL(((10 * 0.05) * (P.조기취업자점수 - S.avg_조기취업자점수) / NULLIF(S.std_조기취업자점수, 0)) + 5, 5), 2) AS 표준조기취업자점수,
+            ROUND(ISNULL(((10 * 0.05) * (P.조기취업자수 - S.avg_조기취업자수) / NULLIF(S.std_조기취업자수, 0)) + 5, 5), 2) AS 조기취업자수점수,
+            ROUND(ISNULL(((15 * 0.05) * (P.고용유지취업자점수 - S.avg_고용유지취업자점수) / NULLIF(S.std_고용유지취업자점수, 0)) + 7.5, 7.5), 2) AS 표준고용유지점수,
+            ROUND(ISNULL(((15 * 0.05) * (P.고용유지자수 - S.avg_고용유지자수) / NULLIF(S.std_고용유지자수, 0)) + 7.5, 7.5), 2) AS 고용유지자수점수,
+            ROUND(ISNULL(((10 * 0.05) * (P.나은일자리취업자점수 - S.avg_나은일자리취업자점수) / NULLIF(S.std_나은일자리취업자점수, 0)) + 5, 5), 2) AS 표준나은일자리점수,
+            ROUND(ISNULL(((10 * 0.05) * (P.나은일자리수 - S.avg_나은일자리수) / NULLIF(S.std_나은일자리수, 0)) + 5, 5), 2) AS 나은일자리수점수
+        FROM 점수_계산 P CROSS JOIN (
             SELECT
-                B.지점,
-                B.이름,
-                B.아이디 AS 전담자_계정,
-                ISNULL(A.종료자수,0) AS 종료자수,
-                --- 가중치 계산으로 인한 소수점 값 그대로 출력
-                ISNULL(A.취업자만,0) AS 취업자만,
-                ISNULL(A.특정_취업자수,0) AS 취업자수,
-                ISNULL(A.특정계층취업자수,0) AS 특정계층취업자수,
-                CASE
-                    WHEN ISNULL(A.취업률,0) >= 100 THEN 100.00
-                    ELSE ISNULL(A.취업률,0)
-                    END AS 취업률,
-                ROUND(CASE WHEN ISNULL(A.특정_취업자수, 0) > 0
-                    THEN ISNULL(A.취업자점수, 0) / NULLIF(A.특정_취업자수, 0)
-                    ELSE 0 END, 2) AS 인당취업자점수,
-                ISNULL(A.알선취업자수,0) AS 알선취업자수,
-                -- 가중치 소수점 값 유지
-                ISNULL(A.알선취업률,0) AS 알선취업률,
-                ROUND(CASE WHEN ISNULL(A.알선취업자수, 0) > 0
-                    THEN ISNULL(A.알선취업자점수, 0) / NULLIF(A.알선취업자수, 0)
-                    ELSE 0 END, 2) AS 인당알선취업자수,
-                ISNULL(A.조기취업자수,0) AS 조기취업자수,
-                -- 가중치 소수점 값 유지
-                ISNULL(A.조기취업률,0) AS 조기취업률,
-                ROUND(CASE WHEN ISNULL(A.조기취업자수, 0) > 0
-                    THEN ISNULL(A.조기취업자점수, 0) / NULLIF(A.조기취업자수, 0)
-                    ELSE 0 END, 2) AS 인당조기취업자수,
-                ISNULL(A.고용유지자수,0) AS 고용유지자수,
-                -- 가중치 소수점 값 유지
-                ISNULL(A.고용유지취업률,0) AS 고용유지취업률,
-                ROUND(CASE WHEN ISNULL(A.고용유지자수, 0) > 0
-                    THEN ISNULL(A.고용유지취업자점수, 0) / NULLIF(A.고용유지자수, 0)
-                    ELSE 0 END, 2) AS 인당고용유지점수,
-                ISNULL(A.나은일자리수,0) AS 나은일자리수,
-                -- 가중치 소수점 값 유지
-                ISNULL(A.나은일자리취업률,0) AS 나은일자리취업률,
-                ROUND(CASE WHEN ISNULL(A.나은일자리수, 0) > 0
-                    THEN ISNULL(A.나은일자리취업자점수, 0) / NULLIF(A.나은일자리수, 0)
-                    ELSE 0 END, 2) AS 인당나은일자리점수,
-                -- 가중 점수 계산 (최대값 제한 포함, 안전한 계산)
-                CASE
-                    WHEN ROUND((ISNULL(A.표준취업자점수, 15) * 0.8) + (ISNULL(A.취업자수점수, 15) * 0.2), 2) > 30
-                        THEN 30.00
-                    ELSE ROUND((ISNULL(A.표준취업자점수, 15) * 0.8) + (ISNULL(A.취업자수점수, 15) * 0.2), 2)
-                    END AS 가중취업자점수,
-                CASE
-                    WHEN ROUND((ISNULL(A.표준알선취업자점수, 12.5) * 0.8) + (ISNULL(A.알선취업자수점수, 12.5) * 0.2), 2) > 25
-                        THEN 25.00
-                    ELSE ROUND((ISNULL(A.표준알선취업자점수, 12.5) * 0.8) + (ISNULL(A.알선취업자수점수, 12.5) * 0.2), 2)
-                    END AS 가중알선취업자점수,
-                CASE
-                    WHEN ROUND((ISNULL(A.표준조기취업자점수, 5) * 0.8) + (ISNULL(A.조기취업자수점수, 5) * 0.2), 2) > 10
-                        THEN 10.00
-                    ELSE ROUND((ISNULL(A.표준조기취업자점수, 5) * 0.8) + (ISNULL(A.조기취업자수점수, 5) * 0.2), 2)
-                    END AS 가중조기취업자점수,
-                CASE
-                    WHEN ROUND((ISNULL(A.표준고용유지점수, 7.5) * 0.8) + (ISNULL(A.고용유지자수점수, 7.5) * 0.2), 2) > 15
-                        THEN 15.00
-                    ELSE ROUND((ISNULL(A.표준고용유지점수, 7.5) * 0.8) + (ISNULL(A.고용유지자수점수, 7.5) * 0.2), 2)
-                    END AS 가중고용취업자점수,
-                CASE
-                    WHEN ROUND((ISNULL(A.표준나은일자리취업점수, 5) * 0.8) + (ISNULL(A.나은일자리취업자수점수, 5) * 0.2), 2) > 10
-                        THEN 10.00
-                    ELSE ROUND((ISNULL(A.표준나은일자리취업점수, 5) * 0.8) + (ISNULL(A.나은일자리취업자수점수, 5) * 0.2), 2)
-                    END AS 가중나은취업자점수,
-            -- 총점 계산 (안전한 NULL 처리)
-                ROUND(
-            CASE
-                WHEN ROUND((ISNULL(A.표준취업자점수, 15) * 0.8) + (ISNULL(A.취업자수점수, 15) * 0.2), 2) > 30
-                    THEN 30.00
-                ELSE ROUND((ISNULL(A.표준취업자점수, 15) * 0.8) + (ISNULL(A.취업자수점수, 15) * 0.2), 2) END +
-            CASE
-                WHEN ROUND((ISNULL(A.표준알선취업자점수, 12.5) * 0.8) + (ISNULL(A.알선취업자수점수, 12.5) * 0.2), 2) > 25
-                    THEN 25.00
-                ELSE ROUND((ISNULL(A.표준알선취업자점수, 12.5) * 0.8) + (ISNULL(A.알선취업자수점수, 12.5) * 0.2), 2) END +
-            CASE
-                WHEN ROUND((ISNULL(A.표준조기취업자점수, 5) * 0.8) + (ISNULL(A.조기취업자수점수, 5) * 0.2), 2) > 10
-                    THEN 10.00
-                ELSE ROUND((ISNULL(A.표준조기취업자점수, 5) * 0.8) + (ISNULL(A.조기취업자수점수, 5) * 0.2), 2) END +
-            CASE
-                WHEN ROUND((ISNULL(A.표준고용유지점수, 7.5) * 0.8) + (ISNULL(A.고용유지자수점수, 7.5) * 0.2), 2) > 15
-                    THEN 15.00
-                ELSE ROUND((ISNULL(A.표준고용유지점수, 7.5) * 0.8) + (ISNULL(A.고용유지자수점수, 7.5) * 0.2), 2) END +
-            CASE
-                WHEN ROUND((ISNULL(A.표준나은일자리취업점수, 5) * 0.8) + (ISNULL(A.나은일자리취업자수점수, 5) * 0.2), 2) > 10
-                    THEN 10.00
-                ELSE ROUND((ISNULL(A.표준나은일자리취업점수, 5) * 0.8) + (ISNULL(A.나은일자리취업자수점수, 5) * 0.2), 2) END
-            , 2) AS 총점
-            FROM
-                표준화_점수 A
-            RIGHT JOIN J_참여자관리_로그인정보 B
-                ON A.전담자_계정 = B.아이디
-            WHERE
-                B.지점 NOT IN ('공통', '테스트') AND (B.이름 NOT LIKE '%퇴사자%' OR B.이름 IS NULL)
-            )
-    </sql>
-
+                AVG(특정_취업자수) AS avg_취업자수, STDEV(특정_취업자수) AS std_취업자수,
+                AVG(알선취업자수) AS avg_알선취업자수, STDEV(알선취업자수) AS std_알선취업자수,
+                AVG(조기취업자수) AS avg_조기취업자수, STDEV(조기취업자수) AS std_조기취업자수,
+                AVG(고용유지자수) AS avg_고용유지자수, STDEV(고용유지자수) AS std_고용유지자수,
+                AVG(나은일자리수) AS avg_나은일자리수, STDEV(나은일자리수) AS std_나은일자리수,
+                AVG(취업자점수) AS avg_취업자점수, STDEV(취업자점수) AS std_취업자점수,
+                AVG(알선취업자점수) AS avg_알선취업자점수, STDEV(알선취업자점수) AS std_알선취업자점수,
+                AVG(조기취업자점수) AS avg_조기취업자점수, STDEV(조기취업자점수) AS std_조기취업자점수,
+                AVG(고용유지취업자점수) AS avg_고용유지취업자점수, STDEV(고용유지취업자점수) AS std_고용유지취업자점수,
+                AVG(나은일자리취업자점수) AS avg_나은일자리취업자점수, STDEV(나은일자리취업자점수) AS std_나은일자리취업자점수
+            FROM 점수_계산 WHERE 지점 NOT IN ('성남', '인천')
+        ) S
+    ),
+    DynamicViewResult_Capping AS (
+        /* 7. 가중치 합산 및 인당 점수 산출 */
+        SELECT
+            B.지점, B.이름, B.아이디 AS 전담자_계정,
+            ISNULL(A.종료자수, 0) AS 종료자수,
+            ISNULL(A.특정_취업자수, 0) AS 취업자수,
+            ISNULL(A.취업자만, 0) AS 취업자만,
+            ISNULL(A.특정계층취업자수, 0) AS 특정계층취업자수,
+            ISNULL(A.취업률, 0) AS 취업률,
+            ROUND(ISNULL(A.취업자점수 / NULLIF(A.특정_취업자수, 0), 0), 2) AS 인당취업자점수,
+            ISNULL(A.알선취업자수, 0) AS 알선취업자수,
+            ISNULL(A.알선취업률, 0) AS 알선취업률,
+            ROUND(ISNULL(A.알선취업자점수 / NULLIF(A.알선취업자수, 0), 0), 2) AS 인당알선취업자수,
+            ISNULL(A.조기취업자수, 0) AS 조기취업자수,
+            ISNULL(A.조기취업률, 0) AS 조기취업률,
+            ROUND(ISNULL(A.조기취업자점수 / NULLIF(A.조기취업자수, 0), 0), 2) AS 인당조기취업자수,
+            ISNULL(A.고용유지자수, 0) AS 고용유지자수,
+            ISNULL(A.고용유지취업률, 0) AS 고용유지취업률,
+            ROUND(ISNULL(A.고용유지취업자점수 / NULLIF(A.고용유지자수, 0), 0), 2) AS 인당고용유지점수,
+            ISNULL(A.나은일자리수, 0) AS 나은일자리수,
+            ISNULL(A.나은일자리취업률, 0) AS 나은일자리취업률,
+            ROUND(ISNULL(A.나은일자리취업자점수 / NULLIF(A.나은일자리수, 0), 0), 2) AS 인당나은일자리점수,
+            CASE WHEN (ISNULL(표준취업자점수, 15)*0.8 + ISNULL(취업자수점수, 15)*0.2) <![CDATA[>]]> 30 THEN 30.00 ELSE ROUND(ISNULL(표준취업자점수, 15)*0.8 + ISNULL(취업자수점수, 15)*0.2, 2) END AS 가중취업자점수,
+            CASE WHEN (ISNULL(표준알선취업자점수, 12.5)*0.8 + ISNULL(알선취업자수점수, 12.5)*0.2) <![CDATA[>]]> 25 THEN 25.00 ELSE ROUND(ISNULL(표준알선취업자점수, 12.5)*0.8 + ISNULL(알선취업자수점수, 12.5)*0.2, 2) END AS 가중알선취업자점수,
+            CASE WHEN (ISNULL(표준조기취업자점수, 5)*0.8 + ISNULL(조기취업자수점수, 5)*0.2) <![CDATA[>]]> 10 THEN 10.00 ELSE ROUND(ISNULL(표준조기취업자점수, 5)*0.8 + ISNULL(조기취업자수점수, 5)*0.2, 2) END AS 가중조기취업자점수,
+            CASE WHEN (ISNULL(표준고용유지점수, 7.5)*0.8 + ISNULL(고용유지자수점수, 7.5)*0.2) <![CDATA[>]]> 15 THEN 15.00 ELSE ROUND(ISNULL(표준고용유지점수, 7.5)*0.8 + ISNULL(고용유지자수점수, 7.5)*0.2, 2) END AS 가중고용취업자점수,
+            CASE WHEN (ISNULL(표준나은일자리점수, 5)*0.8 + ISNULL(나은일자리수점수, 5)*0.2) <![CDATA[>]]> 10 THEN 10.00 ELSE ROUND(ISNULL(표준나은일자리점수, 5)*0.8 + ISNULL(나은일자리수점수, 5)*0.2, 2) END AS 가중나은취업자점수,
+            ISNULL(A.서비스미제공_합계, 0) AS 서비스미제공_건수, ISNULL(A.미해당_합계, 0) AS 미해당_건수, ISNULL(A.해당_합계, 0) AS 해당_건수
+        FROM J_참여자관리_로그인정보 B
+        LEFT JOIN 표준화_점수 A ON A.전담자_계정 = B.아이디
+        WHERE B.지점 NOT IN ('공통', '테스트') AND (B.이름 NOT LIKE '%퇴사자%' OR B.이름 IS NULL)
+    ),
+    DynamicViewResult AS (
+        /* 8. 최종 합계 산출 */
+        SELECT *,
+            ROUND(가중취업자점수 + 가중알선취업자점수 + 가중조기취업자점수 + 가중고용취업자점수 + 가중나은취업자점수, 2) AS 총점
+        FROM DynamicViewResult_Capping
+    )
+</sql>
+    <!-- 실적관리 CTE SQL 태그 끝 -->
 
     <!-- Main DashBoard 시작 -->
     <select id="myKPIDashboard" resultType="dashboard">
@@ -468,14 +287,14 @@
             SELECT
                 A.지점,
                 A.전담자_계정,
-                ISNULL(SUM(A.종료자_플래그 * A.평가대상_플래그), 0) 종료자수,
-                ISNULL(SUM(A.종료자_플래그 * A.취업자_플래그 * A.평가대상_플래그), 0) 취업자수,
-                ISNULL(SUM(A.종료자_플래그 * A.알선취업_플래그 * A.취업자_플래그 * A.평가대상_플래그), 0) 알선취업자수,
-                ISNULL(SUM(A.종료자_플래그 * A.조기취업_플래그 * A.취업자_플래그 * A.평가대상_플래그), 0) 조기취업자수,
-                ISNULL(SUM(A.종료자_플래그 * A.나은일자리_플래그 * A.취업자_플래그 * A.평가대상_플래그), 0) 나은일자리수,
-                ISNULL(SUM(A.종료자_플래그 * A.서비스미제공 * A.평가대상_플래그), 0) 서비스미제공,
-                ISNULL(SUM(A.종료자_플래그 * A.미해당 * A.평가대상_플래그), 0) 미해당,
-                ISNULL(SUM(A.종료자_플래그 * A.해당 * A.평가대상_플래그), 0) 해당,
+                ISNULL(SUM(A.종료_F * A.대상_F), 0) 종료자수,
+                ISNULL(SUM(A.종료_F * A.취업_F * A.대상_F), 0) 취업자수,
+                ISNULL(SUM(A.종료_F * A.알선_F * A.취업_F * A.대상_F), 0) 알선취업자수,
+                ISNULL(SUM(A.종료_F * A.조기_F * A.취업_F * A.대상_F), 0) 조기취업자수,
+                ISNULL(SUM(A.종료_F * A.나은일자리_F * A.취업_F * A.대상_F), 0) 나은일자리수,
+                ISNULL(SUM(A.종료_F * A.서비스미제공 * A.대상_F), 0) 서비스미제공,
+                ISNULL(SUM(A.종료_F * A.미해당 * A.대상_F), 0) 미해당,
+                ISNULL(SUM(A.종료_F * A.해당 * A.대상_F), 0) 해당,
                 ISNULL(B.배정인원, 0) 배정인원수
             FROM
                 나은일자리_판정 A
@@ -575,7 +394,7 @@
             ISNULL(SUM(IIF(전담자_계정 = #{dashboardUserID} AND 지점 = #{dashboardBranch}, CONVERT(BIGINT, 인센티브), 0)),0) AS dashBoardSuccessMoneyUserIncentive
         FROM SUCCESSMONEY
         WHERE
-            실제종료일 <![CDATA[>=]]> #{dashBoardStartDate} AND 실제종료일 <![CDATA[<=]]> #{dashBoardEndDate}
+            실제종료일 <![CDATA[>=]]> #{dashBoardStartDate, jdbcType=DATE} AND 실제종료일 <![CDATA[<=]]> #{dashBoardEndDate, jdbcType=DATE}
     </select>
     <!--  AND YEAR(IIF(초기상담일 = '1900-01-01', 등록일, ISNULL(초기상담일, ''))) = #{dashBoardYear};
     성공금 데이터 추출 끝 -->
@@ -692,9 +511,9 @@
     <!-- 지점 관리자 대시보드 지점별 성공금 현황 시작 -->
     <select id="selectBranchManagementMoney" resultType="dashboard">
         SELECT ISNULL(A.지점, '전체 지점')                                     AS dashboardBranch,
-               ISNULL(SUM(IIF(취창업일 <![CDATA[>=]]> DATEADD(YEAR, -1, #{dashBoardStartDate}) AND 취창업일 <![CDATA[<=]]> DATEADD(YEAR, -1, #{dashBoardEndDate}),
+               ISNULL(SUM(IIF(취창업일 <![CDATA[>=]]> DATEADD(YEAR, -1, #{dashBoardStartDate, jdbcType=DATE}) AND 취창업일 <![CDATA[<=]]> DATEADD(YEAR, -1, #{dashBoardEndDate, jdbcType=DATE}),
                               ISNULL(CONVERT(BIGINT, 성공금), 0), 0)),0) AS lastYearMoney,
-               ISNULL(SUM(IIF(취창업일 <![CDATA[>=]]> #{dashBoardStartDate} AND 취창업일 <![CDATA[<=]]> #{dashBoardEndDate},
+               ISNULL(SUM(IIF(취창업일 <![CDATA[>=]]> #{dashBoardStartDate, jdbcType=DATE} AND 취창업일 <![CDATA[<=]]> #{dashBoardEndDate, jdbcType=DATE},
                               ISNULL(CONVERT(BIGINT, 성공금), 0), 0)), 0) AS currentYearMoney
         FROM SUCCESSMONEY A
                  RIGHT JOIN J_참여자관리_지점 B
@@ -717,7 +536,7 @@
                 RIGHT JOIN J_참여자관리_지점 B
                            ON A.지점 = B.지점
         WHERE A.지점 <![CDATA[<>]]> '테스트' AND
-            취창업일 <![CDATA[>=]]> #{dashBoardStartDate} AND 취창업일 <![CDATA[<=]]> #{dashBoardEndDate}
+            취창업일 <![CDATA[>=]]> #{dashBoardStartDate, jdbcType=DATE} AND 취창업일 <![CDATA[<=]]> #{dashBoardEndDate, jdbcType=DATE}
         GROUP BY A.지점 WITH ROLLUP
         ORDER BY IIF(A.지점 IS NULL, 0, 1);
     </select>
@@ -739,8 +558,8 @@
                             ON A.지점 = B.지점
         WHERE
             A.지점 <![CDATA[<>]]> '테스트' AND
-            A.취창업일 <![CDATA[>=]]> #{dashBoardStartDate}
-          AND A.취창업일 <![CDATA[<=]]> #{dashBoardEndDate}
+            A.취창업일 <![CDATA[>=]]> #{dashBoardStartDate, jdbcType=DATE}
+          AND A.취창업일 <![CDATA[<=]]> #{dashBoardEndDate, jdbcType=DATE}
           AND B.사업부 <![CDATA[<>]]> ''
           AND A.취업인센티브_구분 LIKE '%미해당%'
         GROUP BY B.사업부 WITH ROLLUP
@@ -761,7 +580,7 @@
             J_참여자관리_로그인정보 B
             ON A.전담자_계정 = B.아이디
         WHERE
-            A.취창업일 <![CDATA[>=]]> #{dashBoardStartDate} AND A.취창업일 <![CDATA[<=]]> #{dashBoardEndDate}
+            A.취창업일 <![CDATA[>=]]> #{dashBoardStartDate, jdbcType=DATE} AND A.취창업일 <![CDATA[<=]]> #{dashBoardEndDate, jdbcType=DATE}
           AND A.지점 = #{dashboardBranch}
         GROUP BY A.지점,B.이름
     </select>
@@ -782,7 +601,7 @@
                  RIGHT JOIN J_참여자관리_지점 B
                             ON A.지점 = B.지점
         WHERE
-            A.취창업일 <![CDATA[>=]]> #{dashBoardStartDate} AND A.취창업일 <![CDATA[<=]]> #{dashBoardEndDate}
+            A.취창업일 <![CDATA[>=]]> #{dashBoardStartDate, jdbcType=DATE} AND A.취창업일 <![CDATA[<=]]> #{dashBoardEndDate, jdbcType=DATE}
           AND A.지점 <![CDATA[<>]]> '테스트'
           AND B.사업부 <![CDATA[<>]]> '' AND B.사업부 <![CDATA[=]]> #{businessUnit}
           AND A.취업인센티브_구분 LIKE '%미해당%'

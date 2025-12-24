@@ -685,6 +685,10 @@
         $loadingDiv.show().html('<div class="modern-loader-text">실적 정보를 불러오는 중입니다</div><div class="loader"></div>');
         const excludeRetention = $('#excludeRetentionRadio'); //고용유지 포함여부
         let isExcludeRetention = !excludeRetention.is(':checked');
+
+        let dashBoardStartDate = $('#dashBoardStartDate').val();
+        let dashBoardEndDate = $('#dashBoardEndDate').val();
+
         console.log("isExcludeRetention :[" +isExcludeRetention+"]")
         //여러번 클릭하는 것을 방지하기 위해 flag 설정으로 확인 후 반환한다.
         if(!disableFlag){
@@ -702,6 +706,8 @@
             body: JSON.stringify({
                 dashboardBranch:data,
                 dashboardCondition: chartFlag,
+                dashBoardStartDate: dashBoardStartDate,
+                dashBoardEndDate: dashBoardEndDate,
                 dashboardExcludeRetention: isExcludeRetention //고용유지 포함 여부확인
             })
         }).then(async response => {
@@ -709,7 +715,7 @@
             let data = await response.json();
 
             // JSON 데이터 수정
-            data = JSON.parse(data);
+            // data = JSON.parse(data);
             console.log(data);
             changeDataAVG(data);
             changeDataUser(data);

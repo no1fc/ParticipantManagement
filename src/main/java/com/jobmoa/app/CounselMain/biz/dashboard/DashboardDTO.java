@@ -1,8 +1,11 @@
 package com.jobmoa.app.CounselMain.biz.dashboard;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DashboardDTO {
     private String dashboardUserID; //전담자 아이디
     private String dashboardBranch; //지점
@@ -178,7 +181,9 @@ public class DashboardDTO {
     private double avgBetterJobRateMiddle; // 나은일자리 취업률
 
     //메인 대시보드 관리자 권한, 지점 관리자 권한 확인용 변수
+    @JsonProperty("isManagement")
     private boolean isManagement;
+    @JsonProperty("isBranchManagement")
     private boolean isBranchManagement;
 
     //필터 관련 설정
