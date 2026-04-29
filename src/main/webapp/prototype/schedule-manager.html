@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지점 일정 통합 조회 - Jobmoa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --header-height: 56px;
+            --primary: #0d6efd;
+            --light-bg: #f4f6f9;
+        }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--light-bg); }
+
+        .sidebar {
+            position: fixed; top: 0; left: 0; bottom: 0;
+            width: var(--sidebar-width); background: #343a40; color: #c2c7d0;
+            z-index: 1030; overflow-y: auto;
+        }
+        .sidebar .brand { height: var(--header-height); display: flex; align-items: center; padding: 0 16px; background: #2c3136; }
+        .sidebar .brand h5 { color: #fff; margin: 0; font-size: 1.1rem; }
+        .sidebar .nav-section { padding: 8px 0; }
+        .sidebar .nav-section .section-title { padding: 8px 16px; font-size: 0.75rem; text-transform: uppercase; color: #868e96; }
+        .sidebar .nav-item a {
+            display: flex; align-items: center; padding: 10px 16px; color: #c2c7d0;
+            text-decoration: none; font-size: 0.9rem; transition: background 0.2s;
+        }
+        .sidebar .nav-item a:hover, .sidebar .nav-item a.active { background: #494e53; color: #fff; }
+        .sidebar .nav-item a i { margin-right: 10px; font-size: 1.1rem; }
+
+        .main-header {
+            position: fixed; top: 0; left: var(--sidebar-width); right: 0;
+            height: var(--header-height); background: #fff; border-bottom: 1px solid #dee2e6;
+            display: flex; align-items: center; padding: 0 20px; z-index: 1020;
+        }
+        .main-header .breadcrumb { margin: 0; font-size: 0.85rem; }
+
+        .content-wrapper {
+            margin-left: var(--sidebar-width); margin-top: var(--header-height);
+            padding: 20px; min-height: calc(100vh - var(--header-height));
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            background: #fff; border-radius: 8px; padding: 16px; margin-bottom: 16px;
+            box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+            display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+        }
+        .filter-bar .filter-label { font-weight: 600; font-size: 0.9rem; color: #495057; white-space: nowrap; }
+        .filter-bar .counselor-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+        .counselor-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 12px; border-radius: 20px; font-size: 0.85rem;
+            cursor: pointer; border: 2px solid transparent; transition: all 0.2s;
+            user-select: none;
+        }
+        .counselor-chip.active { opacity: 1; }
+        .counselor-chip.inactive { opacity: 0.35; }
+        .counselor-chip .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .counselor-chip input { display: none; }
+
+        /* Legend */
+        .legend-bar {
+            background: #fff; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;
+            box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+            display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+        }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+        /* Calendar */
+        #calendar {
+            background: #fff; border-radius: 8px; padding: 16px;
+            box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+        }
+        .fc .fc-toolbar-title { font-size: 1.2rem; }
+        .fc .fc-button-primary { background-color: var(--primary); border-color: var(--primary); }
+        .fc .fc-daygrid-event { cursor: pointer; border-radius: 4px; padding: 2px 4px; }
+
+        /* Stats Cards */
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 16px; }
+        .stat-card {
+            background: #fff; border-radius: 8px; padding: 16px; text-align: center;
+            box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+        }
+        .stat-card .stat-number { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
+        .stat-card .stat-label { font-size: 0.8rem; color: #6c757d; margin-top: 4px; }
+
+        /* Detail Popup */
+        .detail-popup {
+            position: fixed; z-index: 1050; background: #fff; border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.15); width: 320px; display: none;
+        }
+        .detail-popup.show { display: block; }
+        .detail-popup .popup-header {
+            padding: 12px 16px; border-bottom: 1px solid #dee2e6;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .detail-popup .popup-body { padding: 12px 16px; }
+        .detail-popup .popup-row { display: flex; padding: 6px 0; font-size: 0.875rem; }
+        .detail-popup .popup-label { width: 70px; color: #6c757d; flex-shrink: 0; }
+        .detail-popup .popup-value { flex: 1; }
+        .badge-schedule { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; }
+        .badge-face { background: #d4edda; color: #155724; }
+        .badge-phone { background: #cce5ff; color: #004085; }
+        .badge-video { background: #fff3cd; color: #856404; }
+        .badge-etc { background: #e2e3e5; color: #383d41; }
+
+        .page-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .page-actions h4 { margin: 0; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+    <div class="brand"><h5><i class="bi bi-briefcase-fill me-2"></i>Jobmoa</h5></div>
+    <div class="nav-section">
+        <div class="section-title">메뉴</div>
+        <div class="nav-item"><a href="#"><i class="bi bi-speedometer2"></i>대시보드</a></div>
+        <div class="nav-item"><a href="#"><i class="bi bi-people"></i>참여자 관리</a></div>
+        <div class="nav-item"><a href="#" class="active"><i class="bi bi-calendar-event"></i>상담 일정</a></div>
+        <div class="nav-item"><a href="#"><i class="bi bi-journal-text"></i>상담일지</a></div>
+        <div class="nav-item"><a href="#"><i class="bi bi-building"></i>채용정보</a></div>
+        <div class="nav-item"><a href="#"><i class="bi bi-bar-chart"></i>통계/보고서</a></div>
+        <div class="nav-item"><a href="#"><i class="bi bi-gear"></i>관리자 설정</a></div>
+    </div>
+</aside>
+
+<!-- Header -->
+<header class="main-header">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#" class="text-decoration-none">홈</a></li>
+            <li class="breadcrumb-item active">지점 일정 통합 조회</li>
+        </ol>
+    </nav>
+    <div class="ms-auto d-flex align-items-center gap-3">
+        <span class="badge bg-info text-dark" style="font-size:0.8rem;">관리자</span>
+        <span class="text-muted" style="font-size:0.85rem;"><i class="bi bi-geo-alt"></i> 남부지점</span>
+        <span class="text-muted" style="font-size:0.85rem;"><i class="bi bi-person"></i> 이관리</span>
+    </div>
+</header>
+
+<!-- Content -->
+<div class="content-wrapper">
+    <div class="page-actions">
+        <h4><i class="bi bi-calendar3 me-2"></i>지점 일정 통합 조회</h4>
+        <div>
+            <select class="form-select form-select-sm d-inline-block" style="width:auto;" id="viewSelect">
+                <option value="dayGridMonth">월간</option>
+                <option value="timeGridWeek">주간</option>
+                <option value="timeGridDay">일간</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-number">4</div>
+            <div class="stat-label">상담사 수</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">18</div>
+            <div class="stat-label">이번 주 일정</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">6</div>
+            <div class="stat-label">오늘 일정</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">72</div>
+            <div class="stat-label">이번 달 일정</div>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="filter-bar">
+        <div class="filter-label"><i class="bi bi-funnel me-1"></i>상담사 필터</div>
+        <div class="counselor-chips" id="counselorChips"></div>
+        <button class="btn btn-outline-secondary btn-sm" id="btnSelectAll">전체 선택</button>
+    </div>
+
+    <!-- Calendar -->
+    <div id="calendar"></div>
+</div>
+
+<!-- Detail Popup -->
+<div class="detail-popup" id="detailPopup">
+    <div class="popup-header">
+        <strong id="popupTitle"></strong>
+        <button class="btn btn-sm p-0" id="closePopup"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="popup-body">
+        <div class="popup-row"><div class="popup-label">상담사</div><div class="popup-value" id="popupCounselor"></div></div>
+        <div class="popup-row"><div class="popup-label">날짜</div><div class="popup-value" id="popupDate"></div></div>
+        <div class="popup-row"><div class="popup-label">시간</div><div class="popup-value" id="popupTime"></div></div>
+        <div class="popup-row"><div class="popup-label">참여자</div><div class="popup-value" id="popupParticipant"></div></div>
+        <div class="popup-row"><div class="popup-label">유형</div><div class="popup-value" id="popupType"></div></div>
+        <div class="popup-row"><div class="popup-label">메모</div><div class="popup-value" id="popupMemo"></div></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script>
+    // Counselor data
+    const counselors = [
+        { id: 'kim01', name: '김상담', color: '#0d6efd' },
+        { id: 'park02', name: '박전담', color: '#dc3545' },
+        { id: 'lee03', name: '이취업', color: '#198754' },
+        { id: 'choi04', name: '최역량', color: '#fd7e14' },
+    ];
+
+    const counselorFilter = {};
+    counselors.forEach(c => counselorFilter[c.id] = true);
+
+    function d(offset, h, m) {
+        const dt = new Date(); dt.setDate(dt.getDate() + offset); dt.setHours(h, m, 0, 0);
+        return dt.toISOString().slice(0, 16);
+    }
+
+    // Dummy schedules for all counselors
+    const allSchedules = [
+        // Kim
+        { id: 1, title: '이민수', start: d(0,10,0), end: d(0,11,0), color: '#0d6efd', extendedProps: { counselorId:'kim01', counselorName:'김상담', type:'대면상담', memo:'IAP 수립' } },
+        { id: 2, title: '박지현', start: d(1,14,0), end: d(1,14,30), color: '#0d6efd', extendedProps: { counselorId:'kim01', counselorName:'김상담', type:'전화상담', memo:'' } },
+        { id: 3, title: '김영호', start: d(2,9,30), end: d(2,10,30), color: '#0d6efd', extendedProps: { counselorId:'kim01', counselorName:'김상담', type:'대면상담', memo:'역량강화' } },
+        { id: 4, title: '최수진', start: d(-1,15,0), end: d(-1,16,0), color: '#0d6efd', extendedProps: { counselorId:'kim01', counselorName:'김상담', type:'화상상담', memo:'초기상담' } },
+        // Park
+        { id: 5, title: '정하늘', start: d(0,9,0), end: d(0,10,0), color: '#dc3545', extendedProps: { counselorId:'park02', counselorName:'박전담', type:'대면상담', memo:'' } },
+        { id: 6, title: '강민재', start: d(0,13,0), end: d(0,14,0), color: '#dc3545', extendedProps: { counselorId:'park02', counselorName:'박전담', type:'대면상담', memo:'집중알선' } },
+        { id: 7, title: '오서연', start: d(1,11,0), end: d(1,12,0), color: '#dc3545', extendedProps: { counselorId:'park02', counselorName:'박전담', type:'전화상담', memo:'' } },
+        { id: 8, title: '윤재호', start: d(3,10,0), end: d(3,11,0), color: '#dc3545', extendedProps: { counselorId:'park02', counselorName:'박전담', type:'대면상담', memo:'' } },
+        // Lee
+        { id: 9,  title: '송미란', start: d(0,11,0), end: d(0,12,0), color: '#198754', extendedProps: { counselorId:'lee03', counselorName:'이취업', type:'대면상담', memo:'취업역량' } },
+        { id: 10, title: '한동우', start: d(1,9,0), end: d(1,10,0), color: '#198754', extendedProps: { counselorId:'lee03', counselorName:'이취업', type:'대면상담', memo:'' } },
+        { id: 11, title: '임수빈', start: d(2,14,0), end: d(2,15,0), color: '#198754', extendedProps: { counselorId:'lee03', counselorName:'이취업', type:'화상상담', memo:'적응상담' } },
+        // Choi
+        { id: 12, title: '장예진', start: d(0,14,0), end: d(0,15,0), color: '#fd7e14', extendedProps: { counselorId:'choi04', counselorName:'최역량', type:'대면상담', memo:'' } },
+        { id: 13, title: '백승훈', start: d(1,16,0), end: d(1,17,0), color: '#fd7e14', extendedProps: { counselorId:'choi04', counselorName:'최역량', type:'전화상담', memo:'취업후' } },
+        { id: 14, title: '노유나', start: d(-1,10,0), end: d(-1,11,0), color: '#fd7e14', extendedProps: { counselorId:'choi04', counselorName:'최역량', type:'대면상담', memo:'' } },
+        { id: 15, title: '문태호', start: d(2,11,0), end: d(2,12,0), color: '#fd7e14', extendedProps: { counselorId:'choi04', counselorName:'최역량', type:'대면상담', memo:'IAP' } },
+    ];
+
+    // Render counselor chips
+    const chipsContainer = document.getElementById('counselorChips');
+    counselors.forEach(c => {
+        const chip = document.createElement('label');
+        chip.className = 'counselor-chip active';
+        chip.style.background = c.color + '20';
+        chip.style.borderColor = c.color;
+        chip.innerHTML = `<input type="checkbox" checked data-id="${c.id}"><span class="dot" style="background:${c.color}"></span>${c.name}`;
+        chip.querySelector('input').addEventListener('change', function() {
+            counselorFilter[c.id] = this.checked;
+            chip.className = 'counselor-chip ' + (this.checked ? 'active' : 'inactive');
+            window._calendar.refetchEvents();
+        });
+        chipsContainer.appendChild(chip);
+    });
+
+    document.getElementById('btnSelectAll').addEventListener('click', function() {
+        const allChecked = Object.values(counselorFilter).every(v => v);
+        counselors.forEach(c => {
+            counselorFilter[c.id] = !allChecked;
+            const cb = chipsContainer.querySelector(`input[data-id="${c.id}"]`);
+            cb.checked = !allChecked;
+            cb.parentElement.className = 'counselor-chip ' + (!allChecked ? 'active' : 'inactive');
+        });
+        window._calendar.refetchEvents();
+    });
+
+    // Calendar
+    document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'ko',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            navLinks: true,
+            dayMaxEvents: 4,
+            events: function(info, success) {
+                const filtered = allSchedules.filter(s => counselorFilter[s.extendedProps.counselorId]);
+                success(filtered);
+            },
+            eventClick: function(info) {
+                showDetailPopup(info.event, info.jsEvent);
+            },
+            height: 'auto'
+        });
+        calendar.render();
+        window._calendar = calendar;
+
+        document.getElementById('viewSelect').addEventListener('change', function() {
+            calendar.changeView(this.value);
+        });
+    });
+
+    // Detail popup
+    const popup = document.getElementById('detailPopup');
+
+    function showDetailPopup(event, jsEvent) {
+        const props = event.extendedProps;
+        document.getElementById('popupTitle').textContent = event.title;
+        document.getElementById('popupCounselor').textContent = props.counselorName;
+        document.getElementById('popupDate').textContent = event.start.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'long' });
+        document.getElementById('popupTime').textContent =
+            event.start.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' }) +
+            (event.end ? ' ~ ' + event.end.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' }) : '');
+        document.getElementById('popupParticipant').textContent = event.title;
+
+        const badgeMap = { '대면상담':'badge-face', '전화상담':'badge-phone', '화상상담':'badge-video', '기타':'badge-etc' };
+        document.getElementById('popupType').innerHTML = `<span class="badge-schedule ${badgeMap[props.type] || 'badge-etc'}">${props.type}</span>`;
+        document.getElementById('popupMemo').textContent = props.memo || '-';
+
+        // Position popup near click
+        let x = jsEvent.clientX + 10;
+        let y = jsEvent.clientY + 10;
+        if (x + 330 > window.innerWidth) x = window.innerWidth - 340;
+        if (y + 250 > window.innerHeight) y = window.innerHeight - 260;
+        popup.style.left = x + 'px';
+        popup.style.top = y + 'px';
+        popup.classList.add('show');
+    }
+
+    document.getElementById('closePopup').addEventListener('click', () => popup.classList.remove('show'));
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.detail-popup') && !e.target.closest('.fc-event')) {
+            popup.classList.remove('show');
+        }
+    });
+</script>
+</body>
+</html>

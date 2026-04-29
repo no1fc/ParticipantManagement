@@ -1,0 +1,244 @@
+/* ===========================
+   GNB 알림 벨 & 드롭다운 스타일
+   =========================== */
+
+/* 알림 벨 아이콘 영역 */
+#gnbNotificationArea .nav-link {
+    position: relative;
+    padding: 0.5rem 0.75rem;
+}
+
+/* 알림 뱃지 */
+#gnbNotifBadge {
+    position: absolute;
+    top: 4px;
+    right: 2px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+    color: #fff;
+    background: var(--brand-danger, #f72585);
+    border-radius: 50px;
+}
+
+/* 벨 흔들림 애니메이션 */
+@keyframes gnbBellRing {
+    0%   { transform: rotate(0deg); }
+    15%  { transform: rotate(14deg); }
+    30%  { transform: rotate(-14deg); }
+    45%  { transform: rotate(10deg); }
+    60%  { transform: rotate(-8deg); }
+    75%  { transform: rotate(4deg); }
+    100% { transform: rotate(0deg); }
+}
+
+.gnb-bell-ringing {
+    animation: gnbBellRing 0.6s ease-in-out;
+    display: inline-block;
+    transform-origin: top center;
+}
+
+/* ===========================
+   알림 드롭다운 패널
+   =========================== */
+.gnb-notification-panel {
+    width: 340px;
+    max-height: 460px;
+    padding: 0;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+}
+
+/* 헤더 */
+.gnb-notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text-main, #2d3748);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    background: #fafafa;
+}
+
+.gnb-notification-header-count {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted, #94a3b8);
+}
+
+/* 알림 목록 컨테이너 */
+#gnbNotificationList {
+    max-height: 340px;
+    overflow-y: auto;
+}
+
+#gnbNotificationList::-webkit-scrollbar {
+    width: 5px;
+}
+
+#gnbNotificationList::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+}
+
+/* 개별 알림 항목 */
+.gnb-notification-item {
+    display: block;
+    padding: 12px 18px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s ease;
+}
+
+.gnb-notification-item:hover {
+    background: rgba(67, 97, 238, 0.05);
+    color: inherit;
+    text-decoration: none;
+}
+
+.gnb-notification-item.unread {
+    background: rgba(67, 97, 238, 0.06);
+    border-left: 3px solid var(--brand-primary, #4361ee);
+}
+
+/* 알림 아이콘 */
+.gnb-notification-icon {
+    font-size: 16px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+/* 알림 참여자명 */
+.gnb-notification-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main, #2d3748);
+}
+
+/* 알림 텍스트 */
+.gnb-notification-text {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-muted, #64748b);
+    word-break: keep-all;
+}
+
+/* 알림 시간 */
+.gnb-notification-time {
+    font-size: 11px;
+    color: var(--text-muted, #94a3b8);
+}
+
+/* 빈 알림 */
+.gnb-notification-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted, #94a3b8);
+    font-size: 14px;
+}
+
+/* 하단 푸터 */
+.gnb-notification-footer {
+    display: block;
+    padding: 10px 18px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--brand-primary, #4361ee);
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    background: #fafafa;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.gnb-notification-footer:hover {
+    background: rgba(67, 97, 238, 0.05);
+    color: var(--brand-secondary, #3f37c9);
+    text-decoration: none;
+}
+
+/* ===========================
+   토스트 알림
+   =========================== */
+.gnb-toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.gnb-toast {
+    pointer-events: auto;
+    background: #fff;
+    border-radius: 10px;
+    padding: 14px 18px;
+    min-width: 280px;
+    max-width: 380px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    animation: gnbToastSlideIn 0.3s ease-out;
+    border-left: 4px solid #ccc;
+}
+
+.gnb-toast-success { border-left-color: var(--bs-success, #198754); }
+.gnb-toast-error   { border-left-color: var(--brand-danger, #f72585); }
+.gnb-toast-warning { border-left-color: var(--bs-warning, #ffc107); }
+.gnb-toast-info    { border-left-color: var(--bs-info, #0dcaf0); }
+
+.gnb-toast-message {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-main, #2d3748);
+    flex: 1;
+}
+
+.gnb-toast-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: var(--text-muted, #94a3b8);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.gnb-toast-close:hover {
+    color: var(--text-main, #2d3748);
+}
+
+@keyframes gnbToastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.gnb-toast-fade-out {
+    animation: gnbToastFadeOut 0.3s ease-in forwards;
+}
+
+@keyframes gnbToastFadeOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+}

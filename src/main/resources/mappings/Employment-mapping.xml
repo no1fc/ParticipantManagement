@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="EmploymentDAO">
+    <!-- 취업정보 저장용 쿼리 -->
+    <insert id="employmentInsert">
+        INSERT INTO J_참여자관리
+            (취창업일, 취창업처리일, 취업유형, 취업처, 임금, 직무, 취업인센티브_구분, 일경험분류, 메모, 기타, 퇴사일)
+        VALUES
+            (
+                #{employmentStartDate},
+                #{employmentProcDate},
+                #{employmentEmpType},
+                #{employmentLoyer},
+                #{employmentSalary},
+                #{employmentJobRole},
+                #{employmentIncentive},
+                #{employmentJobcat},
+                #{employmentMemo},
+                #{employmentOthers},
+                #{employmentQuit}
+            )
+    </insert>
+
+    <!-- 취업정보 업데이트 쿼리 -->
+    <update id="employmentUpdate">
+        UPDATE
+            J_참여자관리
+        SET
+            취창업일 = #{employmentStartDate},
+            취창업처리일 = #{employmentProcDate},
+            취업유형 = #{employmentEmpType},
+            취업처 = #{employmentLoyer},
+            임금 = #{employmentSalary},
+            직무 = #{employmentJobRole},
+            취업인센티브_구분 = #{employmentIncentive},
+            일경험분류 = #{employmentJobcat},
+            메모 = #{employmentMemo},
+            기타 = #{employmentOthers},
+            퇴사일 = #{employmentQuit},
+            참여자_수정일 = GETDATE()
+        WHERE
+            구직번호 = #{employmentJobNo}
+    </update>
+
+    <!-- 취업정보 하나 확인용 쿼리 -->
+    <select id="employmentSelectOne" resultType="employment">
+        SELECT
+            구직번호 AS employmentJobNo,
+            참여자 AS employmentPartic,
+            CASE
+                WHEN 취창업일 >= DATEADD(YEAR, -100, GETDATE()) THEN 취창업일
+                END AS employmentStartDate,
+            CASE
+                WHEN 취창업처리일 >= DATEADD(YEAR, -100, GETDATE()) THEN 취창업처리일
+                END  AS employmentProcDate,
+            취업유형 AS employmentEmpType,
+            취업처 AS employmentLoyer,
+            임금 AS employmentSalary,
+            직무 AS employmentJobRole,
+            취업인센티브_구분 AS employmentIncentive,
+            일경험분류 AS employmentJobcat,
+            메모 AS employmentMemo,
+            기타 AS employmentOthers,
+            CASE
+                WHEN 퇴사일 >= DATEADD(YEAR, -100, GETDATE()) THEN 퇴사일
+                END  AS employmentQuit
+        FROM
+            J_참여자관리
+        WHERE
+            구직번호=#{employmentJobNo}
+    </select>
+</mapper>

@@ -1,0 +1,390 @@
+/*
+ * 참여자 폼 테이블 레이아웃
+ * ※ 카드(card-modern) 형식 → 독립 테이블(form-board) 디자인으로 개편
+ *    예시 디자인: src/main/webapp/participantNew.html
+ */
+
+/* ──────────────────────────────────────
+   디자인 토큰 (예시 HTML 기준 색상 팔레트)
+   ────────────────────────────────────── */
+.form-board,
+.participant-table {
+    --pt-primary: #2563eb;
+    --pt-bg-white: #ffffff;
+    --pt-bg-label: #f1f5f9;
+    --pt-text-main: #1e293b;
+    --pt-text-muted: #64748b;
+    --pt-border: #cbd5e1;
+    --pt-border-light: #e2e8f0;
+    --pt-required: #ef4444;
+}
+
+/* ──────────────────────────────────────
+   form-board: 각 섹션(기본/상담/취업)을 감싸는 컨테이너
+   - 흰색 배경, 좌우/하단 회색 보더, 상단에 진한 액센트 보더
+   ────────────────────────────────────── */
+.form-board {
+    background-color: var(--pt-bg-white);
+    border: 1px solid var(--pt-border);
+    border-top: 2px solid var(--pt-text-main);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    margin-bottom: 16px;
+}
+
+/* ──────────────────────────────────────
+   section-header: 섹션 제목 영역 (좌측 파란 액센트 바)
+   ────────────────────────────────────── */
+.section-header {
+    background-color: rgba(241, 245, 249, 0.8);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--pt-border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-header::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 16px;
+    background-color: var(--pt-primary);
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--pt-text-main);
+    margin: 0;
+}
+
+/* ──────────────────────────────────────
+   participant-table: form-board 내부 입력 테이블
+   ────────────────────────────────────── */
+.participant-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.participant-table th {
+    background-color: var(--pt-bg-label);
+    text-align: left;
+    padding: 10px 16px;
+    vertical-align: middle;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--pt-text-main);
+    border-bottom: 1px solid var(--pt-border-light);
+    border-right: 1px solid var(--pt-border-light);
+    white-space: nowrap;
+}
+
+.participant-table td {
+    padding: 8px 12px;
+    vertical-align: middle;
+    background-color: var(--pt-bg-white);
+    border-bottom: 1px solid var(--pt-border-light);
+}
+
+/* td 사이 세로 구분선 (마지막 셀 제외) */
+.participant-table td:not(:last-child) {
+    border-right: 1px solid var(--pt-border-light);
+}
+
+/* 마지막 행은 하단 보더 제거 (form-board 자체 보더가 있음) */
+.participant-table tr:last-child th,
+.participant-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* form 컨트롤 통일 스타일 (예시 HTML의 input-control 기준) */
+.participant-table .form-control,
+.participant-table .form-select {
+    width: 100%;
+    max-width: 100%;
+    height: 34px;
+    padding: 6px 12px;
+    font-size: 14px;
+    border: 1px solid var(--pt-border);
+    border-radius: 4px;
+    color: var(--pt-text-main);
+    background-color: var(--pt-bg-white);
+}
+
+.participant-table textarea.form-control {
+    height: auto;
+    min-height: 100px;
+    padding: 10px 12px;
+    resize: vertical;
+}
+
+.participant-table .form-control:focus,
+.participant-table .form-select:focus {
+    border-color: var(--pt-primary);
+    box-shadow: 0 0 0 1px var(--pt-primary);
+    outline: none;
+}
+
+.participant-table .input-group {
+    flex-wrap: nowrap;
+}
+
+.participant-table .input-group-text {
+    background-color: var(--pt-bg-label);
+    border-color: var(--pt-border);
+    color: var(--pt-text-muted);
+}
+
+/* 필수 항목 표시 */
+.participant-table th .text-danger,
+.section-header .text-danger {
+    color: var(--pt-required);
+    margin-left: 2px;
+}
+
+/* th 내부 label 스타일 정리 */
+.participant-table th label {
+    margin-bottom: 0;
+    font-weight: 600;
+    color: var(--pt-text-main);
+    cursor: default;
+}
+
+/* autocomplete 셀: 드롭다운이 셀 밖으로 표시되도록 */
+.participant-table td.autocomplete-cell {
+    position: relative;
+    overflow: visible;
+}
+
+.participant-table .recommend {
+    /* 빈 상태에서 button 클릭 영역을 가리지 않도록 default hidden */
+    display: none;
+    position: absolute;
+    z-index: 1050;
+    width: 100%;
+    left: 0;
+    top: 100%;
+}
+
+/* 추천 항목이 있을 때만 표시 (recommendJS의 .show()도 동일 효과) */
+.participant-table .recommend:not(:empty) {
+    display: block;
+}
+
+/* datepicker 셀 정렬 (기존 .datepicker-div 클래스 호환) */
+.participant-table td .datepicker-div,
+.participant-table td.datepicker-div {
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+/* ──────────────────────────────────────
+   동적 리스트 공통 스타일 (희망직무/자격증/교육내역)
+   - 각 항목은 [핸들] [입력] [삭제] 구조
+   - SortableJS 드래그 핸들 + 개별 삭제 버튼
+   ────────────────────────────────────── */
+
+.wish-job-item,
+.cert-item,
+.edu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    margin-bottom: 0.35rem;
+    background: var(--pt-bg-white);
+    border: 1px solid var(--pt-border-light);
+    border-radius: 4px;
+    transition: box-shadow 0.15s ease;
+}
+
+.wish-job-item:hover,
+.cert-item:hover,
+.edu-item:hover {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.wish-job-handle,
+.cert-handle,
+.edu-handle {
+    cursor: grab;
+    color: var(--pt-text-muted);
+    font-size: 1rem;
+    padding: 0 0.25rem;
+}
+
+.wish-job-handle:active,
+.cert-handle:active,
+.edu-handle:active {
+    cursor: grabbing;
+}
+
+.wish-job-rank {
+    min-width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--pt-primary);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.wish-job-item .form-select,
+.wish-job-item .form-control,
+.cert-item .form-control,
+.edu-item .form-control {
+    height: calc(1.8rem + 2px);
+    font-size: 0.85rem;
+    padding: 0.2rem 0.5rem;
+}
+
+.wish-job-item .form-select {
+    min-width: 120px;
+    flex: 1;
+}
+
+.wish-job-item .form-control {
+    flex: 2;
+}
+
+.cert-item .form-control,
+.edu-item .form-control {
+    flex: 1;
+}
+
+.wish-job-remove,
+.cert-remove,
+.edu-remove {
+    border: none;
+    background: none;
+    color: var(--pt-required);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0.15rem 0.3rem;
+    border-radius: 0.25rem;
+    flex-shrink: 0;
+}
+
+.wish-job-remove:hover,
+.cert-remove:hover,
+.edu-remove:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+#addWishJobBtn,
+#addCertBtn,
+#addEduBtn {
+    font-size: 0.85rem;
+}
+
+.wish-job-count,
+.cert-count,
+.edu-count {
+    font-size: 0.75rem;
+    background: var(--pt-primary);
+    color: #fff;
+    border-radius: 0.75rem;
+    padding: 0.1rem 0.5rem;
+    margin-left: 0.35rem;
+    font-weight: 700;
+}
+
+/* SortableJS 드래그 중 고스트 */
+.wish-job-item.sortable-ghost,
+.cert-item.sortable-ghost,
+.edu-item.sortable-ghost {
+    opacity: 0.4;
+    background: var(--pt-bg-label);
+}
+
+/* ──────────────────────────────────────
+   8칸/6칸 테이블에서 좁은 셀 내부 폰트 조정
+   - 컬럼 수가 많을수록 개별 셀 너비가 줄어드므로 padding/font 축소
+   ────────────────────────────────────── */
+.participant-table--8col th,
+.participant-table--6col th {
+    padding: 10px 10px;
+    font-size: 13px;
+    white-space: normal;  /* 긴 라벨 텍스트는 줄바꿈 허용 */
+    word-break: keep-all;
+}
+
+.participant-table--8col td,
+.participant-table--6col td {
+    padding: 6px 8px;
+}
+
+.participant-table--8col .form-control,
+.participant-table--8col .form-select,
+.participant-table--6col .form-control,
+.participant-table--6col .form-select {
+    height: 32px;
+    padding: 4px 8px;
+    font-size: 13px;
+}
+
+/* ──────────────────────────────────────
+   반응형: 1200px 이하 → 좁은 셀 더 축소
+   ────────────────────────────────────── */
+@media (max-width: 1200px) {
+    .participant-table--8col th {
+        font-size: 12px;
+        padding: 8px 6px;
+    }
+    .participant-table--8col td {
+        padding: 4px 6px;
+    }
+}
+
+/* ──────────────────────────────────────
+   반응형: 991.98px 이하 → 2열(라벨/입력) 재배열
+   - 모든 테이블(4칸/6칸/8칸)이 동일하게 단일 2열 레이아웃으로 붕괴
+   ────────────────────────────────────── */
+
+@media (max-width: 991.98px) {
+    .participant-table,
+    .participant-table thead,
+    .participant-table tbody,
+    .participant-table tr,
+    .participant-table th,
+    .participant-table td {
+        display: block;
+        width: 100% !important;
+    }
+
+    .participant-table colgroup {
+        display: none;
+    }
+
+    .participant-table tr {
+        display: flex;
+        flex-wrap: wrap;
+        border-bottom: 1px solid var(--pt-border-light);
+    }
+
+    .participant-table th {
+        width: 35% !important;
+        border: none;
+        border-bottom: 1px solid var(--pt-border-light);
+        border-right: 1px solid var(--pt-border-light);
+        font-size: 13px;
+    }
+
+    .participant-table td {
+        width: 65% !important;
+        border: none;
+        border-bottom: 1px solid var(--pt-border-light);
+    }
+
+    /* colspan으로 넓게 배치된 셀은 반응형에서도 전체 폭 */
+    .participant-table td[colspan="3"],
+    .participant-table td[colspan="5"],
+    .participant-table td[colspan="7"] {
+        width: 100% !important;
+    }
+}

@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="RecruitmentDAO">
+
+    <!-- ══════════════════════════════════════════════════════════════
+         공통 WHERE 절 (searchPostings / countPostings 공유)
+         ══════════════════════════════════════════════════════════════ -->
+    <sql id="searchWhere">
+        WHERE 1 = 1
+
+        <!-- 키워드: 공고명 OR 회사명 LIKE 검색 -->
+        <if test="keyword != null and keyword != ''">
+            AND (recrut_title LIKE '%' + #{keyword} + '%'
+              OR company_nm   LIKE '%' + #{keyword} + '%')
+        </if>
+
+        <!-- 근무지역: region_nm 텍스트 LIKE 검색 (다중 선택 시 OR) -->
+        <if test="region != null and region.length > 0">
+            AND (
+            <foreach collection="region" item="rgn" separator="OR">
+                region_nm LIKE '%' + #{rgn} + '%'
+            </foreach>
+            )
+        </if>
+
+        <!-- 직종코드 → jobs_cd 필터 (소분류 코드로 확장된 값이 전달됨) -->
+        <if test="occupation != null and occupation.length > 0">
+            AND jobs_cd IN
+            <foreach collection="occupation" item="code" open="(" separator="," close=")">
+                #{code}
+            </foreach>
+        </if>
+
+        <!-- 경력 코드 → DB 텍스트 매핑 (서비스에서 Z 제거 후 진입) -->
+        <if test="career != null and career.length > 0">
+            AND career IN
+            <foreach collection="career" item="c" open="(" separator="," close=")">
+                <choose>
+                    <when test="c == 'N'">N'신입'</when>
+                    <when test="c == 'E'">N'경력'</when>
+                </choose>
+            </foreach>
+        </if>
+
+        <!-- 고용형태 코드 (숫자형, Y=대체인력은 DDL 컬럼 없어 제외) -->
+        <if test="empTp != null and empTp != '' and empTp != 'Y'">
+            AND emp_tp_cd = #{empTp, jdbcType=INTEGER}
+        </if>
+
+        <!-- 임금형태 코드 → DB 텍스트 매핑 -->
+        <if test="salTp != null and salTp != ''">
+            AND sal_tp_nm =
+            <choose>
+                <when test="salTp == 'D'">N'일급'</when>
+                <when test="salTp == 'H'">N'시급'</when>
+                <when test="salTp == 'M'">N'월급'</when>
+                <when test="salTp == 'Y'">N'연봉'</when>
+                <otherwise>sal_tp_nm</otherwise>
+            </choose>
+        </if>
+
+        <!-- 급여 범위 (임금형태 선택 시에만 의미 있음) -->
+        <if test="minPay != null and salTp != null and salTp != ''">
+            AND (min_sal IS NULL OR min_sal &gt;= #{minPay})
+        </if>
+        <if test="maxPay != null and salTp != null and salTp != ''">
+            AND (max_sal IS NULL OR max_sal &lt;= #{maxPay})
+        </if>
+
+        <!-- 학력 코드 필터 (서비스에서 00 학력무관 제거 후 진입) -->
+        <if test="education != null and education.length > 0">
+            AND min_edubg IN
+            <foreach collection="education" item="edu" open="(" separator="," close=")">
+                #{edu}
+            </foreach>
+        </if>
+
+        <!-- 등록일 기준 필터 (D-0/W-1/W-2/M-1) -->
+        <if test="regDate != null and regDate != ''">
+            AND reg_dt &gt;=
+            <choose>
+                <when test="regDate == 'D-0'">CAST(GETDATE() AS DATE)</when>
+                <when test="regDate == 'W-1'">DATEADD(DAY, -7,  CAST(GETDATE() AS DATE))</when>
+                <when test="regDate == 'W-2'">DATEADD(DAY, -14, CAST(GETDATE() AS DATE))</when>
+                <when test="regDate == 'M-1'">DATEADD(MONTH, -1, CAST(GETDATE() AS DATE))</when>
+            </choose>
+        </if>
+
+        <!-- 근무형태 코드 → DB 텍스트 LIKE 매핑 -->
+        <if test="holidayTp != null and holidayTp != ''">
+            AND holiday_tp_nm LIKE
+            <choose>
+                <when test="holidayTp == '1'">'%5일%'</when>
+                <when test="holidayTp == '2'">'%6일%'</when>
+                <when test="holidayTp == '3'">'%격주%'</when>
+                <otherwise>'%기타%'</otherwise>
+            </choose>
+        </if>
+
+    </sql>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         채용공고 목록 조회 (페이지네이션)
+         resultType: RecruitmentResultDTO$JobItem (alias: jobItem)
+         ══════════════════════════════════════════════════════════════ -->
+    <select id="searchPostings" parameterType="recruitmentSearch" resultType="jobItem">
+        SELECT
+            wanted_auth_no                            AS wantedAuthNo,
+            recrut_title                              AS recrutTitle,
+            company_nm                                AS compNm,
+            ISNULL(sal_tp_nm,   '')                   AS salTpNm,
+            ISNULL(sal_desc,    '')                   AS salNm,
+            ISNULL(emp_tp_nm,   '')                   AS empTpNm,
+            ISNULL(region_nm,   '')                   AS regionNm,
+            ISNULL(jobs_nm,     '')                   AS occNm,
+            ISNULL(holiday_tp_nm, '')                 AS holidayTpNm,
+            ISNULL(min_edubg,   '')                   AS eduNm,
+            ISNULL(career,      '')                   AS career,
+            CONVERT(VARCHAR(10), reg_dt,   23)        AS wantedAuthDt,
+            CONVERT(VARCHAR(10), close_dt, 23)        AS closeDate,
+            ISNULL(wanted_info_url, '')               AS wantedInfoUrl
+        FROM J_참여자관리_JOB_POSTING
+        <include refid="searchWhere"/>
+        ORDER BY
+        <choose>
+            <when test="sortOrderBy != null and sortOrderBy == 'ASC'">reg_dt ASC</when>
+            <otherwise>reg_dt DESC</otherwise>
+        </choose>
+        OFFSET  (#{startPage} - 1) * #{display} ROWS
+        FETCH NEXT #{display} ROWS ONLY
+    </select>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         채용공고 총 건수 조회 (페이지네이션 계산용)
+         ══════════════════════════════════════════════════════════════ -->
+    <select id="countPostings" parameterType="recruitmentSearch" resultType="int">
+        SELECT COUNT(*)
+        FROM J_참여자관리_JOB_POSTING
+        <include refid="searchWhere"/>
+    </select>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         채용공고 UPSERT (MSSQL MERGE — 스케줄러 전용)
+         wanted_auth_no 기준으로 존재하면 UPDATE, 없으면 INSERT
+         ══════════════════════════════════════════════════════════════ -->
+    <update id="upsertPosting" parameterType="recruitmentPosting">
+        MERGE INTO J_참여자관리_JOB_POSTING AS target
+        USING (
+            SELECT
+                #{wantedAuthNo}                         AS wanted_auth_no,
+                #{companyNm}                            AS company_nm,
+                #{bizRegNo}                             AS biz_reg_no,
+                #{indTpNm}                              AS ind_tp_nm,
+                #{recrutTitle}                          AS recrut_title,
+                #{jobsCd,     jdbcType=INTEGER}         AS jobs_cd,
+                #{jobsNm}                               AS jobs_nm,
+                #{empTpCd,    jdbcType=INTEGER}         AS emp_tp_cd,
+                #{empTpNm}                              AS emp_tp_nm,
+                #{salTpNm}                              AS sal_tp_nm,
+                #{salDesc}                              AS sal_desc,
+                #{minSal,     jdbcType=INTEGER}         AS min_sal,
+                #{maxSal,     jdbcType=INTEGER}         AS max_sal,
+                #{minEdubg}                             AS min_edubg,
+                #{maxEdubg}                             AS max_edubg,
+                #{career}                               AS career,
+                #{holidayTpNm}                          AS holiday_tp_nm,
+                #{regionNm}                             AS region_nm,
+                #{zipCd}                                AS zip_cd,
+                #{strtNmAddr}                           AS strt_nm_addr,
+                #{basicAddr}                            AS basic_addr,
+                #{detailAddr}                           AS detail_addr,
+                CAST(#{regDt,      jdbcType=VARCHAR} AS DATE)      AS reg_dt,
+                CAST(#{closeDt,    jdbcType=VARCHAR} AS DATE)      AS close_dt,
+                #{infoSvc}                              AS info_svc,
+                #{wantedInfoUrl}                        AS wanted_info_url,
+                #{mobileInfoUrl}                        AS mobile_info_url,
+                CAST(#{smodifyDtm, jdbcType=VARCHAR} AS DATETIME)  AS smodify_dtm,
+                #{syncDtm}                              AS sync_dtm
+        ) AS source ON target.wanted_auth_no = source.wanted_auth_no
+        WHEN MATCHED THEN
+            UPDATE SET
+                company_nm      = source.company_nm,
+                biz_reg_no      = source.biz_reg_no,
+                ind_tp_nm       = source.ind_tp_nm,
+                recrut_title    = source.recrut_title,
+                jobs_cd         = source.jobs_cd,
+                jobs_nm         = source.jobs_nm,
+                emp_tp_cd       = source.emp_tp_cd,
+                emp_tp_nm       = source.emp_tp_nm,
+                sal_tp_nm       = source.sal_tp_nm,
+                sal_desc        = source.sal_desc,
+                min_sal         = source.min_sal,
+                max_sal         = source.max_sal,
+                min_edubg       = source.min_edubg,
+                max_edubg       = source.max_edubg,
+                career          = source.career,
+                holiday_tp_nm   = source.holiday_tp_nm,
+                region_nm       = source.region_nm,
+                zip_cd          = source.zip_cd,
+                strt_nm_addr    = source.strt_nm_addr,
+                basic_addr      = source.basic_addr,
+                detail_addr     = source.detail_addr,
+                reg_dt          = source.reg_dt,
+                close_dt        = source.close_dt,
+                info_svc        = source.info_svc,
+                wanted_info_url = source.wanted_info_url,
+                mobile_info_url = source.mobile_info_url,
+                smodify_dtm     = source.smodify_dtm,
+                sync_dtm        = source.sync_dtm
+        WHEN NOT MATCHED THEN
+            INSERT (
+                wanted_auth_no, company_nm, biz_reg_no, ind_tp_nm,
+                recrut_title, jobs_cd, jobs_nm, emp_tp_cd, emp_tp_nm,
+                sal_tp_nm, sal_desc, min_sal, max_sal,
+                min_edubg, max_edubg, career, holiday_tp_nm,
+                region_nm, zip_cd, strt_nm_addr, basic_addr, detail_addr,
+                reg_dt, close_dt, info_svc,
+                wanted_info_url, mobile_info_url, smodify_dtm,
+                sync_dtm, detail_fetched
+            ) VALUES (
+                source.wanted_auth_no, source.company_nm, source.biz_reg_no, source.ind_tp_nm,
+                source.recrut_title, source.jobs_cd, source.jobs_nm, source.emp_tp_cd, source.emp_tp_nm,
+                source.sal_tp_nm, source.sal_desc, source.min_sal, source.max_sal,
+                source.min_edubg, source.max_edubg, source.career, source.holiday_tp_nm,
+                source.region_nm, source.zip_cd, source.strt_nm_addr, source.basic_addr, source.detail_addr,
+                source.reg_dt, source.close_dt, source.info_svc,
+                source.wanted_info_url, source.mobile_info_url, source.smodify_dtm,
+                source.sync_dtm, 0
+            );
+    </update>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         신규 공고 ID 조회 — detail_fetched=0 인 건 (상세 수집 대상)
+         LIMIT 역할: TOP #{limit} 사용
+         ══════════════════════════════════════════════════════════════ -->
+    <select id="selectNewPostingIds" parameterType="int" resultType="String">
+        SELECT TOP (#{limit}) wanted_auth_no
+        FROM J_참여자관리_JOB_POSTING
+        WHERE detail_fetched = 0
+        ORDER BY created_at ASC
+    </select>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         상세정보 UPDATE + detail_fetched=1 마킹 (상세 수집 완료 처리)
+         ══════════════════════════════════════════════════════════════ -->
+    <update id="updateDetailFetched" parameterType="recruitmentDetail">
+        UPDATE J_참여자관리_JOB_POSTING
+        SET
+            detail_fetched    = 1,
+            sync_dtm_detail   = GETDATE(),
+            jobs_nm           = #{jobsNm,           jdbcType=NVARCHAR},
+            reper_nm          = #{reperNm,         jdbcType=NVARCHAR},
+            tot_psncnt        = #{totPsncnt,        jdbcType=INTEGER},
+            capital_amt       = #{capitalAmt,       jdbcType=BIGINT},
+            yr_sales_amt      = #{yrSalesAmt,       jdbcType=BIGINT},
+            busi_cont         = #{busiCont,         jdbcType=NVARCHAR},
+            home_pg           = #{homePg,           jdbcType=NVARCHAR},
+            busi_size         = #{busiSize,         jdbcType=NVARCHAR},
+            recrut_peri       = #{recrutPeri,       jdbcType=NVARCHAR},
+            recruit_cnt       = #{recrutPcnt,       jdbcType=INTEGER},
+            rel_jobs_nm       = #{relJobsNm,        jdbcType=NVARCHAR},
+            job_cont          = #{jobCont,          jdbcType=NVARCHAR},
+            for_lang          = #{forLang,          jdbcType=NVARCHAR},
+            major             = #{major,            jdbcType=NVARCHAR},
+            certificate       = #{certificate,      jdbcType=NVARCHAR},
+            mltsvc_exc_hope   = #{mltsvcExcHope,    jdbcType=NVARCHAR},
+            comp_abl          = #{compAbl,          jdbcType=NVARCHAR},
+            pref_cond         = #{prefCond,         jdbcType=NVARCHAR},
+            sel_mthd          = #{selMthd,          jdbcType=NVARCHAR},
+            rcpt_mthd         = #{rcptMthd,         jdbcType=NVARCHAR},
+            submit_doc        = #{submitDoc,        jdbcType=NVARCHAR},
+            etc_hope_cont     = #{etcHopeCont,      jdbcType=NVARCHAR},
+            near_line         = #{nearLine,         jdbcType=NVARCHAR},
+            work_time_cont    = #{workTimeCont,     jdbcType=NVARCHAR},
+            four_ins          = #{fourIns,          jdbcType=NVARCHAR},
+            retire_pay        = #{retirePay,        jdbcType=NVARCHAR},
+            welfare_desc      = #{welfareDesc,      jdbcType=NVARCHAR},
+            disable_cvntl     = #{disableCvntl,     jdbcType=NVARCHAR},
+            enter_tp_cd_detail= #{enterTpCdDetail,  jdbcType=VARCHAR},
+            sal_tp_cd         = #{salTpCd,          jdbcType=VARCHAR},
+            keyword_list      = #{keywordList,      jdbcType=NVARCHAR}
+        WHERE wanted_auth_no = #{wantedAuthNo}
+    </update>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         마감 공고 삭제 (스케줄러 전용)
+         현재 동기화에서 갱신되지 않은 공고 = API에서 사라진 공고 → DELETE
+         ══════════════════════════════════════════════════════════════ -->
+    <delete id="deleteOldPostings" parameterType="String">
+        DELETE FROM J_참여자관리_JOB_POSTING
+        WHERE sync_dtm <![CDATA[<]]> #{syncDtm}
+    </delete>
+
+</mapper>

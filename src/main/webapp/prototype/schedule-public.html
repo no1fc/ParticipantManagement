@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ko">
+<!--
+  - 공개 페이지 테스트: 남부지점 선택 → 접근코드 NB2026 입력
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상담 일정 조회 - Jobmoa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+    <style>
+        :root { --primary: #0d6efd; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f4f6f9; }
+
+        /* Public Header */
+        .public-header {
+            background: #fff; border-bottom: 2px solid var(--primary);
+            padding: 12px 24px; display: flex; align-items: center; justify-content: space-between;
+        }
+        .public-header .logo { display: flex; align-items: center; gap: 10px; }
+        .public-header .logo h4 { margin: 0; color: #343a40; font-weight: 700; }
+        .public-header .logo i { font-size: 1.5rem; color: var(--primary); }
+        .public-header .branch-info { font-size: 0.9rem; color: #6c757d; }
+
+        .container-main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+        /* Auth Card */
+        .auth-card {
+            max-width: 480px; margin: 80px auto; background: #fff; border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.1); overflow: hidden;
+        }
+        .auth-card .auth-header {
+            background: linear-gradient(135deg, #0d6efd, #0056b3);
+            color: #fff; padding: 32px; text-align: center;
+        }
+        .auth-card .auth-header i { font-size: 3rem; margin-bottom: 12px; }
+        .auth-card .auth-header h3 { margin: 0 0 8px; }
+        .auth-card .auth-header p { margin: 0; opacity: 0.85; font-size: 0.9rem; }
+        .auth-card .auth-body { padding: 32px; }
+        .auth-card .form-label { font-weight: 500; }
+        .auth-card .btn-verify {
+            width: 100%; padding: 12px; font-size: 1rem; font-weight: 600;
+            background: var(--primary); border: none; color: #fff; border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .auth-card .btn-verify:hover { background: #0056b3; }
+        .auth-error { display: none; margin-top: 12px; }
+
+        /* Schedule View (hidden initially) */
+        .schedule-view { display: none; }
+        .schedule-view.show { display: block; }
+
+        #calendar {
+            background: #fff; border-radius: 8px; padding: 16px;
+            box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+        }
+        .fc .fc-toolbar-title { font-size: 1.2rem; }
+        .fc .fc-button-primary { background-color: var(--primary); border-color: var(--primary); }
+        .fc .fc-daygrid-event { cursor: pointer; border-radius: 4px; }
+
+        /* Day Detail Panel */
+        .day-detail-panel {
+            background: #fff; border-radius: 8px; padding: 0; margin-top: 16px;
+            box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+            display: none; overflow: hidden;
+        }
+        .day-detail-panel.show { display: block; }
+        .day-detail-header {
+            background: #f8f9fa; padding: 16px; border-bottom: 1px solid #dee2e6;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .day-detail-header h5 { margin: 0; font-weight: 600; }
+
+        /* Time Table */
+        .time-table { width: 100%; border-collapse: collapse; }
+        .time-table th {
+            background: #f8f9fa; padding: 10px 12px; text-align: center;
+            border: 1px solid #dee2e6; font-size: 0.85rem; font-weight: 600;
+            position: sticky; top: 0;
+        }
+        .time-table td {
+            padding: 8px 10px; border: 1px solid #dee2e6; text-align: center;
+            font-size: 0.85rem; vertical-align: middle; min-width: 120px;
+        }
+        .time-table td.time-col {
+            background: #f8f9fa; font-weight: 500; width: 80px; min-width: 80px;
+        }
+        .time-table .has-schedule {
+            background: #f0f7ff; cursor: default;
+        }
+        .schedule-cell {
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
+        }
+        .schedule-cell .p-name { font-weight: 500; color: #343a40; }
+        .schedule-cell .p-type { font-size: 0.75rem; color: #6c757d; }
+        .badge-schedule { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; }
+        .badge-face { background: #d4edda; color: #155724; }
+        .badge-phone { background: #cce5ff; color: #004085; }
+        .badge-video { background: #fff3cd; color: #856404; }
+
+        /* Legend in schedule view */
+        .legend-section {
+            display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px;
+            background: #fff; border-radius: 8px; padding: 12px 16px;
+            box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+        }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+        .branch-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: var(--primary); color: #fff; padding: 4px 16px;
+            border-radius: 20px; font-size: 0.9rem; font-weight: 500;
+        }
+
+        .table-scroll { overflow-x: auto; }
+
+        /* Footer */
+        .public-footer {
+            text-align: center; padding: 24px; color: #adb5bd; font-size: 0.8rem;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="public-header">
+    <div class="logo">
+        <i class="bi bi-briefcase-fill"></i>
+        <h4>Jobmoa 상담 일정 조회</h4>
+    </div>
+    <div class="branch-info" id="headerBranchInfo"></div>
+</header>
+
+<!-- Auth Section -->
+<div id="authSection">
+    <div class="auth-card">
+        <div class="auth-header">
+            <i class="bi bi-calendar-check"></i>
+            <h3>상담 일정 조회</h3>
+            <p>지점을 선택하고 접근코드를 입력하세요</p>
+        </div>
+        <div class="auth-body">
+            <div class="mb-3">
+                <label class="form-label">지점 선택 <span class="text-danger">*</span></label>
+                <select class="form-select" id="branchSelect">
+                    <option value="">지점을 선택하세요</option>
+                    <option value="남부">남부지점</option>
+                    <option value="관악">관악지점</option>
+                    <option value="인천">인천지점</option>
+                    <option value="성남">성남지점</option>
+                    <option value="수원">수원지점</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="form-label">접근코드 <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="accessCode" placeholder="지점 접근코드를 입력하세요">
+                <div class="form-text">접근코드는 지점 관리자에게 문의하세요.</div>
+            </div>
+            <button class="btn-verify" id="btnVerify">
+                <i class="bi bi-search me-2"></i>조회하기
+            </button>
+            <div class="alert alert-danger auth-error" id="authError">
+                <i class="bi bi-exclamation-circle me-1"></i>접근코드가 올바르지 않습니다.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule View -->
+<div class="schedule-view" id="scheduleView">
+    <div class="container-main">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div class="branch-badge" id="branchBadge">
+                <i class="bi bi-geo-alt-fill"></i><span id="branchName"></span>
+            </div>
+            <button class="btn btn-outline-secondary btn-sm" id="btnBack">
+                <i class="bi bi-arrow-left me-1"></i>다른 지점 조회
+            </button>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend-section" id="legendSection"></div>
+
+        <!-- Calendar -->
+        <div id="calendar"></div>
+
+        <!-- Day Detail -->
+        <div class="day-detail-panel" id="dayDetailPanel">
+            <div class="day-detail-header">
+                <h5><i class="bi bi-clock me-2"></i><span id="dayDetailTitle"></span></h5>
+                <button class="btn btn-sm" id="closeDayDetail"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="table-scroll">
+                <table class="time-table" id="timeTable">
+                    <thead><tr id="timeTableHead"></tr></thead>
+                    <tbody id="timeTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="public-footer">
+    &copy; 2026 Jobmoa. All rights reserved. | 고용노동부 취업지원 시스템
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script>
+    // Branch access codes (dummy)
+    const branchCodes = {
+        '남부': 'NB2026',
+        '관악': 'GW2026',
+        '인천': 'IC2026',
+        '성남': 'SN2026',
+        '수원': 'SW2026',
+    };
+
+    // Counselors per branch
+    const branchCounselors = {
+        '남부': [
+            { id: 'kim01', name: '김상담', color: '#0d6efd' },
+            { id: 'park02', name: '박전담', color: '#dc3545' },
+            { id: 'lee03', name: '이취업', color: '#198754' },
+            { id: 'choi04', name: '최역량', color: '#fd7e14' },
+        ],
+        '관악': [
+            { id: 'jung01', name: '정길라', color: '#6f42c1' },
+            { id: 'han02', name: '한도움', color: '#20c997' },
+            { id: 'oh03', name: '오상담', color: '#e83e8c' },
+        ],
+    };
+
+    function maskName(name) {
+        if (!name) return '';
+        if (name.length <= 1) return name;
+        return name[0] + '*'.repeat(name.length - 1);
+    }
+
+    function d(offset, h, m) {
+        const dt = new Date(); dt.setDate(dt.getDate() + offset); dt.setHours(h, m, 0, 0);
+        return dt.toISOString().slice(0, 16);
+    }
+
+    // Dummy schedules
+    const branchSchedules = {
+        '남부': [
+            { id:1, title:'김** - 대면상담', start:d(0,10,0), end:d(0,11,0), color:'#0d6efd', extendedProps:{counselorId:'kim01',counselorName:'김상담',participantName:'김영호',type:'대면상담'} },
+            { id:2, title:'박** - 전화상담', start:d(0,13,0), end:d(0,14,0), color:'#0d6efd', extendedProps:{counselorId:'kim01',counselorName:'김상담',participantName:'박지현',type:'전화상담'} },
+            { id:3, title:'이** - 대면상담', start:d(0,9,0), end:d(0,10,0), color:'#dc3545', extendedProps:{counselorId:'park02',counselorName:'박전담',participantName:'이민수',type:'대면상담'} },
+            { id:4, title:'정** - 대면상담', start:d(0,14,0), end:d(0,15,0), color:'#dc3545', extendedProps:{counselorId:'park02',counselorName:'박전담',participantName:'정하늘',type:'대면상담'} },
+            { id:5, title:'송** - 대면상담', start:d(0,11,0), end:d(0,12,0), color:'#198754', extendedProps:{counselorId:'lee03',counselorName:'이취업',participantName:'송미란',type:'대면상담'} },
+            { id:6, title:'장** - 화상상담', start:d(0,15,0), end:d(0,16,0), color:'#fd7e14', extendedProps:{counselorId:'choi04',counselorName:'최역량',participantName:'장예진',type:'화상상담'} },
+            { id:7, title:'한** - 전화상담', start:d(1,10,0), end:d(1,11,0), color:'#198754', extendedProps:{counselorId:'lee03',counselorName:'이취업',participantName:'한동우',type:'전화상담'} },
+            { id:8, title:'백** - 대면상담', start:d(1,14,0), end:d(1,15,0), color:'#fd7e14', extendedProps:{counselorId:'choi04',counselorName:'최역량',participantName:'백승훈',type:'대면상담'} },
+            { id:9, title:'오** - 전화상담', start:d(1,11,0), end:d(1,12,0), color:'#dc3545', extendedProps:{counselorId:'park02',counselorName:'박전담',participantName:'오서연',type:'전화상담'} },
+            { id:10, title:'노** - 대면상담', start:d(2,9,0), end:d(2,10,0), color:'#fd7e14', extendedProps:{counselorId:'choi04',counselorName:'최역량',participantName:'노유나',type:'대면상담'} },
+            { id:11, title:'임** - 화상상담', start:d(2,14,0), end:d(2,15,0), color:'#198754', extendedProps:{counselorId:'lee03',counselorName:'이취업',participantName:'임수빈',type:'화상상담'} },
+            { id:12, title:'문** - 대면상담', start:d(-1,10,0), end:d(-1,11,0), color:'#0d6efd', extendedProps:{counselorId:'kim01',counselorName:'김상담',participantName:'문태호',type:'대면상담'} },
+        ],
+        '관악': [
+            { id:20, title:'김** - 대면상담', start:d(0,10,0), end:d(0,11,0), color:'#6f42c1', extendedProps:{counselorId:'jung01',counselorName:'정길라',participantName:'김하나',type:'대면상담'} },
+            { id:21, title:'이** - 전화상담', start:d(0,14,0), end:d(0,15,0), color:'#20c997', extendedProps:{counselorId:'han02',counselorName:'한도움',participantName:'이두울',type:'전화상담'} },
+        ]
+    };
+
+    let currentBranch = null;
+    let currentCounselors = [];
+
+    // Verify
+    document.getElementById('btnVerify').addEventListener('click', function() {
+        const branch = document.getElementById('branchSelect').value;
+        const code = document.getElementById('accessCode').value.trim();
+
+        if (!branch || !code) {
+            document.getElementById('authError').style.display = 'block';
+            document.getElementById('authError').innerHTML = '<i class="bi bi-exclamation-circle me-1"></i>지점과 접근코드를 모두 입력해주세요.';
+            return;
+        }
+
+        if (branchCodes[branch] !== code) {
+            document.getElementById('authError').style.display = 'block';
+            document.getElementById('authError').innerHTML = '<i class="bi bi-exclamation-circle me-1"></i>접근코드가 올바르지 않습니다.';
+            return;
+        }
+
+        document.getElementById('authError').style.display = 'none';
+        currentBranch = branch;
+        currentCounselors = branchCounselors[branch] || [];
+        showScheduleView();
+    });
+
+    // Enter key on access code
+    document.getElementById('accessCode').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') document.getElementById('btnVerify').click();
+    });
+
+    // Back button
+    document.getElementById('btnBack').addEventListener('click', function() {
+        document.getElementById('authSection').style.display = 'block';
+        document.getElementById('scheduleView').classList.remove('show');
+        document.getElementById('headerBranchInfo').textContent = '';
+    });
+
+    function showScheduleView() {
+        document.getElementById('authSection').style.display = 'none';
+        document.getElementById('scheduleView').classList.add('show');
+        document.getElementById('branchName').textContent = currentBranch + '지점';
+        document.getElementById('headerBranchInfo').textContent = currentBranch + '지점 일정 조회 중';
+
+        // Legend
+        const legendEl = document.getElementById('legendSection');
+        legendEl.innerHTML = '<strong style="font-size:0.85rem;">상담사:</strong>' +
+            currentCounselors.map(c =>
+                `<div class="legend-item"><div class="legend-dot" style="background:${c.color}"></div>${c.name}</div>`
+            ).join('');
+
+        // Calendar
+        const calendarEl = document.getElementById('calendar');
+        calendarEl.innerHTML = '';
+        const schedules = branchSchedules[currentBranch] || [];
+
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'ko',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth'
+            },
+            navLinks: false,
+            editable: false,
+            selectable: false,
+            dayMaxEvents: 3,
+            events: schedules,
+            dateClick: function(info) {
+                showDayDetail(info.dateStr, schedules);
+            },
+            height: 'auto'
+        });
+        calendar.render();
+    }
+
+    function showDayDetail(dateStr, schedules) {
+        const panel = document.getElementById('dayDetailPanel');
+        const dateObj = new Date(dateStr + 'T00:00:00');
+        document.getElementById('dayDetailTitle').textContent =
+            dateObj.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'long' }) + ' 시간별 일정';
+
+        // Filter schedules for this day
+        const daySchedules = schedules.filter(s => s.start.startsWith(dateStr));
+
+        // Build time table
+        const hours = [];
+        for (let h = 9; h <= 18; h++) hours.push(h);
+
+        // Header
+        const headRow = document.getElementById('timeTableHead');
+        headRow.innerHTML = '<th>시간</th>' + currentCounselors.map(c =>
+            `<th style="color:${c.color}">${c.name}</th>`
+        ).join('');
+
+        // Body
+        const tbody = document.getElementById('timeTableBody');
+        tbody.innerHTML = '';
+        hours.forEach(h => {
+            const tr = document.createElement('tr');
+            const hStr = String(h).padStart(2, '0');
+            tr.innerHTML = `<td class="time-col">${hStr}:00</td>`;
+
+            currentCounselors.forEach(c => {
+                const match = daySchedules.find(s => {
+                    const sHour = parseInt(s.start.slice(11, 13));
+                    return s.extendedProps.counselorId === c.id && sHour === h;
+                });
+
+                if (match) {
+                    const pName = maskName(match.extendedProps.participantName);
+                    const badgeMap = { '대면상담':'badge-face', '전화상담':'badge-phone', '화상상담':'badge-video' };
+                    const badge = badgeMap[match.extendedProps.type] || '';
+                    tr.innerHTML += `<td class="has-schedule">
+                        <div class="schedule-cell">
+                            <span class="p-name">${pName}</span>
+                            <span class="badge-schedule ${badge}">${match.extendedProps.type}</span>
+                        </div>
+                    </td>`;
+                } else {
+                    tr.innerHTML += '<td>-</td>';
+                }
+            });
+            tbody.appendChild(tr);
+        });
+
+        panel.classList.add('show');
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    document.getElementById('closeDayDetail').addEventListener('click', function() {
+        document.getElementById('dayDetailPanel').classList.remove('show');
+    });
+</script>
+</body>
+</html>

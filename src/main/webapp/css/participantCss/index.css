@@ -1,0 +1,181 @@
+:root {
+    --bg-1: #f6f1e8;
+    --bg-2: #e6edf5;
+    --ink-1: #1f2a37;
+    --ink-2: #4b5563;
+    --accent-1: #0f766e;
+    --accent-2: #1d4ed8;
+    --accent-3: #ff9f1c;
+    --card: #ffffff;
+    --shadow: 0 20px 45px rgba(15, 23, 42, 0.14);
+    --radius-lg: 24px;
+    --radius-md: 16px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "IBM Plex Sans KR", "Noto Sans KR", sans-serif;
+    color: var(--ink-1);
+    background:
+        radial-gradient(800px 400px at 10% 10%, rgba(15, 118, 110, 0.15), transparent 60%),
+        radial-gradient(700px 420px at 90% 20%, rgba(29, 78, 216, 0.18), transparent 60%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));
+}
+
+.shell {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+}
+
+.hero {
+    display: grid;
+    gap: 12px;
+    align-items: center;
+    animation: riseIn 0.7s ease-out both;
+}
+
+.hero h1 {
+    font-family: "Space Grotesk", "IBM Plex Sans KR", sans-serif;
+    font-size: clamp(28px, 4vw, 44px);
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.hero p {
+    margin: 0;
+    color: var(--ink-2);
+    font-size: 1.05rem;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.card {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    box-shadow: var(--shadow);
+    display: grid;
+    gap: 18px;
+    position: relative;
+    overflow: hidden;
+    animation: floatIn 0.8s ease-out both;
+}
+
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }
+
+.card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(240px 240px at 90% 0%, rgba(15, 118, 110, 0.12), transparent 60%);
+    pointer-events: none;
+}
+
+.card.enterprise::after {
+    background: radial-gradient(240px 240px at 90% 0%, rgba(29, 78, 216, 0.14), transparent 60%);
+}
+
+.card.recruitmentInformation::after {
+    background: radial-gradient(240px 240px at 90% 0%, rgba(255, 165, 0, 0.12), transparent 60%);
+}
+
+.card-title {
+    font-family: "Space Grotesk", "IBM Plex Sans KR", sans-serif;
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    background: rgba(15, 118, 110, 0.12);
+    color: var(--accent-1);
+    font-weight: 600;
+}
+
+.enterprise .tag {
+    background: rgba(29, 78, 216, 0.12);
+    color: var(--accent-2);
+}
+
+.recruitmentInformation .tag {
+    background: rgba(255, 165, 0, 0.12);
+    color: var(--accent-3);
+}
+
+.card ul {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--ink-2);
+    display: grid;
+    gap: 6px;
+}
+
+.cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border-radius: 999px;
+    text-decoration: none;
+    color: #fff;
+    font-weight: 600;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: linear-gradient(135deg, #0f766e, #14b8a6);
+    box-shadow: 0 12px 20px rgba(15, 118, 110, 0.28);
+}
+
+.enterprise .cta {
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+    box-shadow: 0 12px 20px rgba(29, 78, 216, 0.28);
+}
+
+.recruitmentInformation .cta {
+    background: linear-gradient(135deg, #ffa500, #ffcc00);
+    box-shadow: 0 12px 20px rgba(255, 165, 0, 0.28);
+}
+
+.cta:hover {
+    transform: translateY(-2px);
+}
+
+.meta {
+    font-size: 0.85rem;
+    color: var(--ink-2);
+}
+
+@keyframes riseIn {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes floatIn {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 860px) {
+    .cards {
+        grid-template-columns: 1fr;
+    }
+}

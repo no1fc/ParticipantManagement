@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="CounselDAO">
+    <!--
+      상담사 정보 업데이트용 쿼리
+      ※ 2026-04-16 변경사항:
+        희망직무, 직무_카테고리_대/중/소 컬럼은 J_참여자관리 테이블에서 제거되고
+        J_참여자관리_희망직무 테이블로 완전 이전됨 (다중 희망직무 지원).
+        해당 데이터는 counselWishJobInsert/Delete 쿼리로 별도 처리.
+    -->
+    <update id="counselUpdate">
+        UPDATE
+            J_참여자관리
+        SET
+            취업역량 = #{counselJobSkill},
+            최근상담일 = CONVERT(date, #{counselLastCons}, 120),
+            진행단계 = #{counselProgress},
+            초기상담일 = CONVERT(date, #{counselInItCons}, 120),
+            구직만료일 = CONVERT(date, #{counselJobEX}, 120),
+            IAP수료일 = CONVERT(date, #{counselIAPDate}, 120),
+            [3단계진입일] = CONVERT(date, #{counselStepPro}, 120),
+            기간만료일 = CONVERT(date, #{counselEXPDate}, 120),
+            클리닉실시일 = CONVERT(date, #{counselClinic}, 120),
+            IAP3개월일자 = CONVERT(date, #{counselIAP3Month}, 120),
+            IAP5개월일자 = CONVERT(date, #{counselIAP5Month}, 120),
+            수당지급일 = CONVERT(date, #{counselAllowancePayment}, 120),
+            희망급여 = #{counselSalWant},
+            알선요청 = #{counselPlacement},
+            간접고용서비스 = #{counselEmploymentService},
+            집중알선여부 = #{counselFocusedPlacement}
+        WHERE
+            구직번호 = #{counselJobNo}
+    </update>
+
+    <!-- 취업정보에서 참여유형 업데이트할때 사용할 쿼리 -->
+    <update id="counselUpdateProgress">
+        UPDATE
+            J_참여자관리
+        SET
+            진행단계 = #{counselProgress}
+        WHERE
+            구직번호=#{counselJobNo}
+    </update>
+
+    <!--
+      CounselDTO 매핑
+      - recommendedKeywords: J_참여자관리_추천키워드 테이블에서 collection으로 별도 조회
+      - wishJobList: J_참여자관리_희망직무 테이블에서 collection으로 별도 조회 (다중 희망직무)
+      ※ counselJobWant, jobCategoryLarge, jobCategoryMid 필드는 DTO에는 남아있지만
+        더 이상 J_참여자관리에서 매핑되지 않음. 클라이언트 측에서 syncPrimaryJobWish()로
+        1순위 항목을 동기화하여 폼 검증용으로만 사용됨.
+    -->
+    <resultMap id="CounselResultMap" type="com.jobmoa.app.CounselMain.biz.participantCounsel.CounselDTO">
+        <id property="counselJobNo" column="counselJobNo"/>
+        <result property="counselPartic" column="counselPartic"/>
+        <result property="counselJobSkill" column="counselJobSkill"/>
+        <result property="counselLastCons" column="counselLastCons"/>
+        <result property="counselProgress" column="counselProgress"/>
+        <result property="counselInItCons" column="counselInItCons"/>
+        <result property="counselJobEX" column="counselJobEX"/>
+        <result property="counselIAPDate" column="counselIAPDate"/>
+        <result property="counselStepPro" column="counselStepPro"/>
+        <result property="counselEXPDate" column="counselEXPDate"/>
+        <result property="counselClinic" column="counselClinic"/>
+        <result property="counselIAP3Month" column="counselIAP3Month"/>
+        <result property="counselIAP5Month" column="counselIAP5Month"/>
+        <result property="counselAllowancePayment" column="counselAllowancePayment"/>
+        <result property="counselSalWant" column="counselSalWant"/>
+        <result property="counselPlacement" column="counselPlacement"/>
+        <result property="counselEmploymentService" column="counselEmploymentService"/>
+        <result property="placementDetail" column="placementDetail"/>
+        <result property="suggestionDetail" column="suggestionDetail"/>
+        <result property="counselFocusedPlacement" column="counselFocusedPlacement"/>
+
+        <!-- 키워드 리스트: 부모의 counselJobNo를 파라미터로 넘겨 별도 조회 -->
+        <collection property="recommendedKeywords"
+                    ofType="java.lang.String"
+                    column="counselJobNo"
+                    select="CounselDAO.counselSelectKeywords"/>
+
+        <!-- 희망직무 리스트: J_참여자관리_희망직무 테이블에서 counselJobNo 기준 조회 -->
+        <collection property="wishJobList"
+                    ofType="com.jobmoa.app.CounselMain.biz.participantCounsel.WishJobDTO"
+                    column="counselJobNo"
+                    select="CounselDAO.counselSelectWishJobs"/>
+    </resultMap>
+
+
+    <!--
+      상담정보 하나 확인용 쿼리
+      ※ 희망직무, 직무_카테고리_대/중/소 컬럼은 J_참여자관리에서 제거되었으므로 SELECT하지 않음.
+        해당 데이터는 CounselResultMap의 wishJobList collection을 통해
+        J_참여자관리_희망직무 테이블에서 counselSelectWishJobs 쿼리로 별도 로드됨.
+    -->
+    <select id="counselSelectOne" resultMap="CounselResultMap">
+        SELECT
+            A.구직번호 AS counselJobNo,
+            A.참여자 AS counselPartic,
+            A.취업역량 AS counselJobSkill,
+            CASE
+                WHEN A.최근상담일 >= DATEADD(YEAR, -100, GETDATE()) THEN A.최근상담일
+                END AS counselLastCons,
+            A.진행단계 AS counselProgress,
+            CASE
+                WHEN A.초기상담일 >= DATEADD(YEAR, -100, GETDATE()) THEN A.초기상담일
+                END AS counselInItCons,
+            CASE
+                WHEN A.구직만료일 >= DATEADD(YEAR, -100, GETDATE()) THEN A.구직만료일
+                END AS counselJobEX,
+            CASE
+                WHEN A.IAP수료일 >= DATEADD(YEAR, -100, GETDATE()) THEN A.IAP수료일
+                END AS counselIAPDate,
+            CASE
+                WHEN A.[3단계진입일] >= DATEADD(YEAR, -100, GETDATE()) THEN A.[3단계진입일]
+                END AS counselStepPro,
+            CASE
+                WHEN A.기간만료일 >= DATEADD(YEAR, -100, GETDATE()) THEN A.기간만료일
+                END AS counselEXPDate,
+            CASE
+                WHEN A.클리닉실시일 >= DATEADD(YEAR, -100, GETDATE()) THEN A.클리닉실시일
+                END AS counselClinic,
+            CASE
+                WHEN A.IAP3개월일자 >= DATEADD(YEAR, -100, GETDATE()) THEN A.IAP3개월일자
+                END AS counselIAP3Month,
+            CASE
+                WHEN A.IAP5개월일자 >= DATEADD(YEAR, -100, GETDATE()) THEN A.IAP5개월일자
+                END AS counselIAP5Month,
+            CASE
+                WHEN A.수당지급일 >= DATEADD(YEAR, -100, GETDATE()) THEN A.수당지급일
+                END AS counselAllowancePayment,
+            A.희망급여 AS counselSalWant,
+            A.알선요청 AS counselPlacement,
+            A.간접고용서비스 AS counselEmploymentService,
+            B.상세정보 AS placementDetail,
+            B.추천사 AS suggestionDetail,
+            A.집중알선여부 AS counselFocusedPlacement
+        FROM
+            J_참여자관리 A
+        LEFT JOIN
+            J_참여자관리_알선상세정보 B
+        ON
+            A.구직번호 = B.구직번호
+        WHERE
+            A.구직번호=#{counselJobNo}
+    </select>
+
+    <!-- 상담정보 키워드 확인용 쿼리 -->
+    <select id="counselSelectKeywords" resultType="string">
+        SELECT
+            키워드 AS recommendedKeywords
+        FROM
+            J_참여자관리_추천키워드
+        WHERE
+            구직번호=#{counselJobNo}
+    </select>
+
+    <!-- -->
+    <select id="counselSelectOneEmployment" resultType="counsel">
+        SELECT
+            구직번호 AS counselJobNo,
+            진행단계 AS counselProgress
+        FROM
+            J_참여자관리
+        WHERE
+            구직번호=#{counselJobNo}
+    </select>
+
+    <!-- 알선 상세 정보 추가 Query -->
+    <insert id="counselPlacementInsert">
+        INSERT INTO
+            J_참여자관리_알선상세정보
+            (구직번호,상세정보,추천사)
+        VALUES
+            (#{counselJobNo},#{placementDetail},#{suggestionDetail});
+    </insert>
+
+    <!-- 알선 상세 정보 저장 Query -->
+    <update id="counselPlacementUpdate">
+        UPDATE
+            J_참여자관리_알선상세정보
+        SET
+            상세정보 = #{placementDetail},
+            추천사 = #{suggestionDetail},
+            수정일 = GETDATE()
+        WHERE
+            구직번호 = #{counselJobNo}
+    </update>
+
+    <!-- 알선 키워드 추가 Query -->
+    <insert id="counselKeywordInsert">
+        INSERT INTO
+            J_참여자관리_추천키워드
+            (구직번호,등록일,수정일,키워드)
+        VALUES
+        <foreach collection="recommendedKeywords" item="data" separator=",">
+            (
+            #{counselJobNo},
+            GETDATE(),
+            GETDATE(),
+            #{data}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 알선 키워드 삭제 Query -->
+    <delete id="counselKeywordDelete">
+        DELETE FROM J_참여자관리_추천키워드 WHERE 구직번호=#{counselJobNo}
+    </delete>
+
+    <!-- 희망직무 목록 조회 -->
+    <select id="counselSelectWishJobs" resultType="wishJob">
+        SELECT
+            PK             AS pk,
+            구직번호        AS counselJobNo,
+            희망순위        AS wishRank,
+            희망직무        AS jobWant,
+            직무_카테고리_대 AS categoryLarge,
+            직무_카테고리_중 AS categoryMid,
+            직무_카테고리_소 AS categorySub
+        FROM J_참여자관리_희망직무
+        WHERE 구직번호 = #{counselJobNo}
+        ORDER BY 희망순위
+    </select>
+
+    <!-- 희망직무 일괄 삭제 -->
+    <delete id="counselWishJobDelete">
+        DELETE FROM J_참여자관리_희망직무 WHERE 구직번호 = #{counselJobNo}
+    </delete>
+
+    <!-- 희망직무 일괄 등록 -->
+    <insert id="counselWishJobInsert">
+        INSERT INTO J_참여자관리_희망직무
+            (구직번호, 희망순위, 희망직무, 직무_카테고리_대, 직무_카테고리_중, 직무_카테고리_소, 등록일시)
+        VALUES
+        <foreach collection="wishJobList" item="wish" separator=",">
+            (#{counselJobNo}, #{wish.wishRank}, #{wish.jobWant},
+             #{wish.categoryLarge}, #{wish.categoryMid}, #{wish.categorySub}, GETDATE())
+        </foreach>
+    </insert>
+
+</mapper>

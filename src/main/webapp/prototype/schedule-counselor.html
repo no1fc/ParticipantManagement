@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상담 일정 조회 및 등록 - Jobmoa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --header-height: 56px;
+            --primary: #0d6efd;
+            --light-bg: #f4f6f9;
+        }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--light-bg); }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed; top: 0; left: 0; bottom: 0;
+            width: var(--sidebar-width); background: #343a40; color: #c2c7d0;
+            z-index: 1030; overflow-y: auto;
+        }
+        .sidebar .brand { height: var(--header-height); display: flex; align-items: center; padding: 0 16px; background: #2c3136; }
+        .sidebar .brand h5 { color: #fff; margin: 0; font-size: 1.1rem; }
+        .sidebar .nav-section { padding: 8px 0; }
+        .sidebar .nav-section .section-title { padding: 8px 16px; font-size: 0.75rem; text-transform: uppercase; color: #868e96; }
+        .sidebar .nav-item a {
+            display: flex; align-items: center; padding: 10px 16px; color: #c2c7d0;
+            text-decoration: none; font-size: 0.9rem; transition: background 0.2s;
+        }
+        .sidebar .nav-item a:hover, .sidebar .nav-item a.active { background: #494e53; color: #fff; }
+        .sidebar .nav-item a i { margin-right: 10px; font-size: 1.1rem; }
+
+        /* Header */
+        .main-header {
+            position: fixed; top: 0; left: var(--sidebar-width); right: 0;
+            height: var(--header-height); background: #fff; border-bottom: 1px solid #dee2e6;
+            display: flex; align-items: center; padding: 0 20px; z-index: 1020;
+        }
+        .main-header .breadcrumb { margin: 0; font-size: 0.85rem; }
+
+        /* Content */
+        .content-wrapper {
+            margin-left: var(--sidebar-width); margin-top: var(--header-height);
+            padding: 20px; min-height: calc(100vh - var(--header-height));
+        }
+
+        /* Calendar */
+        #calendar {
+            background: #fff; border-radius: 8px; padding: 16px;
+            box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+        }
+        .fc .fc-toolbar-title { font-size: 1.2rem; }
+        .fc .fc-button-primary {
+            background-color: var(--primary); border-color: var(--primary);
+        }
+        .fc .fc-daygrid-event { cursor: pointer; border-radius: 4px; padding: 2px 4px; }
+        .fc .fc-timegrid-event { border-radius: 4px; }
+
+        /* Top Actions */
+        .page-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .page-actions h4 { margin: 0; font-weight: 600; }
+
+        /* Modal */
+        .modal-header { background: var(--primary); color: #fff; }
+        .modal-header .btn-close { filter: invert(1); }
+        .form-label { font-weight: 500; font-size: 0.875rem; color: #495057; }
+        .time-select { display: flex; gap: 8px; align-items: center; }
+        .time-select select { width: auto; }
+
+        /* Participant Search */
+        .participant-search-wrapper { position: relative; }
+        .participant-dropdown {
+            position: absolute; top: 100%; left: 0; right: 0; z-index: 10;
+            background: #fff; border: 1px solid #dee2e6; border-radius: 4px;
+            max-height: 200px; overflow-y: auto; display: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,.1);
+        }
+        .participant-dropdown.show { display: block; }
+        .participant-dropdown .item {
+            padding: 8px 12px; cursor: pointer; font-size: 0.875rem;
+            display: flex; justify-content: space-between;
+        }
+        .participant-dropdown .item:hover { background: #f0f7ff; }
+        .participant-dropdown .item .name { font-weight: 500; }
+        .participant-dropdown .item .num { color: #868e96; font-size: 0.8rem; }
+
+        /* Detail Card */
+        .schedule-detail { padding: 0; }
+        .schedule-detail .detail-header {
+            padding: 16px; background: #f8f9fa; border-bottom: 1px solid #dee2e6;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .schedule-detail .detail-body { padding: 16px; }
+        .schedule-detail .detail-row {
+            display: flex; padding: 8px 0; border-bottom: 1px solid #f0f0f0;
+        }
+        .schedule-detail .detail-row:last-child { border-bottom: none; }
+        .schedule-detail .detail-label { width: 100px; font-weight: 500; color: #495057; flex-shrink: 0; }
+        .schedule-detail .detail-value { flex: 1; }
+        .detail-actions { display: flex; gap: 8px; margin-top: 16px; }
+
+        /* Badge */
+        .badge-schedule {
+            display: inline-block; padding: 2px 8px; border-radius: 12px;
+            font-size: 0.75rem; font-weight: 500;
+        }
+        .badge-face { background: #d4edda; color: #155724; }
+        .badge-phone { background: #cce5ff; color: #004085; }
+        .badge-video { background: #fff3cd; color: #856404; }
+        .badge-etc { background: #e2e3e5; color: #383d41; }
+
+        /* SweetAlert-like confirm */
+        .confirm-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,.4); z-index: 2000; display: none;
+            justify-content: center; align-items: center;
+        }
+        .confirm-overlay.show { display: flex; }
+        .confirm-box {
+            background: #fff; border-radius: 12px; padding: 32px; text-align: center;
+            max-width: 400px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,.2);
+        }
+        .confirm-box .icon { font-size: 3rem; color: #f0ad4e; margin-bottom: 16px; }
+        .confirm-box h5 { margin-bottom: 8px; }
+        .confirm-box p { color: #6c757d; margin-bottom: 24px; }
+        .confirm-box .btn-group { display: flex; gap: 12px; justify-content: center; }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+    <div class="brand">
+        <h5><i class="bi bi-briefcase-fill me-2"></i>Jobmoa</h5>
+    </div>
+    <div class="nav-section">
+        <div class="section-title">메뉴</div>
+        <div class="nav-item"><a href="#"><i class="bi bi-speedometer2"></i>대시보드</a></div>
+        <div class="nav-item"><a href="#"><i class="bi bi-people"></i>참여자 관리</a></div>
+        <div class="nav-item"><a href="#" class="active"><i class="bi bi-calendar-event"></i>상담 일정</a></div>
+        <div class="nav-item"><a href="#"><i class="bi bi-journal-text"></i>상담일지</a></div>
+        <div class="nav-item"><a href="#"><i class="bi bi-building"></i>채용정보</a></div>
+        <div class="nav-item"><a href="#"><i class="bi bi-bar-chart"></i>통계/보고서</a></div>
+    </div>
+    <div class="nav-section">
+        <div class="section-title">설정</div>
+        <div class="nav-item"><a href="#"><i class="bi bi-person-circle"></i>마이페이지</a></div>
+        <div class="nav-item"><a href="#"><i class="bi bi-box-arrow-right"></i>로그아웃</a></div>
+    </div>
+</aside>
+
+<!-- Header -->
+<header class="main-header">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#" class="text-decoration-none">홈</a></li>
+            <li class="breadcrumb-item active">상담 일정 조회 및 등록</li>
+        </ol>
+    </nav>
+    <div class="ms-auto d-flex align-items-center gap-3">
+        <span class="text-muted" style="font-size:0.85rem;"><i class="bi bi-geo-alt"></i> 남부지점</span>
+        <span class="text-muted" style="font-size:0.85rem;"><i class="bi bi-person"></i> 김상담</span>
+    </div>
+</header>
+
+<!-- Content -->
+<div class="content-wrapper">
+    <div class="page-actions">
+        <h4><i class="bi bi-calendar-event me-2"></i>상담 일정 조회 및 등록</h4>
+        <button class="btn btn-primary" id="btnRegister">
+            <i class="bi bi-plus-lg me-1"></i>상담 일정 등록
+        </button>
+    </div>
+    <div id="calendar"></div>
+</div>
+
+<!-- Register/Edit Modal -->
+<div class="modal fade" id="scheduleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">
+                    <i class="bi bi-calendar-plus me-2"></i>상담 일정 등록
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editScheduleId">
+
+                <div class="mb-3">
+                    <label class="form-label">일정 날짜 <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" id="scheduleDate">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">시간 <span class="text-danger">*</span></label>
+                    <div class="time-select">
+                        <select class="form-select" id="startHour">
+                            <option value="">시</option>
+                            <option value="09">09</option><option value="10">10</option>
+                            <option value="11">11</option><option value="12">12</option>
+                            <option value="13">13</option><option value="14">14</option>
+                            <option value="15">15</option><option value="16">16</option>
+                            <option value="17">17</option><option value="18">18</option>
+                        </select>
+                        <span>:</span>
+                        <select class="form-select" id="startMinute">
+                            <option value="">분</option>
+                            <option value="00">00</option><option value="10">10</option>
+                            <option value="20">20</option><option value="30">30</option>
+                            <option value="40">40</option><option value="50">50</option>
+                        </select>
+                        <span>~</span>
+                        <select class="form-select" id="endHour">
+                            <option value="">시</option>
+                            <option value="09">09</option><option value="10">10</option>
+                            <option value="11">11</option><option value="12">12</option>
+                            <option value="13">13</option><option value="14">14</option>
+                            <option value="15">15</option><option value="16">16</option>
+                            <option value="17">17</option><option value="18">18</option>
+                        </select>
+                        <span>:</span>
+                        <select class="form-select" id="endMinute">
+                            <option value="">분</option>
+                            <option value="00">00</option><option value="10">10</option>
+                            <option value="20">20</option><option value="30">30</option>
+                            <option value="40">40</option><option value="50">50</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">참여자 선택</label>
+                    <div class="participant-search-wrapper">
+                        <input type="text" class="form-control" id="participantSearch"
+                               placeholder="참여자 이름을 입력하세요" autocomplete="off">
+                        <input type="hidden" id="participantJobNo">
+                        <div class="participant-dropdown" id="participantDropdown"></div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">일정 유형</label>
+                    <select class="form-select" id="scheduleType">
+                        <option value="대면상담">대면상담</option>
+                        <option value="전화상담">전화상담</option>
+                        <option value="화상상담">화상상담</option>
+                        <option value="기타">기타</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">메모</label>
+                    <textarea class="form-control" id="scheduleMemo" rows="3"
+                              maxlength="500" placeholder="메모를 입력하세요 (최대 500자)"></textarea>
+                    <div class="form-text text-end"><span id="memoCount">0</span>/500</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-primary" id="btnSave">
+                    <i class="bi bi-check-lg me-1"></i>저장
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-calendar-check me-2"></i>일정 상세</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body schedule-detail">
+                <div class="detail-body">
+                    <div class="detail-row">
+                        <div class="detail-label">날짜</div>
+                        <div class="detail-value" id="detailDate"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">시간</div>
+                        <div class="detail-value" id="detailTime"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">참여자</div>
+                        <div class="detail-value" id="detailParticipant"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">유형</div>
+                        <div class="detail-value" id="detailType"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">메모</div>
+                        <div class="detail-value" id="detailMemo"></div>
+                    </div>
+                    <div class="detail-actions">
+                        <button class="btn btn-success btn-sm" id="btnCounselNote">
+                            <i class="bi bi-journal-text me-1"></i>상담일지 작성
+                        </button>
+                        <button class="btn btn-warning btn-sm" id="btnEdit">
+                            <i class="bi bi-pencil me-1"></i>수정
+                        </button>
+                        <button class="btn btn-danger btn-sm" id="btnDelete">
+                            <i class="bi bi-trash me-1"></i>삭제
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirm -->
+<div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+        <div class="icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+        <h5>일정을 삭제하시겠습니까?</h5>
+        <p>삭제된 일정은 복구할 수 없습니다.</p>
+        <div class="btn-group">
+            <button class="btn btn-secondary" id="confirmCancel">취소</button>
+            <button class="btn btn-danger" id="confirmDelete">삭제</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script>
+    // Dummy participants data
+    const myParticipants = [
+        { jobNo: 10234, name: '이민수', stage: 'IAP수립' },
+        { jobNo: 10312, name: '박지현', stage: '집중알선' },
+        { jobNo: 10405, name: '김영호', stage: '취업역량' },
+        { jobNo: 10498, name: '최수진', stage: '초기상담' },
+        { jobNo: 10567, name: '정태웅', stage: 'IAP수립' },
+        { jobNo: 10612, name: '한미영', stage: '취업지원' },
+        { jobNo: 10701, name: '송준호', stage: '집중알선' },
+        { jobNo: 10823, name: '윤서아', stage: '초기상담' },
+    ];
+
+    // Dummy schedule data
+    let schedules = [
+        { id: 1, title: '이민수 - 대면상담', start: getDateStr(0, 10, 0), end: getDateStr(0, 11, 0), participantName: '이민수', participantJobNo: 10234, type: '대면상담', memo: 'IAP 2차 상담 진행', color: '#0d6efd' },
+        { id: 2, title: '박지현 - 전화상담', start: getDateStr(1, 14, 0), end: getDateStr(1, 14, 30), participantName: '박지현', participantJobNo: 10312, type: '전화상담', memo: '알선 현황 확인', color: '#198754' },
+        { id: 3, title: '김영호 - 대면상담', start: getDateStr(2, 9, 30), end: getDateStr(2, 10, 30), participantName: '김영호', participantJobNo: 10405, type: '대면상담', memo: '', color: '#0d6efd' },
+        { id: 4, title: '최수진 - 화상상담', start: getDateStr(-1, 15, 0), end: getDateStr(-1, 16, 0), participantName: '최수진', participantJobNo: 10498, type: '화상상담', memo: '초기 상담 - 직업선호도 검사 결과 분석', color: '#ffc107' },
+        { id: 5, title: '정태웅 - 대면상담', start: getDateStr(3, 11, 0), end: getDateStr(3, 12, 0), participantName: '정태웅', participantJobNo: 10567, type: '대면상담', memo: 'IAP 수립 면담', color: '#0d6efd' },
+        { id: 6, title: '한미영 - 전화상담', start: getDateStr(-2, 13, 0), end: getDateStr(-2, 13, 30), participantName: '한미영', participantJobNo: 10612, type: '전화상담', memo: '취업 후 적응상담', color: '#198754' },
+    ];
+
+    function getDateStr(dayOffset, hour, minute) {
+        const d = new Date();
+        d.setDate(d.getDate() + dayOffset);
+        d.setHours(hour, minute, 0, 0);
+        return d.toISOString().slice(0, 16);
+    }
+
+    let nextId = 7;
+    let selectedEvent = null;
+
+    // Calendar Init
+    document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'ko',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            navLinks: true,
+            editable: false,
+            selectable: true,
+            dayMaxEvents: 3,
+            events: schedules,
+            dateClick: function(info) {
+                openRegisterModal(info.dateStr);
+            },
+            eventClick: function(info) {
+                openDetailModal(info.event);
+            },
+            height: 'auto'
+        });
+        calendar.render();
+        window._calendar = calendar;
+    });
+
+    // Register button
+    document.getElementById('btnRegister').addEventListener('click', function() {
+        const today = new Date().toISOString().slice(0, 10);
+        openRegisterModal(today);
+    });
+
+    function openRegisterModal(dateStr) {
+        document.getElementById('modalTitle').innerHTML = '<i class="bi bi-calendar-plus me-2"></i>상담 일정 등록';
+        document.getElementById('editScheduleId').value = '';
+        document.getElementById('scheduleDate').value = dateStr;
+        document.getElementById('startHour').value = '';
+        document.getElementById('startMinute').value = '';
+        document.getElementById('endHour').value = '';
+        document.getElementById('endMinute').value = '';
+        document.getElementById('participantSearch').value = '';
+        document.getElementById('participantJobNo').value = '';
+        document.getElementById('scheduleType').value = '대면상담';
+        document.getElementById('scheduleMemo').value = '';
+        document.getElementById('memoCount').textContent = '0';
+        new bootstrap.Modal(document.getElementById('scheduleModal')).show();
+    }
+
+    // Participant search
+    const searchInput = document.getElementById('participantSearch');
+    const dropdown = document.getElementById('participantDropdown');
+
+    searchInput.addEventListener('input', function() {
+        const q = this.value.trim();
+        if (q.length === 0) { dropdown.classList.remove('show'); return; }
+        const matches = myParticipants.filter(p => p.name.includes(q) || String(p.jobNo).includes(q));
+        if (matches.length === 0) { dropdown.classList.remove('show'); return; }
+        dropdown.innerHTML = matches.map(p =>
+            `<div class="item" data-jobno="${p.jobNo}" data-name="${p.name}">
+                <span class="name">${p.name}</span>
+                <span class="num">${p.jobNo} | ${p.stage}</span>
+            </div>`
+        ).join('');
+        dropdown.classList.add('show');
+    });
+
+    dropdown.addEventListener('click', function(e) {
+        const item = e.target.closest('.item');
+        if (!item) return;
+        searchInput.value = item.dataset.name;
+        document.getElementById('participantJobNo').value = item.dataset.jobno;
+        dropdown.classList.remove('show');
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.participant-search-wrapper')) dropdown.classList.remove('show');
+    });
+
+    // Memo counter
+    document.getElementById('scheduleMemo').addEventListener('input', function() {
+        document.getElementById('memoCount').textContent = this.value.length;
+    });
+
+    // Save
+    document.getElementById('btnSave').addEventListener('click', function() {
+        const date = document.getElementById('scheduleDate').value;
+        const sh = document.getElementById('startHour').value;
+        const sm = document.getElementById('startMinute').value;
+        const eh = document.getElementById('endHour').value;
+        const em = document.getElementById('endMinute').value;
+        const pName = document.getElementById('participantSearch').value;
+        const pNo = document.getElementById('participantJobNo').value;
+        const type = document.getElementById('scheduleType').value;
+        const memo = document.getElementById('scheduleMemo').value;
+
+        if (!date || !sh || !sm) { alert('날짜와 시작 시간을 선택해주세요.'); return; }
+
+        const colorMap = { '대면상담': '#0d6efd', '전화상담': '#198754', '화상상담': '#ffc107', '기타': '#6c757d' };
+        const editId = document.getElementById('editScheduleId').value;
+
+        const newEvent = {
+            id: editId ? parseInt(editId) : nextId++,
+            title: (pName || '(미정)') + ' - ' + type,
+            start: date + 'T' + sh + ':' + sm,
+            end: (eh && em) ? date + 'T' + eh + ':' + em : null,
+            participantName: pName || '(미정)',
+            participantJobNo: pNo ? parseInt(pNo) : null,
+            type: type,
+            memo: memo,
+            color: colorMap[type]
+        };
+
+        if (editId) {
+            // Remove old and add updated
+            const old = window._calendar.getEventById(editId);
+            if (old) old.remove();
+        }
+
+        window._calendar.addEvent(newEvent);
+        bootstrap.Modal.getInstance(document.getElementById('scheduleModal')).hide();
+    });
+
+    // Detail modal
+    function openDetailModal(event) {
+        selectedEvent = event;
+        const props = event.extendedProps || {};
+        const startDate = event.start;
+        const endDate = event.end;
+
+        document.getElementById('detailDate').textContent = startDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+        document.getElementById('detailTime').textContent =
+            startDate.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) +
+            (endDate ? ' ~ ' + endDate.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : '');
+
+        const pName = event.title.split(' - ')[0];
+        document.getElementById('detailParticipant').textContent = pName;
+
+        const type = event.title.split(' - ')[1] || '';
+        const badgeClass = { '대면상담': 'badge-face', '전화상담': 'badge-phone', '화상상담': 'badge-video', '기타': 'badge-etc' }[type] || 'badge-etc';
+        document.getElementById('detailType').innerHTML = `<span class="badge-schedule ${badgeClass}">${type}</span>`;
+        document.getElementById('detailMemo').textContent = props.memo || '-';
+
+        new bootstrap.Modal(document.getElementById('detailModal')).show();
+    }
+
+    // Edit from detail
+    document.getElementById('btnEdit').addEventListener('click', function() {
+        if (!selectedEvent) return;
+        bootstrap.Modal.getInstance(document.getElementById('detailModal')).hide();
+
+        const s = selectedEvent.start;
+        const e = selectedEvent.end;
+        const props = selectedEvent.extendedProps || {};
+
+        document.getElementById('modalTitle').innerHTML = '<i class="bi bi-pencil me-2"></i>상담 일정 수정';
+        document.getElementById('editScheduleId').value = selectedEvent.id;
+        document.getElementById('scheduleDate').value = s.toISOString().slice(0, 10);
+        document.getElementById('startHour').value = String(s.getHours()).padStart(2, '0');
+        document.getElementById('startMinute').value = String(s.getMinutes()).padStart(2, '0');
+        if (e) {
+            document.getElementById('endHour').value = String(e.getHours()).padStart(2, '0');
+            document.getElementById('endMinute').value = String(e.getMinutes()).padStart(2, '0');
+        }
+        const pName = selectedEvent.title.split(' - ')[0];
+        document.getElementById('participantSearch').value = pName;
+        document.getElementById('participantJobNo').value = props.participantJobNo || '';
+        document.getElementById('scheduleType').value = props.type || '대면상담';
+        document.getElementById('scheduleMemo').value = props.memo || '';
+        document.getElementById('memoCount').textContent = (props.memo || '').length;
+
+        new bootstrap.Modal(document.getElementById('scheduleModal')).show();
+    });
+
+    // Delete
+    document.getElementById('btnDelete').addEventListener('click', function() {
+        bootstrap.Modal.getInstance(document.getElementById('detailModal')).hide();
+        document.getElementById('confirmOverlay').classList.add('show');
+    });
+
+    document.getElementById('confirmCancel').addEventListener('click', function() {
+        document.getElementById('confirmOverlay').classList.remove('show');
+    });
+
+    document.getElementById('confirmDelete').addEventListener('click', function() {
+        if (selectedEvent) {
+            selectedEvent.remove();
+            selectedEvent = null;
+        }
+        document.getElementById('confirmOverlay').classList.remove('show');
+    });
+
+    // Counsel note link
+    document.getElementById('btnCounselNote').addEventListener('click', function() {
+        if (!selectedEvent) return;
+        const jobNo = selectedEvent.extendedProps?.participantJobNo;
+        alert('상담일지 작성 페이지로 이동합니다.\n(구직번호: ' + (jobNo || 'N/A') + ')\n\n실제 구현 시: /UpdateCounselPage?구직번호=' + jobNo);
+    });
+</script>
+</body>
+</html>

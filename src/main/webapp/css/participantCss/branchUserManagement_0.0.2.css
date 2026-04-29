@@ -1,0 +1,33 @@
+.drag-handle {
+    color: #aaa;
+    cursor: move;
+}
+
+.drag-handle:hover {
+    color: #666;
+}
+
+#participantList tr.table-warning {
+    background-color: #fff8e1;
+}
+
+#participantList tr.table-secondary {
+    background-color: #f5f5f5;
+    text-decoration: line-through;
+}
+
+.sortable-ghost {
+    background-color: #f8f9fa !important;
+    opacity: 0.5;
+}
+
+.card-subtitle {
+    margin: 4px 0 0;
+    color: #6b7280;
+    font-size: 0.85rem;
+}
+
+.drag-icon {
+    margin-right: 6px;
+    color: #9ca3af;
+}

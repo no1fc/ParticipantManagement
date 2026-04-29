@@ -1,0 +1,668 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="AdminDAO">
+
+    <!-- ===== 사용자 관리 (J_참여자관리_로그인정보) ===== -->
+    <select id="selectUserList" resultType="admin">
+        SELECT
+            전담자번호 memberNo,
+            지점 branch,
+            이름 memberName,
+            아이디 userId,
+            권한 role,
+            관리자권한 isAdmin,
+            등록일 regDate,
+            이메일 email,
+            전화번호 phoneNumber,
+            아이디사용여부 useStatus,
+            입사일 hireDate,
+            최종발령일 lastAssignDate,
+            근속기간구분 continuousPeriod,
+            조회순서 viewOrder,
+            실적작성여부 performanceWrite,
+            일일업무일지발급여부 dailyReportIssue,
+            배정가중치 assignWeight
+        FROM J_참여자관리_로그인정보
+        WHERE 1=1
+        <if test="searchBranch != null and searchBranch != ''">
+            AND 지점 = #{searchBranch}
+        </if>
+        <if test="searchName != null and searchName != ''">
+            AND 이름 LIKE '%' + #{searchName} + '%'
+        </if>
+        <if test="searchUserId != null and searchUserId != ''">
+            AND 아이디 LIKE '%' + #{searchUserId} + '%'
+        </if>
+        <if test="searchRole != null and searchRole != ''">
+            AND 권한 = #{searchRole}
+        </if>
+        ORDER BY 조회순서 ASC, 전담자번호 ASC
+    </select>
+
+    <select id="selectUserOne" resultType="admin">
+        SELECT
+            전담자번호 memberNo,
+            지점 branch,
+            이름 memberName,
+            아이디 userId,
+            권한 role,
+            관리자권한 isAdmin,
+            등록일 regDate,
+            이메일 email,
+            전화번호 phoneNumber,
+            아이디사용여부 useStatus,
+            입사일 hireDate,
+            최종발령일 lastAssignDate,
+            근속기간구분 continuousPeriod,
+            조회순서 viewOrder,
+            실적작성여부 performanceWrite,
+            일일업무일지발급여부 dailyReportIssue,
+            배정가중치 assignWeight
+        FROM J_참여자관리_로그인정보
+        WHERE 전담자번호 = #{memberNo}
+    </select>
+
+    <insert id="insertUser">
+        INSERT INTO J_참여자관리_로그인정보 (
+            전담자번호, 지점, 이름, 아이디, 비밀번호, 권한, 관리자권한,
+            이메일, 전화번호, 아이디사용여부, 입사일, 최종발령일,
+            조회순서, 실적작성여부, 일일업무일지발급여부, 배정가중치
+        ) VALUES (
+            #{memberNo}, #{branch}, #{memberName}, #{userId}, #{password}, #{role}, #{isAdmin},
+            #{email}, #{phoneNumber}, #{useStatus}, #{hireDate}, #{lastAssignDate},
+            #{viewOrder}, #{performanceWrite}, #{dailyReportIssue}, #{assignWeight}
+        )
+    </insert>
+
+    <update id="updateUser">
+        UPDATE J_참여자관리_로그인정보
+        SET
+            지점 = #{branch},
+            이름 = #{memberName},
+            아이디 = #{userId},
+            권한 = #{role},
+            관리자권한 = #{isAdmin},
+            이메일 = #{email},
+            전화번호 = #{phoneNumber},
+            아이디사용여부 = #{useStatus},
+            입사일 = #{hireDate},
+            최종발령일 = #{lastAssignDate},
+            조회순서 = #{viewOrder},
+            실적작성여부 = #{performanceWrite},
+            일일업무일지발급여부 = #{dailyReportIssue},
+            배정가중치 = #{assignWeight}
+        WHERE 전담자번호 = #{memberNo}
+    </update>
+
+    <delete id="deleteUser">
+        DELETE FROM J_참여자관리_로그인정보
+        WHERE 전담자번호 = #{memberNo}
+    </delete>
+
+    <update id="resetUserPassword">
+        UPDATE J_참여자관리_로그인정보
+        SET 비밀번호 = #{password}
+        WHERE 전담자번호 = #{memberNo}
+    </update>
+
+    <!-- ===== 지점 관리 (J_참여자관리_지점) ===== -->
+    <select id="selectBranchList" resultType="admin">
+        SELECT
+            지점번호 branchNo,
+            지점 branchName,
+            지점인원 branchStaff,
+            유형1 type1,
+            유형2 type2,
+            사업부 department,
+            순서 branchOrder
+        FROM J_참여자관리_지점
+        ORDER BY 순서 ASC, 지점번호 ASC
+    </select>
+
+    <select id="selectBranchOne" resultType="admin">
+        SELECT
+            지점번호 branchNo,
+            지점 branchName,
+            지점인원 branchStaff,
+            유형1 type1,
+            유형2 type2,
+            사업부 department,
+            순서 branchOrder
+        FROM J_참여자관리_지점
+        WHERE 지점번호 = #{branchNo}
+    </select>
+
+    <insert id="insertBranch">
+        INSERT INTO J_참여자관리_지점 (지점, 지점인원, 유형1, 유형2, 사업부, 순서)
+        VALUES (#{branchName}, #{branchStaff}, #{type1}, #{type2}, #{department}, #{branchOrder})
+    </insert>
+
+    <update id="updateBranch">
+        UPDATE J_참여자관리_지점
+        SET
+            지점 = #{branchName},
+            지점인원 = #{branchStaff},
+            유형1 = #{type1},
+            유형2 = #{type2},
+            사업부 = #{department},
+            순서 = #{branchOrder}
+        WHERE 지점번호 = #{branchNo}
+    </update>
+
+    <delete id="deleteBranch">
+        DELETE FROM J_참여자관리_지점
+        WHERE 지점번호 = #{branchNo}
+    </delete>
+
+    <!-- ===== 참여자 관리 (J_참여자관리) ===== -->
+    <select id="selectParticipantList" resultType="admin">
+        SELECT
+            A.구직번호 jobNo,
+            A.참여자 participantName,
+            A.생년월일 birthDate,
+            A.성별 gender,
+            A.지점 branch,
+            A.전담자_계정 counselorAccount,
+            A.진행단계 progressStage,
+            CONVERT(varchar, A.등록일, 23) participantRegDate,
+            A.마감 closed
+        FROM J_참여자관리 A
+        WHERE 1=1
+        <if test="searchJobNo != null and searchJobNo != ''">
+            AND CAST(A.구직번호 AS NVARCHAR) LIKE #{searchJobNo} + '%'
+        </if>
+        <if test="searchName != null and searchName != ''">
+            AND A.참여자 LIKE '%' + #{searchName} + '%'
+        </if>
+        <if test="searchBranch != null and searchBranch != ''">
+            AND A.지점 = #{searchBranch}
+        </if>
+        <if test="searchStatus != null and searchStatus != ''">
+            AND A.진행단계 = #{searchStatus}
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+            AND A.등록일 >= #{searchStartDate}
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+            AND A.등록일 <![CDATA[<=]]> #{searchEndDate}
+        </if>
+        <if test="searchClosed != null and searchClosed != ''">
+            AND A.마감 = #{searchClosed}
+        </if>
+        ORDER BY A.구직번호 DESC
+    </select>
+
+    <select id="selectParticipantOne" resultType="admin">
+        SELECT
+            A.구직번호 jobNo,
+            A.참여자 participantName,
+            CONVERT(varchar, A.생년월일, 23) birthDate,
+            A.성별 gender,
+            A.지점 branch,
+            A.전담자_계정 counselorAccount,
+            A.진행단계 progressStage,
+            A.모집경로 recruitPath,
+            A.참여유형 participationType,
+            A.경력 career,
+            A.학력 education,
+            A.특정계층 specialClass,
+            A.취업역량 employmentCapacity,
+            A.희망직무 desiredJob,
+            A.희망급여 desiredSalary,
+            CONVERT(varchar, A.등록일, 23) participantRegDate,
+            A.메모 memo,
+            A.마감 closed
+        FROM J_참여자관리 A
+        WHERE A.구직번호 = #{jobNo}
+    </select>
+
+    <delete id="deleteParticipant">
+        DELETE FROM J_참여자관리
+        WHERE 구직번호 = #{jobNo}
+    </delete>
+
+    <!-- ===== 일일업무보고 (J_참여자관리_일일업무보고) ===== -->
+    <select id="selectDailyReportList" resultType="admin">
+        SELECT
+            PK pk,
+            지점 reportBranch,
+            아이디 reportUserId,
+            유형1 type1,
+            유형2 type2,
+            금일일반취업 dailyGeneralEmp,
+            금일알선취업 dailyPlacementEmp,
+            금주일반취업 weekGeneralEmp,
+            금주알선취업 weekPlacementEmp,
+            금월일반취업 monthGeneralEmp,
+            금월알선취업 monthPlacementEmp,
+            금년일반취업 yearGeneralEmp,
+            금년알선취업 yearPlacementEmp,
+            CONVERT(varchar, 업무보고일, 23) reportDate,
+            CONVERT(varchar, 실적등록일, 120) reportRegDate
+        FROM J_참여자관리_일일업무보고
+        WHERE 1=1
+        <if test="searchBranch != null and searchBranch != ''">
+            AND 지점 = #{searchBranch}
+        </if>
+        <if test="searchUserId != null and searchUserId != ''">
+            AND 아이디 LIKE '%' + #{searchUserId} + '%'
+        </if>
+        <if test="reportDate != null and reportDate != ''">
+            AND 업무보고일 = #{reportDate}
+        </if>
+        ORDER BY PK DESC
+    </select>
+
+    <!-- ===== 기준금액 (J_참여자관리_기준금액) ===== -->
+    <select id="selectStandardAmountList" resultType="admin">
+        SELECT
+            PK pk,
+            구분 division,
+            CONVERT(varchar, 년도, 23) year,
+            임금_최소 minWage,
+            임금_최대 maxWage,
+            성공금 successFee
+        FROM J_참여자관리_기준금액
+        ORDER BY PK DESC
+    </select>
+
+    <select id="selectStandardAmountOne" resultType="admin">
+        SELECT
+            PK pk,
+            구분 division,
+            CONVERT(varchar, 년도, 23) year,
+            임금_최소 minWage,
+            임금_최대 maxWage,
+            성공금 successFee
+        FROM J_참여자관리_기준금액
+        WHERE PK = #{pk}
+    </select>
+
+    <insert id="insertStandardAmount">
+        INSERT INTO J_참여자관리_기준금액 (PK, 구분, 년도, 임금_최소, 임금_최대, 성공금)
+        VALUES (
+            (SELECT ISNULL(MAX(PK), 0) + 1 FROM J_참여자관리_기준금액),
+            #{division}, #{year}, #{minWage}, #{maxWage}, #{successFee}
+        )
+    </insert>
+
+    <update id="updateStandardAmount">
+        UPDATE J_참여자관리_기준금액
+        SET
+            구분 = #{division},
+            년도 = #{year},
+            임금_최소 = #{minWage},
+            임금_최대 = #{maxWage},
+            성공금 = #{successFee}
+        WHERE PK = #{pk}
+    </update>
+
+    <delete id="deleteStandardAmount">
+        DELETE FROM J_참여자관리_기준금액
+        WHERE PK = #{pk}
+    </delete>
+
+    <!-- ===== 나은기준임금 (J_참여자관리_나은기준임금) ===== -->
+    <select id="selectBetterWageList" resultType="admin">
+        SELECT
+            PK pk,
+            년도 betterYear,
+            CONVERT(varchar, 년도DATE, 23) betterYearDate,
+            나은임금 betterWage,
+            CONVERT(varchar, 등록일, 120) betterRegDate
+        FROM J_참여자관리_나은기준임금
+        ORDER BY PK DESC
+    </select>
+
+    <select id="selectBetterWageOne" resultType="admin">
+        SELECT
+            PK pk,
+            년도 betterYear,
+            CONVERT(varchar, 년도DATE, 23) betterYearDate,
+            나은임금 betterWage,
+            CONVERT(varchar, 등록일, 120) betterRegDate
+        FROM J_참여자관리_나은기준임금
+        WHERE PK = #{pk}
+    </select>
+
+    <insert id="insertBetterWage">
+        INSERT INTO J_참여자관리_나은기준임금 (PK, 년도, 등록일, 년도DATE, 나은임금)
+        VALUES (
+            (SELECT ISNULL(MAX(PK), 0) + 1 FROM J_참여자관리_나은기준임금),
+            #{betterYear}, GETDATE(), #{betterYearDate}, #{betterWage}
+        )
+    </insert>
+
+    <update id="updateBetterWage">
+        UPDATE J_참여자관리_나은기준임금
+        SET
+            년도 = #{betterYear},
+            년도DATE = #{betterYearDate},
+            나은임금 = #{betterWage}
+        WHERE PK = #{pk}
+    </update>
+
+    <delete id="deleteBetterWage">
+        DELETE FROM J_참여자관리_나은기준임금
+        WHERE PK = #{pk}
+    </delete>
+
+    <!-- ===== 배정 CSV 히스토리 (J_참여자관리_배정CSV_히스토리) ===== -->
+    <select id="selectCsvHistoryList" resultType="admin">
+        SELECT
+            PK pk,
+            지점 csvBranch,
+            작성자 csvWriterId,
+            행번호 rowNumber,
+            상담사ID counselorId,
+            참여자 csvParticipant,
+            참여유형 csvParticipationType,
+            성별 csvGender,
+            생년월일 csvBirthDate,
+            모집경로 csvRecruitPath,
+            경력유무 csvCareer,
+            학력 csvEducation,
+            특정계층여부 csvSpecificClass,
+            진행단계 csvProgressStage,
+            출장상담사 csvTravelCounselor,
+            CONVERT(varchar, 등록일, 120) csvRegDate
+        FROM J_참여자관리_배정CSV_히스토리
+        ORDER BY PK DESC
+    </select>
+
+    <!-- ===== 배정 산정식 히스토리 (J_참여자관리_배정산정식_히스토리) ===== -->
+    <select id="selectFormulaHistoryList" resultType="admin">
+        SELECT
+            PK pk,
+            지점 formulaBranch,
+            작성자 formulaWriterId,
+            가중치로드 weightLoad,
+            가중치공정 weightProcess,
+            가중치연속 weightContinuous,
+            가중치페이스 weightPace,
+            갭임계값 gapThreshold,
+            일일제한 dailyLimit,
+            G1제한 g1Limit,
+            G2제한 g2Limit,
+            G3제한 g3Limit,
+            CONVERT(varchar, 등록일, 120) formulaRegDate
+        FROM J_참여자관리_배정산정식_히스토리
+        ORDER BY PK DESC
+    </select>
+
+    <!-- ===== 알선 관리 (J_참여자관리_알선상세정보) ===== -->
+    <select id="selectJobPlacementList" resultType="admin">
+        SELECT
+            등록번호 registrationNo,
+            구직번호 placementJobNo,
+            LEFT(상세정보, 50) detailInfo,
+            LEFT(추천사, 50) recommendation,
+            CONVERT(varchar, 등록일, 120) placementRegDate,
+            CONVERT(varchar, 수정일, 120) placementUpdateDate
+        FROM J_참여자관리_알선상세정보
+        ORDER BY 등록번호 DESC
+    </select>
+
+    <select id="selectJobPlacementOne" resultType="admin">
+        SELECT
+            등록번호 registrationNo,
+            구직번호 placementJobNo,
+            상세정보 detailInfo,
+            추천사 recommendation,
+            CONVERT(varchar, 등록일, 120) placementRegDate,
+            CONVERT(varchar, 수정일, 120) placementUpdateDate
+        FROM J_참여자관리_알선상세정보
+        WHERE 등록번호 = #{registrationNo}
+    </select>
+
+    <insert id="insertJobPlacement">
+        INSERT INTO J_참여자관리_알선상세정보 (
+            등록번호, 구직번호, 상세정보, 추천사, 등록일, 수정일
+        ) VALUES (
+            (SELECT ISNULL(MAX(등록번호), 0) + 1 FROM J_참여자관리_알선상세정보),
+            #{placementJobNo}, #{detailInfo}, #{recommendation}, GETDATE(), GETDATE()
+        )
+    </insert>
+
+    <update id="updateJobPlacement">
+        UPDATE J_참여자관리_알선상세정보
+        SET
+            상세정보 = #{detailInfo},
+            추천사 = #{recommendation},
+            수정일 = GETDATE()
+        WHERE 등록번호 = #{registrationNo}
+    </update>
+
+    <delete id="deleteJobPlacement">
+        DELETE FROM J_참여자관리_알선상세정보
+        WHERE 등록번호 = #{registrationNo}
+    </delete>
+
+    <!-- ===== 이력서 요청 (J_참여자관리_이력서요청양식) ===== -->
+    <select id="selectResumeRequestList" resultType="admin">
+        SELECT
+            등록번호 resumeRegNo,
+            구직번호 resumeJobNo,
+            기업명 companyName,
+            담당자명 managerName,
+            이메일 managerEmail,
+            비상연락처 emergencyContact,
+            상태 requestStatus,
+            CONVERT(varchar, 등록일, 120) resumeRegDate,
+            CONVERT(varchar, 수정일, 120) resumeUpdateDate
+        FROM J_참여자관리_이력서요청양식
+        ORDER BY 등록번호 DESC
+    </select>
+
+    <select id="selectResumeRequestOne" resultType="admin">
+        SELECT
+            등록번호 resumeRegNo,
+            구직번호 resumeJobNo,
+            기업명 companyName,
+            담당자명 managerName,
+            이메일 managerEmail,
+            비상연락처 emergencyContact,
+            기타요청사항 otherRequests,
+            상태 requestStatus,
+            기업개인정보처리동의 companyPrivacyConsent,
+            기업담당자개인정보처리동의 managerPrivacyConsent,
+            마케팅개인정보사용동의 marketingConsent,
+            CONVERT(varchar, 등록일, 120) resumeRegDate,
+            CONVERT(varchar, 수정일, 120) resumeUpdateDate
+        FROM J_참여자관리_이력서요청양식
+        WHERE 등록번호 = #{resumeRegNo}
+    </select>
+
+    <update id="updateResumeRequestStatus">
+        UPDATE J_참여자관리_이력서요청양식
+        SET
+            상태 = #{requestStatus},
+            수정일 = GETDATE()
+        WHERE 등록번호 = #{resumeRegNo}
+    </update>
+
+    <!-- ===== 자격증 (J_참여자관리_자격증) ===== -->
+    <select id="selectCertificateList" resultType="admin">
+        SELECT
+            자격증번호 certificateNo,
+            구직번호 certJobNo,
+            자격증 certificateName
+        FROM J_참여자관리_자격증
+        ORDER BY 자격증번호 DESC
+    </select>
+
+    <insert id="insertCertificate">
+        INSERT INTO J_참여자관리_자격증 (
+            자격증번호, 구직번호, 자격증
+        ) VALUES (
+            (SELECT ISNULL(MAX(자격증번호), 0) + 1 FROM J_참여자관리_자격증),
+            #{certJobNo}, #{certificateName}
+        )
+    </insert>
+
+    <update id="updateCertificate">
+        UPDATE J_참여자관리_자격증
+        SET 자격증 = #{certificateName}
+        WHERE 자격증번호 = #{certificateNo}
+    </update>
+
+    <delete id="deleteCertificate">
+        DELETE FROM J_참여자관리_자격증
+        WHERE 자격증번호 = #{certificateNo}
+    </delete>
+
+    <!-- ===== 직업훈련 (J_참여자관리_직업훈련) ===== -->
+    <select id="selectTrainingList" resultType="admin">
+        SELECT
+            직업훈련번호 trainingNo,
+            구직번호 trainJobNo,
+            직업훈련 trainingName
+        FROM J_참여자관리_직업훈련
+        ORDER BY 직업훈련번호 DESC
+    </select>
+
+    <insert id="insertTraining">
+        INSERT INTO J_참여자관리_직업훈련 (
+            직업훈련번호, 구직번호, 직업훈련
+        ) VALUES (
+            (SELECT ISNULL(MAX(직업훈련번호), 0) + 1 FROM J_참여자관리_직업훈련),
+            #{trainJobNo}, #{trainingName}
+        )
+    </insert>
+
+    <update id="updateTraining">
+        UPDATE J_참여자관리_직업훈련
+        SET 직업훈련 = #{trainingName}
+        WHERE 직업훈련번호 = #{trainingNo}
+    </update>
+
+    <delete id="deleteTraining">
+        DELETE FROM J_참여자관리_직업훈련
+        WHERE 직업훈련번호 = #{trainingNo}
+    </delete>
+
+    <!-- ===== 대시보드 KPI ===== -->
+    <!--
+        회계연도 기준: [년도]-11-01 ~ [년도+1]-10-31
+        현재 월이 11월 이상이면 해당년도 11월 ~ 다음해 10월,
+        그 외에는 전년도 11월 ~ 해당년도 10월.
+    -->
+    <select id="selectDashboardKpi" resultType="admin">
+        WITH fiscal_dates AS (
+            SELECT
+                DATEFROMPARTS(
+                    CASE WHEN MONTH(GETDATE()) <![CDATA[>=]]> 11 THEN YEAR(GETDATE()) ELSE YEAR(GETDATE()) - 1 END,
+                    11, 1) AS start_date,
+                DATEFROMPARTS(
+                    CASE WHEN MONTH(GETDATE()) <![CDATA[>=]]> 11 THEN YEAR(GETDATE()) + 1 ELSE YEAR(GETDATE()) END,
+                    10, 31) AS end_date
+        ),
+        실적 AS (
+            /* 회계연도 내 종료자/취업자 집계 */
+            SELECT
+                SUM(CASE
+                    WHEN 진행단계 IN ('미고보','고보일반','등록창업','미등록창업','미취업사후관리','미취업사후종료','중단')
+                         AND NULLIF(CASE WHEN 취창업일 <![CDATA[>]]> '1900-01-01' THEN 취창업일
+                                         WHEN 기간만료일 <![CDATA[>]]> '1900-01-01' THEN 기간만료일
+                                    END, '1900-01-01') BETWEEN F.start_date AND F.end_date
+                         AND 기간만료일 <![CDATA[>=]]> F.start_date
+                         AND 지점 IN ('인천','성남','서부','남부','부천','수원','의정부','인천남부','동대문','광명','안양','북부','천호','관악')
+                    THEN 1 ELSE 0 END) AS fiscal_completed,
+                SUM(CASE
+                    WHEN 진행단계 IN ('미고보','고보일반','등록창업','미등록창업','미취업사후관리','미취업사후종료','중단')
+                         AND NULLIF(CASE WHEN 취창업일 <![CDATA[>]]> '1900-01-01' THEN 취창업일
+                                         WHEN 기간만료일 <![CDATA[>]]> '1900-01-01' THEN 기간만료일
+                                    END, '1900-01-01') BETWEEN F.start_date AND F.end_date
+                         AND 기간만료일 <![CDATA[>=]]> F.start_date
+                         AND 지점 IN ('인천','성남','서부','남부','부천','수원','의정부','인천남부','동대문','광명','안양','북부','천호','관악')
+                         AND 취창업일 <![CDATA[>=]]> F.start_date
+                         AND (진행단계 IN ('등록창업','고보일반', '미취업사후종료', '중단')
+                            OR (진행단계 = '미고보' AND 취업유형 IN ('프리랜서', '특수고용') AND 임금 > 70))
+                         AND (취업인센티브_구분 NOT LIKE '%파견%' OR 취업인센티브_구분 IS NULL)
+                    THEN 1 ELSE 0 END) AS fiscal_employed
+            FROM J_참여자관리
+            CROSS JOIN fiscal_dates F
+            WHERE 지점 NOT IN ('테스트','공통')
+              AND ISNULL(모집경로,'') <![CDATA[<>]]> '이관'
+              AND ISNULL(참여유형,'') <![CDATA[<>]]> '이관'
+              AND 진행단계 <![CDATA[<>]]> '취소'
+        )
+        SELECT
+            (SELECT COUNT(*) FROM J_참여자관리) totalParticipants,
+            (SELECT COUNT(*) FROM J_참여자관리
+             WHERE YEAR(등록일) = YEAR(GETDATE()) AND MONTH(등록일) = MONTH(GETDATE())) monthlyNewAssignments,
+            CASE WHEN R.fiscal_completed = 0 THEN 0.0
+                 ELSE CAST(R.fiscal_employed AS FLOAT) / CAST(R.fiscal_completed AS FLOAT) * 100
+            END employmentRate,
+            R.fiscal_employed,
+            R.fiscal_completed
+        FROM 실적 R
+    </select>
+
+    <select id="selectBranchParticipantStats" resultType="admin">
+        /*
+         * 회계연도(11월~10월) 기준 지점별 취업/알선 성과 집계
+         * 취업_F 판정: 종료_F AND 취창업일 >= start AND 진행단계 취업 계열 AND 파견 아님
+         * 알선_F 판정: 취업_F AND 취업유형='알선'
+         * 대상_F: 평가 대상 지점 AND 실제종료일 within fiscal year
+         */
+        WITH fiscal_dates AS (
+            SELECT
+                DATEFROMPARTS(
+                    CASE WHEN MONTH(GETDATE()) <![CDATA[>=]]> 11 THEN YEAR(GETDATE()) ELSE YEAR(GETDATE()) - 1 END,
+                    11, 1) AS start_date,
+                DATEFROMPARTS(
+                    CASE WHEN MONTH(GETDATE()) <![CDATA[>=]]> 11 THEN YEAR(GETDATE()) + 1 ELSE YEAR(GETDATE()) END,
+                    10, 31) AS end_date
+        ),
+        기본_데이터_정규화 AS (
+            SELECT P.*,
+                NULLIF(CASE
+                    WHEN 취창업일 <![CDATA[>]]> '1900-01-01' THEN 취창업일
+                    WHEN 기간만료일 <![CDATA[>]]> '1900-01-01' THEN 기간만료일
+                    ELSE NULL
+                END, '1900-01-01') AS 실제종료일
+            FROM J_참여자관리 P
+            WHERE 지점 NOT IN ('테스트','공통')
+              AND ISNULL(모집경로,'') <![CDATA[<>]]> '이관'
+              AND ISNULL(참여유형,'') <![CDATA[<>]]> '이관'
+              AND 진행단계 <![CDATA[<>]]> '취소'
+        ),
+        통합_참여자_분석 AS (
+            SELECT P.*,
+                CASE WHEN (진행단계 IN ('미고보','고보일반','등록창업','미등록창업','미취업사후관리','미취업사후종료','중단')
+                           AND 실제종료일 BETWEEN F.start_date AND F.end_date
+                           AND 기간만료일 <![CDATA[>=]]> F.start_date)
+                     THEN 1 ELSE 0 END AS 종료_F,
+                CASE WHEN 취창업일 <![CDATA[>=]]> F.start_date
+                          AND 진행단계 IN ('등록창업','고보일반','미취업사후종료','중단')
+                          AND (취업인센티브_구분 NOT LIKE '%파견%' OR 취업인센티브_구분 IS NULL)
+                     THEN 1 ELSE 0 END AS 취업_F,
+                CASE WHEN 취업유형 = '알선' THEN 1 ELSE 0 END AS 알선_F,
+                CASE WHEN 지점 IN ('인천','성남','서부','남부','부천','수원','의정부','인천남부','동대문','광명','안양','북부','천호','관악')
+                          AND 실제종료일 BETWEEN F.start_date AND F.end_date
+                     THEN 1 ELSE 0 END AS 대상_F
+            FROM 기본_데이터_정규화 P
+            CROSS JOIN fiscal_dates F
+        ),
+        branch_stats AS (
+            SELECT
+                지점,
+                CAST(ROUND(SUM(CAST(종료_F AS FLOAT) * 대상_F), 0) AS INT)                AS 종료자수,
+                CAST(ROUND(SUM(CAST(종료_F AS FLOAT) * 취업_F * 대상_F), 0) AS INT)       AS 취업자수,
+                CAST(ROUND(SUM(CAST(종료_F AS FLOAT) * 알선_F * 취업_F * 대상_F), 0) AS INT) AS 알선취업자수
+            FROM 통합_참여자_분석
+            GROUP BY 지점
+        )
+        SELECT
+            B.지점                         AS branchLabel,
+            ISNULL(S.취업자수, 0)          AS employmentCount,
+            ISNULL(S.알선취업자수, 0)      AS placementCount,
+            ISNULL(S.종료자수, 0)          AS branchParticipantCount
+        FROM J_참여자관리_지점 B
+        LEFT JOIN branch_stats S ON S.지점 = B.지점
+        ORDER BY B.순서 ASC
+    </select>
+
+</mapper>

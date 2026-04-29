@@ -1,0 +1,90 @@
+.progress {
+    font-size: 10px;
+    color: black;
+    font-weight: bold;
+    width: 100%;
+    height: 25px;
+}
+
+canvas, .chart-div{
+    max-height: 300px;
+}
+
+:root {
+    --jm-primary: #0d6efd;
+    --jm-gray-bg: #f4f6f9;
+    --jm-card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+body { font-family: 'Source Sans 3', 'Noto Sans KR', sans-serif; background-color: var(--jm-gray-bg); }
+
+/* 현대적인 카드 스타일 */
+.card-modern {
+    background: #fff;
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--jm-card-shadow);
+    transition: transform 0.2s;
+    height: 100%;
+}
+.card-modern-header {
+    padding: 1.25rem;
+    border-bottom: 1px solid #f1f1f1;
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 상단 퀵링크 스타일 */
+.quick-link-item {
+    color: #495057;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+.quick-link-item:hover {
+    background-color: #e9ecef;
+    color: var(--jm-primary);
+}
+
+/* 금일 업무 리스트 스타일 */
+.work-list-item {
+    border: none;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 성과 점수 박스 */
+.rank-badge {
+    padding: 1rem;
+    border-radius: 12px;
+    text-align: center;
+    background: #eef2ff;
+    border: 1px solid #e0e7ff;
+}
+
+/* 개인 실적 달성률 아이템 컨테이너 */
+.kpi-chart-item {
+    background: #fff;
+    padding: 0.2rem;
+    border-radius: 12px;
+    transition: 0.3s ease;
+}
+.kpi-chart-item:hover {
+    background: #f8faff;
+    transform: translateY(-3px);
+}
+
+/* 폰트 크기 조정 */
+.fs-7 { font-size: 0.85rem; }
+.fs-8 { font-size: 0.75rem; }
+.fs-9 { font-size: 0.65rem; }

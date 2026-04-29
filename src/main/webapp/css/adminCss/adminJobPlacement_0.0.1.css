@@ -1,0 +1,22 @@
+.table-modern {
+    background: white;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.table-modern thead {
+    background: linear-gradient(135deg, #4895ef 0%, #4361ee 100%);
+    color: white;
+}
+
+.table-modern thead th {
+    border: none;
+    padding: 1rem;
+    font-weight: 600;
+}
+
+.table-modern tbody td {
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+}

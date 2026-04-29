@@ -1,0 +1,517 @@
+/* ===== 전역 스타일 ===== */
+* {
+    box-sizing: border-box;
+}
+
+/* ===== 사용자 아이템 스타일 ===== */
+.user-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin: 8px 0;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.user-item:hover {
+    border-color: #947ADA;
+    box-shadow: 0 2px 8px rgba(148, 122, 218, 0.15);
+    transform: translateY(-1px);
+}
+
+.drag-handle {
+    cursor: move;
+    font-size: 20px;
+    user-select: none;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.verticalEllipsis {
+    cursor: move;
+    margin-right: 12px;
+    color: #6c757d;
+    font-size: 18px;
+    user-select: none;
+    transition: color 0.2s ease;
+}
+
+.user-item:hover .verticalEllipsis {
+    color: #947ADA;
+}
+
+.position-input {
+    margin-right: 12px;
+    min-width: 28px;
+    text-align: center;
+    font-weight: 600;
+    color: #495057;
+    background-color: #f8f9fa;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+/* 드래그 중인 항목 스타일 */
+.ui-sortable-helper {
+    background-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-color: #947ADA;
+}
+
+/* 드래그 중 빈 공간 표시 */
+.ui-sortable-placeholder {
+    visibility: visible !important;
+    background-color: #f0ebff;
+    border: 2px dashed #947ADA;
+    border-radius: 8px;
+}
+
+.checkbox-wrapper-3 input[type="checkbox"] {
+    visibility: hidden;
+    display: none;
+}
+
+.checkbox-wrapper-3 .toggle {
+    position: relative;
+    display: block;
+    width: 40px;
+    height: 20px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transform: translate3d(0, 0, 0);
+}
+.checkbox-wrapper-3 .toggle:before {
+    content: "";
+    position: relative;
+    top: 3px;
+    left: 3px;
+    width: 34px;
+    height: 14px;
+    display: block;
+    background: #9A9999;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+}
+.checkbox-wrapper-3 .toggle span {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    display: block;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 3px 8px rgba(154, 153, 153, 0.5);
+    transition: all 0.2s ease;
+}
+.checkbox-wrapper-3 .toggle span:before {
+    content: "";
+    position: absolute;
+    display: block;
+    margin: -18px;
+    width: 56px;
+    height: 56px;
+    background: rgba(79, 46, 220, 0.5);
+    border-radius: 50%;
+    transform: scale(0);
+    opacity: 1;
+    pointer-events: none;
+}
+
+.checkbox-wrapper-3  input[type="checkbox"]:checked + .toggle:before {
+    background: #947ADA;
+}
+.checkbox-wrapper-3 input[type="checkbox"]:checked + .toggle span {
+    background: #4F2EDC;
+    transform: translateX(20px);
+    transition: all 0.2s cubic-bezier(0.8, 0.4, 0.3, 1.25), background 0.15s ease;
+    box-shadow: 0 3px 8px rgba(79, 46, 220, 0.2);
+}
+.checkbox-wrapper-3 input[type="checkbox"]:checked + .toggle span:before {
+    transform: scale(1);
+    opacity: 0;
+    transition: all 0.4s ease;
+}
+
+/* ===== 버튼 스타일 ===== */
+.excel-download-btn,
+.dailyReportUpdateBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 10px;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-width: 100px;
+    white-space: nowrap;
+}
+
+.excel-download-btn {
+    background: linear-gradient(135deg, #198754 0%, #157347 100%);
+}
+
+.excel-download-btn:hover {
+    background: linear-gradient(135deg, #157347 0%, #146c43 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(25, 135, 84, 0.3);
+}
+
+.dailyReportUpdateBtn {
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+}
+
+.dailyReportUpdateBtn:hover {
+    background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+}
+
+.excel-download-btn:active,
+.dailyReportUpdateBtn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.excel-download-btn i,
+.dailyReportUpdateBtn i {
+    font-size: 18px;
+}
+
+.position-save-btn {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-left: 8px;
+}
+
+.position-save-btn:hover {
+    background: linear-gradient(135deg, #5a6268 0%, #545b62 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(108, 117, 125, 0.3);
+}
+
+
+
+/* ===== 테이블 스타일 ===== */
+#status-table {
+    width: 100%;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 1rem;
+}
+
+#status-thead {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+#status-thead th {
+    padding: 16px 12px;
+    font-weight: 700;
+    font-size: 14px;
+    color: #343a40;
+    border-bottom: 2px solid #dee2e6;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.status-thead-tr:first-child th {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.status-thead-th-name {
+    width: 120px;
+    background-color: #f1f3f5;
+}
+
+.status-tbody-tr {
+    transition: background-color 0.2s ease;
+}
+
+.status-tbody-tr:hover {
+    background-color: #f8f9fa;
+}
+
+.status-tbody-tr th {
+    padding: 14px 10px;
+    vertical-align: middle;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 14px;
+    font-weight: 500;
+    color: #495057;
+}
+
+.status-tbody-tr:last-child th {
+    border-bottom: none;
+}
+
+.status-tbody-span {
+    font-size: 14px;
+    font-weight: 600;
+    color: #212529;
+}
+
+/* 2의 배수 위치마다 왼쪽 테두리 적용 */
+.status-tbody-tr th:nth-child(2n) {
+    border-left: 2px solid #e9ecef;
+}
+
+.status-thead-tr th:nth-child(2n) {
+    border-left: 2px solid #dee2e6;
+}
+
+/* 테이블 헤더 그룹 구분 */
+.status-thead-tr th:nth-child(3),
+.status-thead-tr th:nth-child(5),
+.status-thead-tr th:nth-child(7),
+.status-thead-tr th:nth-child(9),
+.status-thead-tr th:nth-child(11) {
+    border-left: 3px solid #dee2e6;
+}
+
+.status-tbody-tr th:nth-child(3),
+.status-tbody-tr th:nth-child(5),
+.status-tbody-tr th:nth-child(7),
+.status-tbody-tr th:nth-child(9),
+.status-tbody-tr th:nth-child(11) {
+    border-left: 3px solid #e9ecef;
+}
+
+/* ===== 입력 필드 스타일 ===== */
+.status-tbody-tr input,
+.type-input,
+.dailyReportDate,
+.lastSavedDate {
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    padding: 8px 12px;
+    transition: all 0.2s ease;
+    text-align: center;
+    font-size: 14px;
+    background-color: #ffffff;
+}
+
+.status-tbody-tr input:hover,
+.type-input:hover {
+    border-color: #adb5bd;
+}
+
+.status-tbody-tr input:focus,
+.type-input:focus,
+.dailyReportDate:focus {
+    border-color: #947ADA;
+    box-shadow: 0 0 0 0.2rem rgba(148, 122, 218, 0.25);
+    outline: none;
+    background-color: #ffffff;
+}
+
+.status-tbody-tr input:disabled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.lastSavedDate {
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 500;
+    cursor: not-allowed;
+}
+
+/* ===== 배정인원 컨테이너 스타일 ===== */
+.personnel-container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    width: 100%;
+    border: 1px solid #e0e0e0;
+}
+
+.personnel-header {
+    background: linear-gradient(135deg, #4F2EDC 0%, #947ADA 100%);
+    padding: 14px 16px;
+    border-bottom: none;
+    font-weight: 700;
+    font-size: 14px;
+    color: #ffffff;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.personnel-header:nth-of-type(2) {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+}
+
+.personnel-content {
+    padding: 20px 16px;
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: #fafbfc;
+}
+
+.personnel-content > div {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ===== 라벨 스타일 ===== */
+.type-label {
+    font-size: 13px;
+    color: #495057;
+    margin-bottom: 4px;
+    font-weight: 600;
+    display: block;
+}
+
+.drag-handle label.toggle {
+    font-size: 14px;
+    font-weight: 500;
+    color: #343a40;
+    margin-bottom: 0;
+}
+
+/* ===== 좌측 사용자 리스트 스타일링 ===== */
+.user-list {
+    background-color: #ffffff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    padding: 1rem !important;
+}
+
+/* ===== 배정인원 섹션 스타일링 ===== */
+.personnel-section {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* ===== 날짜 입력 필드 컨테이너 스타일 ===== */
+.text-center {
+    text-align: center;
+}
+
+.text-center label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #495057;
+}
+
+/* ===== 유틸리티 스타일 ===== */
+.w-75 {
+    width: 75% !important;
+}
+
+.ms-auto {
+    margin-left: auto !important;
+}
+
+.me-auto {
+    margin-right: auto !important;
+}
+
+/* ===== 스크롤바 스타일 ===== */
+/*#sortableList {
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+#sortableList::-webkit-scrollbar {
+    width: 6px;
+}
+
+#sortableList::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+#sortableList::-webkit-scrollbar-thumb {
+    background: #947ADA;
+    border-radius: 10px;
+}
+
+#sortableList::-webkit-scrollbar-thumb:hover {
+    background: #4F2EDC;
+}*/
+
+/* ===== 반응형 디자인 ===== */
+@media (max-width: 768px) {
+    .row {
+        margin-right: 0;
+        margin-left: 0;
+    }
+
+    .user-list {
+        margin-bottom: 1rem;
+    }
+
+    .personnel-content {
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px 12px;
+    }
+
+    .personnel-content > div {
+        width: 100%;
+    }
+
+    #status-table {
+        font-size: 12px;
+    }
+
+    .status-tbody-tr input {
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+
+    .status-thead th {
+        padding: 12px 8px;
+        font-size: 12px;
+    }
+
+    .excel-download-btn,
+    .dailyReportUpdateBtn {
+        min-width: 120px;
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+
+    .user-item {
+        padding: 10px;
+    }
+}

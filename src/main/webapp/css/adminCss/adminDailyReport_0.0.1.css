@@ -1,0 +1,38 @@
+.stat-card {
+    background: white;
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    border-left: 4px solid var(--brand-primary);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--brand-primary);
+}
+
+.table-modern {
+    background: white;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.table-modern thead {
+    background: linear-gradient(135deg, #3f37c9 0%, #560bad 100%);
+    color: white;
+}
+
+.table-modern thead th {
+    border: none;
+    padding: 0.75rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.table-modern tbody td {
+    padding: 0.6rem 0.75rem;
+    vertical-align: middle;
+    font-size: 0.85rem;
+}

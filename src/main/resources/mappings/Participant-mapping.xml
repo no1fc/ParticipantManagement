@@ -1,0 +1,623 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ParticipantDAO">
+
+    <!-- 참여자 검색 fragment 시작 -->
+    <!-- 검색 조건 -->
+    <sql id="participantSearchCondition">
+        <choose>
+            <when test="searchStatus != null and searchStatus == true and search != null and search.trim() != ''">
+                <choose>
+                    <when test="searchOption == '참여자'">
+                        AND A.참여자 like '%'+#{search}+'%'
+                    </when>
+                    <when test="searchOption == '구직번호'">
+                        AND A.구직번호 like #{search}+'%'
+                    </when>
+                    <when test="searchOption == '진행단계'">
+                        AND A.진행단계 like #{search}+'%'
+                    </when>
+                    <when test="searchOption == '최근상담일'">
+                        AND A.최근상담일 >= #{searchStartDate} AND A.최근상담일 <![CDATA[<=]]> #{searchEndDate}
+                    </when>
+                    <when test="searchOption == '전담자'">
+                        AND B.이름 like '%'+#{search}+'%'
+                    </when>
+                    <when test="searchOption == '알선'">
+                        AND A.알선요청 like #{search}
+                    </when>
+                </choose>
+            </when>
+        </choose>
+    </sql>
+
+    <!-- 옵션 필터 -->
+    <sql id="participantSearchFiterCondition">
+        <choose>
+            <when test="participantInItCons != 'All' and participantInItCons != null">
+                AND YEAR(IIF(A.초기상담일 = '1900-01-01', A.등록일, ISNULL(A.초기상담일, A.등록일))) = #{participantInItCons}
+            </when>
+        </choose>
+        <choose>
+            <when test="participantPartType == 1">
+                AND A.참여유형 = '1'
+            </when>
+            <when test="participantPartType == 2">
+                AND A.참여유형 = '2'
+            </when>
+        </choose>
+        <choose>
+            <when test="endDateOption == 'false'">
+                AND (A.마감 = 'false' OR A.마감 = '')
+            </when>
+            <when test="endDateOption == 'true'">
+                AND A.마감 = 'true'
+            </when>
+        </choose>
+        <choose>
+            <when test="searchType != null and searchType == 'noInitial'">
+                AND A.초기상담일 = ''
+            </when>
+            <when test="searchType != null and searchType == 'recent21'">
+                AND DATEDIFF(DAY, A.최근상담일, GETDATE()) <![CDATA[>=]]> 21
+                AND A.최근상담일 <![CDATA[<>]]> ''
+            </when>
+            <when test="searchType != null and searchType == 'jobExpire'">
+                AND DATEDIFF(DAY, GETDATE(), A.구직만료일) <![CDATA[<=]]> 15
+                AND A.구직만료일 <![CDATA[<>]]> ''
+            </when>
+            <when test="searchType != null and searchType == 'periodExpire'">
+                AND DATEDIFF(DAY, GETDATE(), A.기간만료일) <![CDATA[<=]]> 15
+                AND A.기간만료일 <![CDATA[<>]]> ''
+                AND A.최근상담일 <![CDATA[<>]]> ''
+            </when>
+            <when test="searchType != null and searchType == 'employment'">
+                AND A.취창업일 <![CDATA[<>]]> ''
+            </when>
+        </choose>
+        <choose>
+            <when test="searchType != null and searchType =='isIntesiveMediation'">
+                AND A.집중알선여부 = 1
+            </when>
+        </choose>
+    </sql>
+
+    <!-- 오름차순 내림차순 조회 기준 -->
+    <sql id="participantRowNumberCondition">
+        ORDER BY
+        <choose>
+            <!--구직번호가 아니라면-->
+            <when test="column == '유형'">
+                A.참여유형
+            </when>
+            <when test="column == '참여자'">
+                A.참여자
+            </when>
+            <when test="column == '최근상담일'">
+                A.최근상담일
+            </when>
+            <when test="column == '진행단계'">
+                A.진행단계
+            </when>
+            <when test="column == '초기상담일'">
+                A.초기상담일
+            </when>
+            <when test="column == '간접고용서비스'">
+                A.간접고용서비스
+            </when>
+            <when test="column == '수당지급일'">
+                A.수당지급일
+            </when>
+            <when test="column == '구직만료일'">
+                A.구직만료일
+            </when>
+            <when test="column == '기간만료일'">
+                A.기간만료일
+            </when>
+            <when test="column == '전담자'">
+                B.이름
+            </when>
+            <when test="column == '마감'">
+                A.마감
+            </when>
+            <when test="column == '상담경과일'">
+                DATEDIFF(DAY, A.최근상담일, GETDATE())
+            </when>
+            <when test="column == 'IAP3개월차'">
+                A.IAP3개월일자
+            </when>
+            <when test="column == 'IAP5개월차'">
+                A.IAP3개월일자
+            </when>
+            <otherwise>
+                A.구직번호
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="column != '' and order != '' and order == 'asc'">
+                ASC
+            </when>
+            <otherwise>
+                DESC
+            </otherwise>
+        </choose>
+    </sql>
+
+    <!-- 지점 관리자 검색 기준 -->
+    <sql id="participantAuthCondition">
+        A.지점 = #{participantBranch}
+        <choose>
+            <when test="searchPath != null and searchPath == 'managerSearch'">
+            </when>
+            <otherwise>
+                <!-- 일반 검색: 전담자 계정 조건 추가 -->
+                AND A.전담자_계정 = #{participantUserid}
+            </otherwise>
+        </choose>
+    </sql>
+    <!-- 참여자 검색 fragment 종료 -->
+
+    <!-- 상담관리 기본 쿼리 시작 -->
+    <select id="selectAllParticipantBasic" resultType="participant">
+        SELECT TOP (#{pageRows})
+            RowNum AS rowNum,
+            구직번호 AS participantJobNo,
+            이름 AS participantUserName,
+            성별 AS participantGender,
+            참여유형 AS participantPartType,
+            참여자 AS participantPartic,
+            생년월일 AS participantDob,
+            최근상담일 AS participantLastCons,
+            상담경과일 AS participantAdventCons,
+            진행단계 AS participantProgress,
+            초기상담일 AS participantInItCons,
+            IAP수료일 AS participantIAPDate,
+            IAP3개월일자 AS participantIAP3Month,
+            IAP5개월일자 AS participantIAP5Month,
+            IAP3개월여부 AS participantISIAP3Month,
+            IAP5개월여부 AS participantISIAP5Month,
+            간접고용서비스 AS participantEmploymentService,
+            수당지급일 AS participantAllowanceDate,
+            구직만료일 AS participantJobEX,
+            기간만료일 AS participantEXPDate,
+            집중알선여부 AS participantISIntensiveMediation,
+            마감 AS participantClose
+        FROM (
+                 SELECT
+                    ROW_NUMBER() OVER (
+                        <include refid="participantRowNumberCondition"/>
+                        ) AS RowNum,
+                    A.구직번호,
+                    A.성별,
+                    B.이름,
+                    A.참여자,
+                    A.참여유형,
+                    CASE
+                        WHEN A.생년월일 > '1900-01-01' AND A.생년월일 <![CDATA[<>]]> '' THEN A.생년월일
+                    END AS 생년월일,
+                    CASE
+                        WHEN A.최근상담일 > '1900-01-01' AND A.최근상담일 <![CDATA[<>]]> '' THEN A.최근상담일
+                    END AS 최근상담일,
+                    CASE
+                        WHEN A.최근상담일 <![CDATA[<>]]> '' AND A.마감='false' THEN DATEDIFF(DAY, A.최근상담일, GETDATE())
+                    END AS 상담경과일,
+                    A.진행단계,
+                    CASE
+                        WHEN A.초기상담일 > '1900-01-01' AND A.초기상담일 <![CDATA[<>]]> '' THEN A.초기상담일
+                    END AS 초기상담일,
+                    CASE
+                        WHEN A.IAP수료일 > '1900-01-01' AND A.IAP수료일 <![CDATA[<>]]> '' THEN A.IAP수료일
+                    END AS IAP수료일,
+                    CASE
+                        WHEN A.IAP3개월일자 > '1900-01-01' AND A.IAP3개월일자 <![CDATA[<>]]> '' AND 진행단계 <![CDATA[<>]]> 'IAP 전' THEN A.IAP3개월일자
+                    END AS IAP3개월일자,
+                    CASE
+                        WHEN A.IAP5개월일자 > '1900-01-01' AND A.IAP5개월일자 <![CDATA[<>]]> '' AND 진행단계 <![CDATA[<>]]> 'IAP 전' THEN A.IAP5개월일자
+                    END AS IAP5개월일자,
+                    A.IAP3개월여부,
+                    A.IAP5개월여부,
+                    A.간접고용서비스,
+                    CASE
+                        WHEN A.수당지급일 > '1900-01-01' AND 수당지급일 <![CDATA[<>]]> '' THEN A.수당지급일
+                    END AS 수당지급일,
+                    CASE
+                        WHEN A.구직만료일 > '1900-01-01' AND A.구직만료일 <![CDATA[<>]]> '' THEN A.구직만료일
+                    END AS  구직만료일,
+                    CASE
+                        WHEN A.기간만료일 > '1900-01-01' AND A.기간만료일 <![CDATA[<>]]> '' THEN A.기간만료일
+                    END AS 기간만료일,
+                    A.집중알선여부,
+                    A.마감
+                 FROM J_참여자관리 A
+                 JOIN J_참여자관리_로그인정보 B
+                 ON A.전담자_계정 = B.아이디
+                 WHERE
+                 <include refid="participantAuthCondition"/> <!-- sql 조회 아이디 및 권한 관리 -->
+                 <include refid="participantSearchCondition"/> <!-- sql 조회 검색어 관리 -->
+                 <include refid="participantSearchFiterCondition"/> <!-- sql 조회 필터 관리 -->
+        ) AS SUB_QUERY
+        WHERE SUB_QUERY.RowNum>#{startPage} AND #{endPage} >= SUB_QUERY.RowNum
+    </select>
+
+    <select id="selectCountParticipant" resultType="participant">
+        SELECT
+            COUNT(A.구직번호) totalCount
+        FROM J_참여자관리 A
+        JOIN J_참여자관리_로그인정보 B
+        ON A.전담자_계정 = B.아이디
+        WHERE
+        <include refid="participantAuthCondition"/> <!-- sql 조회 아이디 및 권한 관리 -->
+        <include refid="participantSearchCondition"/> <!-- sql 조회 검색어 관리 -->
+        <include refid="participantSearchFiterCondition"/> <!-- sql 조회 필터 관리 -->
+    </select>
+    <!-- 상담관리 기본 쿼리 끝 -->
+
+    <!-- 참여자 전체 자격증 확인용 쿼리 시작 -->
+    <select id="selectOneParticcertif" resultType="participant">
+        SELECT
+            COUNT(구직번호) AS participantCount
+        From
+            J_참여자관리_자격증
+        WHERE
+            구직번호=#{participantJobNo}
+    </select>
+    <!-- 참여자 전체 자격증 확인용 쿼리 끝 -->
+
+    <!-- 참여자 전체 직업훈련 확인용 쿼리 시작 -->
+    <select id="selectOneEducation" resultType="participant">
+        SELECT
+            COUNT(구직번호) AS participantCount
+        From
+            J_참여자관리_직업훈련
+        WHERE
+            구직번호=#{participantJobNo}
+    </select>
+    <!-- 참여자 전체 직업훈련 확인용 쿼리 끝 -->
+
+    <!-- 참여자 전체 상담 확인용 쿼리 시작 -->
+    <select id="selectOneCounsel" resultType="participant">
+        SELECT
+            COUNT(구직번호) AS participantCount
+        From
+            J_참여자관리
+        WHERE
+            구직번호=#{participantJobNo}
+    </select>
+    <!-- 참여자 전체 상담 확인용 쿼리 끝 -->
+
+    <!-- 외부 참여자 전달용 쿼리 시작 -->
+    <select id="selectExternal" resultType="participant">
+        SELECT
+            구직번호 AS participantJobNo,
+            참여자 AS participantPartic,
+            성별 AS participantGender,
+            주소 AS participantAddress,
+            학교명 AS participantSchool,
+            전공 AS participantSpecialty,
+            희망직무 AS participantJobWant,
+            자격증 AS certificationName,
+            희망연봉 AS participantSalWant,
+            상담사 AS participantUserName,
+            이메일 AS participantEmail,
+            전화번호 AS participantPhoneNumber,
+            고유번호 AS participantCode
+        FROM (
+                 SELECT
+                     ROW_NUMBER() OVER (ORDER BY 구직번호 DESC) AS RowNum,
+                     구직번호,
+                     참여자,
+                     성별,
+                     주소,
+                     학교명,
+                     전공,
+                     희망직무,
+                     자격증,
+                     희망연봉,
+                     상담사,
+                     이메일,
+                     전화번호,
+                     고유번호
+                 FROM
+                     EXTERNALPARTICIPANT ) AS SUB_QUERY
+        WHERE
+            SUB_QUERY.RowNum>#{startPage} AND #{endPage} >= SUB_QUERY.RowNum;
+    </select>
+
+    <select id="selectExternalCount" resultType="participant">
+        SELECT
+            COUNT(구직번호) AS totalCount
+        FROM
+            EXTERNALPARTICIPANT;
+    </select>
+    <!-- 외부 참여자 전달용 쿼리 끝 -->
+
+    <!-- 삭제 쿼리 시작 -->
+    <!-- 기본 정보 삭제 쿼리 -->
+    <delete id="participantDelete">
+        DELETE FROM J_참여자관리 WHERE 구직번호 = #{participantJobNo} AND 전담자_계정 = #{participantUserid}
+    </delete>
+    <!-- 기본 정보 삭제 쿼리 -->
+    <delete id="participantDeleteAdmin">
+        DELETE FROM J_참여자관리 WHERE 구직번호 = #{participantJobNo}
+    </delete>
+    <!-- 자격증 정보 삭제 쿼리 -->
+    <delete id="participantParticcertifDelete">
+        DELETE FROM J_참여자관리_자격증 WHERE 구직번호 = #{participantJobNo}
+    </delete>
+    <!-- 자격증 정보 삭제 쿼리 -->
+    <delete id="participantEducationDelete">
+        DELETE FROM J_참여자관리_직업훈련 WHERE 구직번호 = #{participantJobNo}
+    </delete>
+    <!-- 삭제 쿼리 끝 -->
+
+    <!-- 취소자 백업 쿼리 시작 -->
+    <insert id="participantBackupOldCancelled">
+        INSERT INTO J_참여자관리_취소자백업 (
+            구직번호, 참여자, 생년월일, 모집경로,
+            참여유형, 진행단계, 지점, 전담자_계정, 전담자, 참여자_등록일, 취소자백업_등록일
+        )
+        SELECT
+            A.구직번호, A.참여자, A.생년월일, A.모집경로,
+            A.참여유형, A.진행단계, A.지점, A.전담자_계정, B.이름, A.등록일, GETDATE()
+        FROM J_참여자관리 A
+        JOIN J_참여자관리_로그인정보 B ON A.전담자_계정 = B.아이디
+        WHERE A.진행단계 = '취소'
+          AND (A.참여자_수정일 <![CDATA[<=]]> DATEADD(day, -7, GETDATE()) OR A.참여자_수정일 IS NULL)
+    </insert>
+
+    <delete id="participantDeleteOldCancelled">
+        DELETE FROM J_참여자관리
+        WHERE 진행단계 = '취소'
+          AND (참여자_수정일 <![CDATA[<=]]> DATEADD(day, -7, GETDATE()) OR 참여자_수정일 IS NULL)
+    </delete>
+    <!-- 취소자 백업 쿼리 끝 -->
+
+    <!-- 지점 관리자 및 개인 참여자 전체 데이터 엑셀 다운 쿼리 시작 -->
+    <select id="participantExcel" resultType="participant">
+        SELECT
+        ISNULL(A.구직번호, '') AS participantJobNo,
+        ISNULL(A.등록일, '') AS participantRegDate,
+        ISNULL(B.이름, '') AS participantUserName,
+        ISNULL(A.전담자_계정, '') AS participantUserid,
+        ISNULL(A.참여자, '') AS participantPartic,
+        ISNULL(A.생년월일, '') AS participantDob,
+        ISNULL(A.성별, '') AS participantGender,
+        ISNULL(A.모집경로, '') AS participantRecruit,
+        ISNULL(A.참여유형, '') AS participantPartType,
+        ISNULL(A.학교명, '') AS participantSchool,
+        ISNULL(A.전공, '') AS participantSpecialty,
+        ISNULL(A.주소, '') AS participantAddress,
+        ISNULL(A.경력, '') AS participantAntecedents,
+        ISNULL(A.특정계층, '') AS participantSpecific,
+        ISNULL(A.알선요청, '') AS participantPlacement,
+        ISNULL(A.취업역량, '') AS participantJobSkill,
+        ISNULL(A.최근상담일, '') AS participantLastCons,
+        ISNULL(A.진행단계, '') AS participantProgress,
+        ISNULL(A.초기상담일, '') AS participantInItCons,
+        ISNULL(A.구직만료일, '') AS participantJobEX,
+        ISNULL(A.기간만료일, '') AS participantEXPDate,
+        ISNULL(A.IAP수료일, '') AS participantIAPDate,
+        ISNULL(A.IAP3개월여부, '') AS participantISIAP3Month,
+        ISNULL(A.IAP3개월일자, '') AS participantIAP3Month,
+        ISNULL(A.IAP5개월여부, '') AS participantISIAP5Month,
+        ISNULL(A.IAP5개월일자, '') AS participantIAP5Month,
+        ISNULL(A.수당지급일, '') AS participantAllowanceDate,
+--         ISNULL(A.희망직무, '') AS participantJobWant,
+        ISNULL(
+        IIF(ISNUMERIC(A.희망급여) = 1, ROUND(CONVERT(DECIMAL(10,2), A.희망급여), 0), '0'), '0'
+        ) AS participantSalWant,
+        ISNULL(A.취창업일, '') AS participantStartDate,
+        ISNULL(A.취창업처리일, '') AS participantProcDate,
+        ISNULL(A.취업유형, '') AS participantEmpType,
+        ISNULL(A.취업처, '') AS participantLoyer,
+        ISNULL(
+        IIF(ISNUMERIC(A.임금) = 1, ROUND(CONVERT(DECIMAL(10,2), A.임금), 0), '0'), '0'
+        ) AS participantSalary,
+        ISNULL(A.직무, '') AS participantJobRole,
+        ISNULL(A.취업인센티브_구분, '') AS participantIncentive,
+        ISNULL(A.일경험분류, '') AS participantJobcat,
+        ISNULL(A.메모, '') AS participantMemo,
+        ISNULL(A.기타, '') AS participantOthers,
+        ISNULL(A.마감, '') AS participantClose,
+        ISNULL(A.퇴사일, '') AS participantQuit,
+        ISNULL(A.지점, '') AS participantBranch,
+        ISNULL(A.간접고용서비스, '') AS participantEmploymentService,
+        ISNULL(A.전담자_변경일, '') AS participantManagerChangeDate,
+        ISNULL(A.초기전담자_계정, '') AS participantInitialManagerAccount,
+        ISNULL(A.참여자_수정일, '') AS participantModifyDate,
+        ISNULL(A.집중알선여부, '') AS participantISIntensiveMediation
+        FROM J_참여자관리 A
+        LEFT JOIN J_참여자관리_로그인정보 B
+        ON A.전담자_계정 = B.아이디
+        WHERE
+        <include refid="participantAuthCondition"/> <!-- sql 조회 아이디 및 권한 관리 -->
+        <if test="searchOption != null">
+            <include refid="participantSearchCondition"/> <!-- sql 조회 검색어 관리 -->
+            <include refid="participantSearchFiterCondition"/> <!-- sql 조회 필터 관리 -->
+        </if>
+        <include refid="participantRowNumberCondition"/> <!-- sql 조회 정렬 -->
+    </select>
+    <!-- 지점 관리자 및 개인 참여자 전체 데이터 엑셀 다운 쿼리 끝 -->
+
+    <!-- 데이터 이전 쿼리 시작 -->
+    <select id="transferSelect" resultType="participant">
+        SELECT
+            ISNULL(구직번호, '') AS participantJobNo,
+            ISNULL(A.등록일, '') AS participantRegDate,
+            ISNULL(이름, '') AS participantUserName,
+            ISNULL(참여자, '') AS participantPartic,
+            CASE WHEN 생년월일 >= DATEADD(YEAR, -100, GETDATE()) THEN 생년월일 END AS participantDob,
+            ISNULL(성별, '') AS participantGender,
+            ISNULL(참여유형, '') AS participantPartType
+        FROM J_참여자관리 A
+                 LEFT JOIN J_참여자관리_로그인정보 B
+                           ON A.전담자_계정 = B.아이디
+        WHERE B.아이디 = #{participantUserid} and B.지점 = #{participantBranch}
+        <if test="participantIDs != null and participantIDs.size() > 0 and participantIDs[0] != null">
+            AND 구직번호 IN
+            <foreach collection="participantIDs" item="data" open="(" separator="," close=")">
+                #{data}
+            </foreach>
+        </if>
+    </select>
+    <!-- 참여자 전체 데이터 엑셀 다운 쿼리 끝 -->
+
+    <!-- 전담자 변경 쿼리 시작 -->
+    <update id="transferUpdate">
+        UPDATE J_참여자관리
+        SET 전담자_계정 = #{targetCounselorID},
+        메모 = CONCAT(메모, ',', CONVERT(nvarchar, GETDATE()), ' ', #{sourceCounselorID}, ' 상담사 데이터 이관'),
+        전담자_변경일 = GETDATE()
+        WHERE 전담자_계정 = #{sourceCounselorID}
+        AND 지점 = #{participantBranch}
+        AND 구직번호 IN
+        <foreach collection="participantIDs" item="data" open="(" separator="," close=")">
+            #{data}
+        </foreach>
+    </update>
+    <!-- 전담자 변경 쿼리 끝 -->
+
+    <!-- 서비스 미제공 상담사 검색 시작 -->
+    <select id="selectNoService" resultType="participant">
+        SELECT
+            A.구직번호 AS participantJobNo,
+            B.이름 AS participantUserName,
+            A.참여자 AS participantPartic,
+            A.취업인센티브_구분 AS participantIncentive,
+            CASE
+                WHEN A.등록일 > '1900-01-01'
+                THEN A.등록일
+            END AS participantRegDate,
+            CASE
+                WHEN A.취창업일 > '1900-01-01'
+                THEN A.취창업일
+            END AS participantStartDate,
+            CASE
+                WHEN A.초기상담일 > '1900-01-01'
+                THEN A.초기상담일
+            END AS participantInItCons
+        FROM SUCCESSMONEY A
+        RIGHT JOIN J_참여자관리_로그인정보 B
+        ON A.전담자_계정 = B.아이디
+        WHERE
+            A.지점 <![CDATA[<>]]> '테스트' AND A.지점 = #{participantBranch}
+            AND A.취창업일 <![CDATA[>=]]> #{searchStartDate} AND A.취창업일 <![CDATA[<=]]> #{searchEndDate}
+            AND A.취업인센티브_구분 LIKE '%서비스 미제공%'
+        ORDER BY A.지점 DESC
+    </select>
+    <!-- 서비스 미제공 상담사 검색 끝 -->
+
+    <!-- IAP 수립일 3,5개월 여부 update 쿼리 시작 -->
+    <update id="iapStatusUpdate">
+        UPDATE
+            J_참여자관리
+        set
+            IAP3개월여부 = #{participantISIAP3Month},
+            IAP5개월여부 = #{participantISIAP5Month}
+        WHERE
+            구직번호 = #{participantJobNo}
+            <choose>
+                <when test="!participantBranchManagement and !participantManagement">
+                    AND
+                    전담자_계정 = #{participantUserid}
+                </when>
+            </choose>
+    </update>
+    <!-- IAP 수립일 3,5개월 여부 update 쿼리 끝 -->
+
+    <!-- 이력서 요청 관련 Query 시작 -->
+
+    <!-- 이력서 요청 목록 조회 -->
+    <select id="resumeRequestListSelect" resultType="participant">
+        SELECT
+            r.구직번호 as participantJobNo,
+            r.기업명 as companyName,
+            r.담당자명 as contactName,
+            r.이메일 as contactEmail,
+            r.비상연락처 as contactPhone,
+            r.기타요청사항 as contactOther,
+            r.상태 as status,
+            r.등록일 as registrationDate,
+            r.수정일 as modificationDate,
+            p.참여자 as participantPartic,
+            (SELECT TOP 1 희망직무 FROM J_참여자관리_희망직무
+             WHERE 구직번호 = p.구직번호 AND 희망순위 = 1) as participantJobWant,
+            p.전담자_계정 as participantUserid,
+            p.지점 as participantBranch,
+            m.이름 as participantUserName
+        FROM J_참여자관리_이력서요청양식 r
+        LEFT JOIN J_참여자관리 p ON r.구직번호 = p.구직번호
+        LEFT JOIN J_참여자관리_로그인정보 m ON p.전담자_계정 = m.아이디
+        <where>
+            <if test="status != null and status != ''">
+                AND r.상태 = #{status}
+            </if>
+            <if test="searchStartDate != null and searchStartDate != ''">
+                AND r.등록일 >= #{searchStartDate}
+            </if>
+            <if test="searchEndDate != null and searchEndDate != ''">
+                AND r.등록일 <![CDATA[<=]]> #{searchEndDate}
+            </if>
+            <if test="companyName != null and companyName != ''">
+                AND r.기업명 LIKE '%' + #{companyName} + '%'
+            </if>
+            <if test="participantPartic != null and participantPartic != ''">
+                AND p.참여자 LIKE '%' + #{participantPartic} + '%'
+            </if>
+            <if test="!participantBranchManagement and !participantManagement">
+                AND p.전담자_계정 = #{participantUserid}
+            </if>
+            <if test="participantBranchManagement and !participantManagement">
+                AND p.지점 = #{participantBranch}
+            </if>
+        </where>
+        ORDER BY r.등록일 DESC
+        <if test="pageRows > 0">
+            OFFSET #{startPage} ROWS
+            FETCH NEXT #{pageRows} ROWS ONLY
+        </if>
+    </select>
+
+    <!-- 이력서 요청 목록 개수 조회 -->
+    <select id="resumeRequestListCount" resultType="participant">
+        SELECT COUNT(*) as totalCount
+        FROM J_참여자관리_이력서요청양식 r
+        LEFT JOIN J_참여자관리 p ON r.구직번호 = p.구직번호
+        <where>
+            <if test="status != null and status != ''">
+                AND r.상태 = #{status}
+            </if>
+            <if test="searchStartDate != null and searchStartDate != ''">
+                AND r.등록일 >= #{searchStartDate}
+            </if>
+            <if test="searchEndDate != null and searchEndDate != ''">
+                AND r.등록일 <![CDATA[<=]]> #{searchEndDate}
+            </if>
+            <if test="companyName != null and companyName != ''">
+                AND r.기업명 LIKE '%' + #{companyName} + '%'
+            </if>
+            <if test="participantPartic != null and participantPartic != ''">
+                AND p.참여자 LIKE '%' + #{participantPartic} + '%'
+            </if>
+            <if test="!participantBranchManagement and !participantManagement">
+                AND p.전담자_계정 = #{participantUserid}
+            </if>
+            <if test="participantBranchManagement and !participantManagement">
+                AND p.지점 = #{participantBranch}
+            </if>
+        </where>
+    </select>
+
+    <!-- 이력서 요청 상태 업데이트 -->
+    <update id="resumeRequestStatusUpdate">
+        UPDATE J_참여자관리_이력서요청양식
+        SET 상태 = #{status},
+            수정일 = GETDATE()
+        WHERE 구직번호 = #{participantJobNo}
+        AND 기업명 = #{companyName}
+        AND 등록일 = #{registrationDate}
+    </update>
+    <!-- 이력서 요청 관련 Query 끝 -->
+
+</mapper>

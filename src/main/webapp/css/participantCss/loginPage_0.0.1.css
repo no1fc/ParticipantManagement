@@ -1,0 +1,139 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.login-container {
+    animation: fadeIn 0.5s ease-in;
+}
+
+.login-box {
+    background: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    width: 450px;
+    max-width: 90vw;
+}
+
+.login-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+}
+
+.login-brand {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.login-logo {
+    width: 120px;
+    height: auto;
+}
+
+.login-subtitle {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.login-title {
+    margin-top: 10px;
+}
+
+.form-control {
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.input-group-text {
+    border-radius: 10px 0 0 10px;
+    background-color: #f8f9fa;
+}
+
+.btn-primary {
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+}
+
+#changeUserID,
+#primaryKey {
+    width: 73%;
+}
+
+#sendMail,
+#checkAuth {
+    width: 27%;
+    margin-left: auto;
+}
+
+#changePassword,
+#changePasswordCheck {
+    width: 90%;
+}
+
+#toggle-password,
+#toggle-password-check {
+    width: 10%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#toggle-password:hover,
+#toggle-password-check:hover {
+    color: #007bff;
+}
+
+#toggle-password:visited,
+#toggle-password-check:visited {
+    color: #007bff;
+}
+
+.login-modal .modal-dialog {
+    max-width: 560px;
+}
+
+.login-modal .modal-content {
+    border-radius: 12px;
+    padding: 6px;
+}
+
+.password-check-message {
+    display: inline-block;
+    font-size: 0.9rem;
+    margin-top: 6px;
+}
+
+.password-check-message.is-success {
+    color: #16a34a;
+}
+
+.password-check-message.is-error {
+    color: #dc2626;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

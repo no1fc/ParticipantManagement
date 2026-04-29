@@ -1,0 +1,28 @@
+.modal-wide {
+    width: 1000px;
+    max-width: 100%;
+}
+
+.table-scroll {
+    max-height: 70vh;
+}
+
+.dash-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.dash-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #1f2937;
+}

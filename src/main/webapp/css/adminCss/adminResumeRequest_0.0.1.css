@@ -1,0 +1,47 @@
+.status-badge {
+    display: inline-block;
+    padding: 0.35rem 0.85rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-request {
+    background-color: #ffc300;
+    color: #212529;
+}
+
+.status-processing {
+    background-color: #4cc9f0;
+    color: white;
+}
+
+.status-complete {
+    background-color: #06d6a0;
+    color: white;
+}
+
+.table-modern {
+    background: white;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.table-modern thead {
+    background: linear-gradient(135deg, #b5179e 0%, #7209b7 100%);
+    color: white;
+}
+
+.table-modern thead th {
+    border: none;
+    padding: 1rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.table-modern tbody td {
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+    font-size: 0.9rem;
+}

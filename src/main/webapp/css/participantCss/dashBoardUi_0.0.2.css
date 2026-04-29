@@ -1,0 +1,25 @@
+.employment-rate {
+    color: #dc2626;
+    font-size: 2.5rem;
+}
+
+.rank-box-fixed {
+    width: 150px;
+    max-width: 150px;
+}
+
+.small-link {
+    font-size: 10px;
+}
+
+.dash-alert {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #1f2937;
+    font-size: 0.85rem;
+    font-weight: 600;
+}

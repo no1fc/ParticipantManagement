@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="MemberDAO">
+    <!-- 로그인 확인용 쿼리 -->
+    <select id="loginSelect" resultType="member">
+        SELECT
+            전담자번호 memberLoginPK,
+            지점 memberBranch,
+            이름 memberUserName,
+            권한 memberRole,
+            아이디 memberUserID,
+            비밀번호 memberUserPW,
+            관리자권한 memberISManager,
+            등록일 memberRegDate,
+            고유번호 memberUniqueNumber
+        FROM J_참여자관리_로그인정보
+        WHERE 아이디=#{memberUserID} AND 비밀번호=#{memberUserPW} AND (아이디사용여부 NOT IN ('퇴사','정지','잠금') OR 아이디사용여부 IS NULL)
+    </select>
+
+    <!-- 지점 담담자 아이디 확인용 -->
+    <select id="branchUserID" resultType="member">
+        SELECT
+            전담자번호 memberLoginPK,
+            지점 memberBranch,
+            이름 memberUserName,
+            권한 memberRole,
+            아이디 memberUserID
+        FROM J_참여자관리_로그인정보
+        WHERE 지점=#{memberBranch}
+    </select>
+
+    <update id="changePassword">
+        UPDATE J_참여자관리_로그인정보
+        SET
+            비밀번호 = #{memberUserPW}
+        WHERE
+            아이디 = #{memberUserID}
+    </update>
+
+    <!-- 회원 정보 조회 TODO 수정해야함 -->
+    <select id="OneMemberDataSelect" resultType="member">
+        SELECT
+            A.전담자번호,
+            A.이름 memberUserName,
+            A.아이디 memberUserID,
+            A.지점 memberBranch,
+            A.전화번호 memberPhoneNumber,
+            A.등록일 memberRegDate,
+            A.고유번호 memberUniqueNumber,
+            A.이메일 memberEmail,
+            A.아이디사용여부,
+            A.입사일 memberJoinedDate,
+            A.최종발령일 memberAssignedDate,
+            A.근속기간구분 memberContinuous,
+            B.금일일반취업 memberTodayEmployment,
+            B.금일알선취업 memberTodayPlacement,
+            B.금주일반취업 memberToWeekEmployment,
+            B.금주알선취업 memberToWeekPlacement,
+            B.금월일반취업 memberToMonthEmployment,
+            B.금월알선취업 memberToMonthPlacement,
+            B.금년일반취업 memberToYearEmployment,
+            B.금년알선취업 memberToYearPlacement,
+            B.업무보고일 endUpdateStatus
+        FROM J_참여자관리_로그인정보 A
+        LEFT OUTER JOIN J_참여자관리_일일업무보고 B ON A.아이디 = B.아이디
+        WHERE
+            A.아이디=#{memberUserID}
+        AND
+            A.비밀번호=#{memberUserPW}
+    </select>
+
+    <select id="OneMemberDataSelectNotPasswordCheck" resultType="member">
+        SELECT
+            A.전담자번호,
+            A.이름 memberUserName,
+            A.아이디 memberUserID,
+            A.지점 memberBranch,
+            A.전화번호 memberPhoneNumber,
+            A.등록일 memberRegDate,
+            A.고유번호 memberUniqueNumber,
+            A.이메일 memberEmail,
+            A.아이디사용여부,
+            A.입사일 memberJoinedDate,
+            A.최종발령일 memberAssignedDate,
+            A.근속기간구분 memberContinuous,
+            A.금일일반취업 memberTodayEmployment,
+            A.금일알선취업 memberTodayPlacement,
+            A.금주일반취업 memberToWeekEmployment,
+            A.금주알선취업 memberToWeekPlacement,
+            A.금월일반취업 memberToMonthEmployment,
+            A.금월알선취업 memberToMonthPlacement,
+            A.금년일반취업 memberToYearEmployment,
+            A.금년알선취업 memberToYearPlacement,
+            A.실적저장일 endUpdateStatus
+        FROM J_참여자관리_로그인정보 A
+        WHERE
+            A.아이디=#{memberUserID}
+    </select>
+
+    <update id="accountUpdate">
+        UPDATE J_참여자관리_로그인정보
+        SET
+            <choose>
+                <when test="memberPasswordChange">
+                    비밀번호 = #{memberUserChangePW},
+                </when>
+            </choose>
+            전화번호 = #{memberPhoneNumber},
+            금일일반취업 = #{memberTodayEmployment},
+            금일알선취업 = #{memberTodayPlacement},
+            금주일반취업 = #{memberToWeekEmployment},
+            금주알선취업 = #{memberToWeekPlacement},
+            금월일반취업 = #{memberToMonthEmployment},
+            금월알선취업 = #{memberToMonthPlacement},
+            금년일반취업 = #{memberToYearEmployment},
+            금년알선취업 = #{memberToYearPlacement},
+            실적저장일 = GETDATE()
+        WHERE
+            아이디 = #{memberUserID}
+    </update>
+
+    <update id="memberOrderUpdate">
+        <foreach collection="userIds" item="userId" index="index">
+                UPDATE J_참여자관리_로그인정보
+                SET
+                    조회순서 = #{index},
+                    일일업무일지발급여부 = #{memberDailyWorkDiaryIssuances[${index}], jdbcType=BOOLEAN}
+                WHERE
+                    아이디 = #{userId}
+        </foreach>
+    </update>
+
+</mapper>

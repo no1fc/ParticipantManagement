@@ -1,0 +1,14 @@
+/* 입력값이 유효하지 않을 때를 위한 간단한 애니메이션 */
+.shake {
+    animation: shake 0.5s ease-in-out;
+}
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+/* 입력 비활성화 시 스타일 */
+#keyword-input:disabled {
+    background-color: #f8fafc; /* bg-slate-50 */
+    cursor: not-allowed;
+}

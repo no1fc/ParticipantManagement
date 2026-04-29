@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="PraDAO">
+    <insert id="praInsert">
+        INSERT INTO J_참여자관리
+            (등록일,
+             전담자_계정,
+             참여자,
+             생년월일,
+             성별,
+             모집경로,
+             참여유형,
+             진행단계,
+             경력,
+             특정계층,
+             학력,
+             초기전담자_계정,
+             지점,
+             참여자_수정일)
+        VALUES
+            (
+             GETDATE(),
+             #{counselorID},
+             #{participant},
+             #{birthDate},
+             #{gender},
+             #{recruitmentPath},
+             #{participationType},
+             #{progressStage},
+             #{career},
+             #{specificClass},
+             #{education},
+             #{counselorID},
+             #{branch},
+             GETDATE()
+            )
+    </insert>
+
+    <insert id="praDailyReportUpsert" parameterType="praDailyReport">
+        MERGE INTO J_참여자관리_일일업무보고 AS target
+        USING (SELECT #{branch} AS 지점, #{counselorID} AS 아이디) AS source
+        ON target.지점 = source.지점
+            AND target.아이디 = source.아이디
+            AND target.업무보고일 = CONVERT(date, GETDATE())
+        WHEN MATCHED THEN
+            UPDATE SET 유형1 = #{assignmentType1},
+                       유형2 = #{assignmentType2},
+                       실적수정일 = GETDATE()
+        WHEN NOT MATCHED THEN
+            INSERT (지점, 아이디, 유형1, 유형2,
+                    금일일반취업, 금일알선취업, 금주일반취업,금주알선취업,금월일반취업,금월알선취업,금년일반취업,금년알선취업,
+                    업무보고일, 실적등록일, 실적수정일)
+            VALUES (#{branch}, #{counselorID}, #{assignmentType1}, #{assignmentType2},
+                    #{todayEmployment}, #{todayPlacement}, #{toWeekEmployment}, #{toWeekPlacement}, #{toMonthEmployment}, #{toMonthPlacement}, #{toYearEmployment}, #{toYearPlacement},
+                    CONVERT(date, GETDATE()), GETDATE(), GETDATE());
+    </insert>
+
+    <insert id="praScoringConfigHistoryInsert" parameterType="praScoringConfigHistory">
+        INSERT INTO J_참여자관리_배정산정식_히스토리
+            (지점, 작성자, 가중치로드, 가중치공정, 가중치연속, 가중치페이스, 갭임계값, 일일제한, G1제한, G2제한, G3제한, 등록일)
+        VALUES
+            (#{branch}, #{writerId}, #{weightLoad}, #{weightFair}, #{weightStreak}, #{weightPace},
+             #{gapThreshold}, #{dailyLimit}, #{limitG1}, #{limitG2}, #{limitG3}, GETDATE())
+    </insert>
+
+    <insert id="praCsvHistoryInsert" parameterType="praCsvHistory">
+        INSERT INTO J_참여자관리_배정CSV_히스토리
+            (지점, 작성자, 행번호, 상담사ID, 참여자, 참여유형, 성별, 생년월일, 모집경로, 경력유무, 학력, 특정계층여부, 진행단계, 출장상담사, 등록일)
+        VALUES
+            (#{branch}, #{writerId}, #{rowNumber}, #{counselorID}, #{participant}, #{participationType}, #{gender},
+             #{birthDate}, #{recruitmentPath}, #{hasCareer}, #{education}, #{specificClass}, #{progressStage},
+             #{travelCounselor}, GETDATE())
+    </insert>
+
+    <select id="praDailyReportSelect" resultType="praDailyReport">
+        SELECT
+            지점 AS branch,
+            아이디 AS counselorID,
+            금일일반취업 AS todayEmployment,
+            금일알선취업 AS todayPlacement,
+            금주일반취업 AS toWeekEmployment,
+            금주알선취업 AS toWeekPlacement,
+            금월일반취업 AS toMonthEmployment,
+            금월알선취업 AS toMonthPlacement,
+            금년일반취업 AS toYearEmployment,
+            금년알선취업 AS toYearPlacement
+        FROM (
+                 SELECT *,
+                        ROW_NUMBER() OVER (PARTITION BY 아이디 ORDER BY 업무보고일 DESC) AS rn
+                 FROM J_참여자관리_일일업무보고
+             ) t
+        WHERE rn = 1 AND
+            지점 = #{branch} AND
+            아이디 = #{counselorID}
+    </select>
+
+
+    <select id="selectAssign" resultType="pra">
+        WITH
+        -- [1] 기준 상담사 정보 (Master Data)
+        지점_상담사 AS (
+            SELECT 아이디, 이름, 지점, 입사일, 배정가중치, 조회순서
+            FROM J_참여자관리_로그인정보
+            WHERE 지점 = #{branch}
+            AND 아이디사용여부 = '사용'
+            AND 입사일 > '1900-01-01'
+        ),
+        -- [2] 참여자 정보 가공 (통합 및 최적화)
+        참여자_가공정보 AS (
+            SELECT
+                p.전담자_계정,
+                p.성별,
+                p.참여유형,
+                p.학력,
+                -- 특정계층 NULL 처리를 미리 수행 (공백이나 NULL을 'X'로 통일)
+                CASE WHEN ISNULL(LTRIM(RTRIM(p.특정계층)), '') IN ('', 'X') THEN 'X' ELSE 'O' END AS 특정계층_여부,
+                -- 기준 날짜 계산 (COALESCE로 간소화)
+                COALESCE(NULLIF(p.초기상담일, '1900-01-01'), p.등록일) AS 기준날짜,
+                -- 만 나이 및 연령대 계산
+                CASE
+                    WHEN p.생년월일 IS NOT NULL THEN
+                CASE
+                    WHEN (DATEDIFF(YEAR, p.생년월일, GETDATE()) -
+                CASE WHEN DATEADD(YEAR, DATEDIFF(YEAR, p.생년월일, GETDATE()), p.생년월일) > GETDATE()
+                    THEN 1 ELSE 0 END) <![CDATA[<=]]> 34 THEN '청년'
+                    ELSE '중장년'
+                END
+                ELSE NULL
+                END AS 연령대구분
+            FROM J_참여자관리 p
+            WHERE p.지점 = #{branch} -- 조인 전 데이터 양을 줄이기 위한 선행 필터
+            AND p.진행단계 <![CDATA[<>]]> '취소'
+        )
+        -- [3] 메인 집계 쿼리
+        SELECT
+            sp.이름 AS counselor,
+            sp.아이디 AS counselorID,
+            sp.지점 AS branch,
+            sp.입사일 AS counselorEmploymentDate,
+            sp.배정가중치 AS assignmentHeadcountWeight,
+            -- 전체 배정 인원
+            COUNT(p.전담자_계정) AS 전체배정,
+            -- 금년도(2026) 배정 총합 (동적 연도 적용: YEAR(GETDATE()))
+            COUNT(CASE WHEN YEAR(p.기준날짜) = #{yearDate} THEN 1 END) AS assignmentTotal,
+            -- [기간별 배정 현황] (조건: 금년도 + 참여유형 1,2)
+            -- 1. 당일
+            SUM(CASE WHEN YEAR(p.기준날짜) = #{yearDate}
+                AND p.참여유형 IN ('1', '2')
+                AND DATEDIFF(DAY, p.기준날짜, GETDATE()) = 0
+                THEN 1 ELSE 0 END) AS assignmentAllocationDay,
+            -- 2. 이번 주 (일~오늘)
+            SUM(CASE WHEN YEAR(p.기준날짜) = #{yearDate}
+                AND p.참여유형 IN ('1', '2')
+                AND DATEDIFF(WEEK, p.기준날짜, GETDATE()) = 0
+                THEN 1 ELSE 0 END) AS assignmentAllocationWeek,
+            -- 3. 2주간 (지난주 일요일 ~ 오늘)
+            SUM(CASE WHEN YEAR(p.기준날짜) = #{yearDate}
+                AND p.참여유형 IN ('1', '2')
+                AND DATEDIFF(WEEK, p.기준날짜, GETDATE()) BETWEEN 0 AND 1
+                THEN 1 ELSE 0 END) AS assignmentAllocationTwoWeek,
+            -- 4. 이번 달
+            SUM(CASE WHEN YEAR(p.기준날짜) = #{yearDate}
+                AND p.참여유형 IN ('1', '2')
+                AND DATEDIFF(MONTH, p.기준날짜, GETDATE()) = 0
+                THEN 1 ELSE 0 END) AS assignmentAllocationMonth,
+            -- [유형/인구통계 분석] (조건: 금년도)
+            COUNT(CASE WHEN YEAR(p.기준날짜) = #{yearDate} AND p.참여유형 = '1' THEN 1 END) AS assignmentType1,
+            COUNT(CASE WHEN YEAR(p.기준날짜) = #{yearDate} AND p.참여유형 = '2' THEN 1 END) AS assignmentType2,
+            COUNT(CASE WHEN YEAR(p.기준날짜) = #{yearDate} AND p.성별 = '남' THEN 1 END) AS assignmentGenderMan,
+            COUNT(CASE WHEN YEAR(p.기준날짜) = #{yearDate} AND p.성별 = '여' THEN 1 END) AS assignmentGenderWoman,
+            -- 청년 특정계층X
+            COUNT(CASE WHEN YEAR(p.기준날짜) = #{yearDate}
+                AND p.연령대구분 = '청년'
+                AND p.특정계층_여부 = 'X' THEN 1 END) AS assignmentYouth,
+            -- 특정계층O
+            COUNT(CASE WHEN YEAR(p.기준날짜) = #{yearDate}
+                AND p.특정계층_여부 = 'O' THEN 1 END) AS assignmentSpecialGroup,
+            -- 중장년 특정계층X
+            COUNT(CASE WHEN YEAR(p.기준날짜) = #{yearDate}
+                AND p.연령대구분 = '중장년'
+                AND p.특정계층_여부 = 'X' THEN 1 END) AS assignmentMiddleAged,
+            -- 학력 고졸
+            COUNT(CASE WHEN YEAR(p.기준날짜) = #{yearDate}
+                AND p.학력 = '고졸' THEN 1 END) AS assignmentEducationHigh,
+            -- 학력 대졸
+            COUNT(CASE WHEN YEAR(p.기준날짜) = #{yearDate}
+                AND p.학력 = '대졸' THEN 1 END) AS assignmentEducationCollege
+        FROM 지점_상담사 sp
+        LEFT JOIN 참여자_가공정보 p ON sp.아이디 = p.전담자_계정
+        GROUP BY sp.아이디, sp.이름, sp.지점, sp.입사일, sp.배정가중치, sp.조회순서
+        ORDER BY sp.조회순서;
+    </select>
+    
+    
+    
+    
+    
+    
+</mapper>

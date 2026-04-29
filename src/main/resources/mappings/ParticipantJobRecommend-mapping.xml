@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ParticipantJobRecommendDAO">
+    <!-- 추천채용정보 관련 DML 시작 -->
+    <!-- MERGE문 UPSERT 쿼리 사용 추천채용정보 내 구직번호 + 구인인증번호 값이 있으면 UPDATE, 없으면 INSERT -->
+    <insert id="insertOrUpdateRecommend">
+        MERGE INTO J_참여자관리_참여자추천채용정보 AS target
+            USING (
+                SELECT #{jobSeekerNo} AS 구직번호, #{recommendedJobCertNo} AS 추천채용정보_구인인증번호
+            ) AS source
+            ON (target.구직번호 = source.구직번호
+                AND target.추천채용정보_구인인증번호 = source.추천채용정보_구인인증번호)
+            WHEN MATCHED THEN
+                UPDATE SET
+                    추천점수    = #{recommendationScore},
+                    추천사유    = #{recommendationReason},
+                    베스트채용정보 = #{bestJobInfo},
+                    수정일시    = GETDATE()
+            WHEN NOT MATCHED THEN
+                INSERT (구직번호, 참여자명, 진행단계, 학력, 전공, 카테고리대분류, 카테고리중분류,
+                        희망직무, 알선상세정보, 생성된검색조건, 추천채용정보_구인인증번호,
+                        추천채용정보_URL, 추천채용정보_기업명, 추천채용정보_제목,
+                        추천채용정보_업종, 베스트채용정보, 추천점수, 추천사유, 저장일시)
+                    VALUES (#{jobSeekerNo}, #{participantName}, #{progressStage}, #{education}, #{major}, #{categoryMajor},
+                            #{categoryMiddle}, #{desiredJob}, #{referralDetail}, #{generatedSearchCondition},
+                            #{recommendedJobCertNo}, #{recommendedJobUrl}, #{recommendedJobCompany},
+                            #{recommendedJobTitle}, #{recommendedJobIndustry}, #{bestJobInfo},
+                            #{recommendationScore}, #{recommendationReason}, GETDATE());
+    </insert>
+
+    <!-- SELECT문 특정 구직번호의 추천 목록 전체 조회 (모달창 진입 시 사용) -->
+    <select id="selectRecommendList" resultType="jobRecommend">
+        SELECT
+            PK AS PK,
+            구직번호 AS jobSeekerNo,
+            참여자명 AS participantName,
+            진행단계 AS progressStage,
+            학력 AS education,
+            전공 AS major,
+            카테고리대분류 AS categoryMajor,
+            카테고리중분류 AS categoryMiddle,
+            카테고리소분류 AS categoryMinor,
+            희망직무 AS desiredJob,
+            알선상세정보 AS referralDetail,
+            생성된검색조건 AS generatedSearchCondition,
+            추천채용정보_구인인증번호 AS recommendedJobCertNo,
+            추천채용정보_URL AS recommendedJobUrl,
+            추천채용정보_기업명 AS recommendedJobCompany,
+            추천채용정보_제목 AS recommendedJobTitle,
+            추천채용정보_업종 AS recommendedJobIndustry,
+            베스트채용정보 AS bestJobInfo,
+            추천점수 AS recommendationScore,
+            추천사유 AS recommendationReason,
+            저장일시 AS createdAt,
+            수정일시 AS updatedAt
+        FROM
+            J_참여자관리_참여자추천채용정보
+        WHERE
+            구직번호 = #{jobSeekerNo}
+        ORDER BY 베스트채용정보 DESC, 추천점수 DESC, 저장일시 DESC;
+    </select>
+
+    <!-- SELECT문 특정 구직번호의 추천 베스트 채용정보 단건 조회 (모달창 진입 시 사용) -->
+    <select id="selectBestRecommend" resultType="jobRecommend">
+        SELECT TOP 1
+            PK AS PK,
+            구직번호 AS jobSeekerNo,
+            참여자명 AS participantName,
+            진행단계 AS progressStage,
+            학력 AS education,
+            전공 AS major,
+            카테고리대분류 AS categoryMajor,
+            카테고리중분류 AS categoryMiddle,
+            카테고리소분류 AS categoryMinor,
+            희망직무 AS desiredJob,
+            알선상세정보 AS referralDetail,
+            생성된검색조건 AS generatedSearchCondition,
+            추천채용정보_구인인증번호 AS recommendedJobCertNo,
+            추천채용정보_URL AS recommendedJobUrl,
+            추천채용정보_기업명 AS recommendedJobCompany,
+            추천채용정보_제목 AS recommendedJobTitle,
+            추천채용정보_업종 AS recommendedJobIndustry,
+            베스트채용정보 AS bestJobInfo,
+            추천점수 AS recommendationScore,
+            추천사유 AS recommendationReason,
+            저장일시 AS createdAt,
+            수정일시 AS updatedAt
+        FROM
+            J_참여자관리_참여자추천채용정보
+        WHERE
+            구직번호 = #{jobSeekerNo} AND
+            베스트채용정보 = 1
+        ORDER BY 저장일시 DESC;
+    </select>
+
+    <!-- 구직번호 + 구인인증번호로 개별 추천 채용정보 조회 -->
+    <select id="selectRecommendByCertNo" parameterType="map" resultType="jobRecommend">
+        SELECT TOP 1
+            PK AS PK,
+            구직번호 AS jobSeekerNo,
+            참여자명 AS participantName,
+            진행단계 AS progressStage,
+            학력 AS education,
+            전공 AS major,
+            추천채용정보_구인인증번호 AS recommendedJobCertNo,
+            추천채용정보_URL AS recommendedJobUrl,
+            추천채용정보_기업명 AS recommendedJobCompany,
+            추천채용정보_제목 AS recommendedJobTitle,
+            추천채용정보_업종 AS recommendedJobIndustry,
+            베스트채용정보 AS bestJobInfo,
+            추천점수 AS recommendationScore,
+            추천사유 AS recommendationReason
+        FROM
+            J_참여자관리_참여자추천채용정보
+        WHERE
+            구직번호 = #{jobSeekerNo}
+            AND 추천채용정보_구인인증번호 = #{certNo}
+    </select>
+
+    <!-- 구직번호 기준 전체 삭제 쿼리 작성 (재추천 시 기존 삭제용) -->
+    <delete id="deleteRecommendByGujikNo">
+        DELETE FROM
+            J_참여자관리_참여자추천채용정보
+        WHERE
+            구직번호 = #{jobSeekerNo};
+    </delete>
+    <!-- 추천채용정보 관련 DML 끝 -->
+
+
+    <!-- 참여자 정보 조회 시작 -->
+
+    <!-- 참여자 정보 조회 쿼리 작성 -->
+    <select id="selectParticipantInfo"  resultType="recommendParticipant">
+        SELECT
+            구직번호 AS jobSeekerNo,
+            참여자 AS infoName,
+            성별 AS summaryGender,
+            진행단계 AS infoStage,
+            집중알선여부 AS infoFocus,
+            주소 AS infoAddress,
+            학력 AS infoEducation,
+            전공 AS infoMajor,
+            경력 AS infoCareer,
+            희망급여 AS infoDesiredSalary
+        FROM J_참여자관리
+        WHERE 구직번호 = #{jobSeekerNo}
+    </select>
+
+    <!-- 참여자 카테고리 조회 쿼리 작성 -->
+    <select id="selectParticipantCategory" resultType="recommendCategory">
+        SELECT
+            희망순위 AS infoRank,
+            직무_카테고리_대 AS categoryMain,
+            직무_카테고리_중 AS categoryMiddle,
+            희망직무 AS infoJob
+        FROM J_참여자관리_희망직무
+        WHERE 구직번호 = #{jobSeekerNo}
+        ORDER BY 희망순위
+    </select>
+
+    <!-- 희망직무 관련 카테고리 서브트리 조회 (중분류명 기준) -->
+    <select id="selectRelatedJobCategories" parameterType="map" resultType="jobCategory">
+        SELECT
+            PK              AS pk,
+            카테고리ID       AS categoryId,
+            대분류카테고리ID  AS largeCategoryId,
+            중분류카테고리ID  AS midCategoryId,
+            카테고리명칭      AS categoryName,
+            카테고리분류      AS categoryType
+        FROM J_참여자관리_JOB_CATEGORY
+        WHERE
+            <!-- 대분류: 매칭된 중분류의 부모 대분류 -->
+            카테고리ID IN (
+                SELECT DISTINCT 대분류카테고리ID
+                FROM J_참여자관리_JOB_CATEGORY
+                WHERE 카테고리분류 = 2
+                  AND 카테고리명칭 IN
+                  <foreach collection="midCategoryNames" item="name" open="(" separator="," close=")">
+                      #{name}
+                  </foreach>
+            )
+            <!-- 중분류: 매칭된 중분류 자신 -->
+            OR (카테고리분류 = 2 AND 카테고리명칭 IN
+                <foreach collection="midCategoryNames" item="name" open="(" separator="," close=")">
+                    #{name}
+                </foreach>
+            )
+            <!-- 소분류: 매칭된 중분류의 하위 소분류 -->
+            OR (카테고리분류 = 3 AND 중분류카테고리ID IN (
+                SELECT 카테고리ID
+                FROM J_참여자관리_JOB_CATEGORY
+                WHERE 카테고리분류 = 2
+                  AND 카테고리명칭 IN
+                  <foreach collection="midCategoryNames" item="name" open="(" separator="," close=")">
+                      #{name}
+                  </foreach>
+            ))
+        ORDER BY 대분류카테고리ID ASC, 중분류카테고리ID ASC, 카테고리분류 ASC, 카테고리ID ASC
+    </select>
+
+    <!-- 참여자 알선상세정보, 추천사 조회 쿼리 작성 -->
+    <select id="selectParticipantReferral"  resultType="recommendReferral">
+        SELECT
+            상세정보 AS infoAlsonDetail,
+            추천사 AS infoAdditionalInfo
+        FROM J_참여자관리_알선상세정보
+        WHERE 구직번호 = #{jobSeekerNo}
+    </select>
+
+    <!-- 채용정보 후보군 조회 -->
+    <!-- searchCondition에 maxCount 반드시 포함: searchCondition.setMaxCount(maxCandidates) -->
+    <!-- keywords / jobsCode 는 OR 관계, jobCategory 는 AND 추가 필터              -->
+    <select id="selectJobInfoCandidates" parameterType="com.jobmoa.app.CounselMain.biz.recommend.SearchConditionDTO" resultType="jobCandidate">
+        SELECT TOP (#{maxCount})
+            wanted_auth_no  AS certNo,
+            company_nm      AS companyName,
+            recrut_title    AS recruitTitle,
+            ind_tp_nm       AS industryType,
+            wanted_info_url AS jobPostingUrl,
+            sal_desc        AS salaryDesc,
+            min_edubg       AS minEducation,
+            max_edubg       AS maxEducation,
+            career          AS career,
+            busi_size       AS businessSize,
+            rel_jobs_nm     AS relatedJobs,
+            job_cont        AS jobContent,
+            major           AS major,
+            certificate     AS certificate
+        FROM J_참여자관리_JOB_POSTING
+        WHERE detail_fetched = 1
+          AND (close_dt IS NULL OR close_dt &gt;= CAST(GETDATE() AS DATE))
+        <if test="(keywords != null and keywords.size() > 0) or (jobsCode != null and jobsCode.size() > 0)">
+            AND (
+                <trim prefixOverrides="OR">
+                    <if test="keywords != null and keywords.size() > 0">
+                        <foreach collection="keywords" item="kw" separator=" OR " open="(" close=")">
+                            recrut_title LIKE '%' + #{kw} + '%'
+                            OR ind_tp_nm LIKE '%' + #{kw} + '%'
+                            OR keyword_list LIKE '%' + #{kw} + '%'
+                        </foreach>
+                    </if>
+                    <if test="jobsCode != null and jobsCode.size() > 0">
+                        OR jobs_cd IN
+                        <foreach collection="jobsCode" item="code" open="(" separator="," close=")">
+                            TRY_CAST(#{code} AS INT)
+                        </foreach>
+                    </if>
+                    <if test="jobCategory != null and jobCategory != ''">
+                        OR ind_tp_nm LIKE '%' + #{jobCategory} + '%'
+                    </if>
+                    <if test="isAddress">
+                        <if test="largescaleUnits != null and largescaleUnits.size() > 0">
+                            OR basic_addr IN
+                            <foreach collection="largescaleUnits" item="unit" open="(" separator="," close=")">
+                                #{unit}
+                            </foreach>
+                        </if>
+                        <if test="localUnits != null and localUnits.size() > 0">
+                            OR basic_addr IN
+                            <foreach collection="localUnits" item="unit" open="(" separator="," close=")">
+                                #{unit}
+                            </foreach>
+                        </if>
+                    </if>
+                </trim>
+            )
+        </if>
+        ORDER BY sync_dtm_detail DESC, sync_dtm ASC
+    </select>
+
+    <!-- 가장 최근 저장된 추천 1건 조회 (24h 재사용 판단용) -->
+    <select id="selectLatestRecommend" parameterType="int" resultType="jobRecommend">
+        SELECT TOP (1)
+            PK                          AS pk,
+            구직번호                     AS jobSeekerNo,
+            베스트채용정보               AS bestJobInfo,
+            추천점수                     AS recommendationScore,
+            추천사유                     AS recommendationReason,
+            저장일시                     AS createdAt,
+            수정일시                     AS updatedAt
+        FROM J_참여자관리_참여자추천채용정보
+        WHERE 구직번호 = #{jobSeekerNo}
+        ORDER BY 저장일시 DESC
+    </select>
+
+    <!-- 24시간 이내 추천 존재 여부 확인 (DB 서버 시간 기준) -->
+    <select id="selectCooldownStatus" parameterType="int" resultType="map">
+        SELECT TOP (1)
+            CONVERT(VARCHAR(19), 저장일시, 120) AS lastRecommendedAt,
+            CASE
+                WHEN DATEDIFF(HOUR, 저장일시, GETDATE()) &lt; 24 THEN 1
+                ELSE 0
+            END AS cooldownActive
+        FROM J_참여자관리_참여자추천채용정보
+        WHERE 구직번호 = #{jobSeekerNo}
+        ORDER BY 저장일시 DESC
+    </select>
+
+    <!-- 참여자 정보 조회 끝 -->
+
+
+
+</mapper>

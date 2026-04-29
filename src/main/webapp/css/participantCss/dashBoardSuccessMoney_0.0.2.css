@@ -1,0 +1,32 @@
+.dash-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin: 12px 0 16px;
+}
+
+.dash-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #1f2937;
+}
+
+#chart-data-container {
+    max-height: 800px;
+}
+
+#chart-container {
+    max-height: 800px;
+}
+
+#chart-area,
+#chart-bar {
+    background-color: #212529;
+}

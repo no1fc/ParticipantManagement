@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ReportDAO">
+    <!-- 기본 쿼리 시작 -->
+    <!-- 2025-05-29 변경 진행 했음 -->
+    <select id="reportSelectProgressAll" resultType="report">
+        WITH 상담사순서 AS (
+            SELECT
+                아이디,
+                이름,
+                지점,
+                조회순서 AS 순서
+            FROM
+                J_참여자관리_로그인정보
+            WHERE
+                지점 = #{branch}
+        )
+        SELECT
+            ISNULL(A.이름, B.이름) AS counselorName,
+            ISNULL(A.초기상담년도, 0) AS registYear,
+            ISNULL(A.지점, B.지점) AS branch,
+            ISNULL(A.취소자, 0) AS cancelCount,
+            ISNULL(A.전체참여자, 0) AS totalParticipants,
+            ISNULL(A.현진행자, 0) AS currentProgress,
+            ISNULL(0, 0) AS thirdStageCount,
+            ISNULL(A.종료자, 0) AS completedCount,
+            ISNULL(A.중단자, 0) AS discontinuedCount,
+            ISNULL(A.성과불인정취업, 0) AS nonApprovedEmployment,
+            ISNULL(A.성과인정취업, 0) AS approvedEmployment,
+            ISNULL(A.전체취업자, 0) AS totalEmployment,
+            ISNULL(A.알선취업자, 0) AS referralEmployment,
+            ISNULL(A.나은일자리, 0) AS betterJobCount,
+            ISNULL(A.조기취업자, 0) AS earlyEmployment,
+            ISNULL(A.고용유지, 0) AS employmentRetention,
+            ISNULL(A.IAP수립1달, 0) AS iapEstablishMonth,
+            ISNULL(A.인센발생, 0) AS incentiveOccurred,
+            ISNULL(A.인센미발생, 0) AS incentiveNotOccurred,
+            ISNULL(A.평가취업률, 0) AS evaluationEmploymentRate,
+            ISNULL(A.알선취업률, 0) AS referralEmploymentRate,
+            ISNULL(A.나은일자리비율, 0) AS betterJobRate,
+            ISNULL(A.고용유지율, 0) AS retentionRate,
+            ISNULL(A.조기취업자비율, 0) AS earlyEmploymentRate,
+            ISNULL(A.취업인센티브발생율, 0) AS incentiveOccurrenceRate
+        FROM 진행현황 A
+            RIGHT JOIN 상담사순서 B
+            ON B.아이디 = A.전담자_계정 AND
+            A.초기상담년도 = #{year} AND
+            A.지점 = #{branch}
+        WHERE
+            B.아이디 IN
+                <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+                #{userId}
+                </foreach>
+        ORDER BY B.순서 ASC
+    </select>
+
+    <!-- 2026-01-21 변경 진행 -->
+    <select id="reportSelectStatusAll" resultType="report">
+        SELECT
+            C.아이디 AS counselorId, -- A.전담자_계정 대신 C.아이디 사용 (A는 NULL일 수 있음)
+            C.이름 AS counselorName,
+            C.지점 AS branch,
+            ISNULL(SUM(종료참여자), 0) AS completedCount,
+            ISNULL(SUM(전체취업자), 0) AS totalEmployment,
+            ISNULL(SUM(알선취업), 0) AS referralEmployment,
+            ISNULL(SUM([성과 인정 취업]), 0) AS approvedEmployment,
+            ISNULL(SUM([성과 불인정 취업]), 0) AS nonApprovedEmployment,
+            ISNULL(SUM(고용유지), 0) AS employmentRetention,
+            ISNULL(SUM(나은일자리), 0) AS betterJobCount,
+            ISNULL(SUM(IAP수립1달), 0) AS iapEstablishMonth,
+            ISNULL(SUM(인센발생), 0) AS incentiveOccurred,
+            ISNULL(SUM(인센미발생), 0) AS incentiveNotOccurred,
+            -- 분모가 0일 경우 0을 반환하도록 처리
+            ROUND(CASE WHEN SUM(종료참여자) > 0 THEN SUM(전체취업자)*1.0/SUM(종료참여자) ELSE 0 END, 4) AS employmentRate,
+            ROUND(CASE WHEN SUM(종료참여자) > 0 THEN SUM([성과 인정 취업])*1.0/SUM(종료참여자) ELSE 0 END, 4) AS evaluationEmploymentRate,
+            ROUND(CASE WHEN SUM(종료참여자) > 0 THEN SUM(알선취업)*1.0/SUM(종료참여자) ELSE 0 END, 4) AS referralEmploymentRate,
+            ROUND(CASE WHEN SUM(종료참여자) > 0 THEN SUM(나은일자리)*1.0/SUM(종료참여자) ELSE 0 END, 4) AS betterJobRate,
+            ROUND(CASE WHEN SUM(종료참여자) > 0 THEN SUM(고용유지)*1.0/SUM(종료참여자) ELSE 0 END, 4) AS retentionRate,
+            ROUND(CASE WHEN SUM(종료참여자) > 0 THEN SUM(인센발생)*1.0/SUM(종료참여자) ELSE 0 END, 4) AS incentiveOccurrenceRate
+        FROM 평가실적 A
+        RIGHT JOIN J_참여자관리_로그인정보 C
+        ON A.전담자_계정 = C.아이디
+            AND 실제종료일 >= #{startDate}
+            AND 실제종료일 <![CDATA[<=]]> #{endDate}
+        WHERE
+        <if test="userIds != null and userIds.length > 0">
+            C.아이디 IN
+            <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+                #{userId}
+            </foreach>
+        </if>
+        GROUP BY C.아이디, C.지점, C.이름, C.조회순서
+        ORDER BY C.조회순서
+    </select>
+
+    <select id="reportSelectAssignOne" resultType="report">
+        SELECT SUM(IIF(참여유형 = '1' , 1, 0)) AS type1,
+               SUM(IIF(참여유형 = '2' , 1, 0)) AS type2
+        FROM J_참여자관리
+        WHERE 진행단계 <![CDATA[<>]]> ''
+          AND 진행단계 <![CDATA[<>]]> '취소'
+          AND 참여유형 <![CDATA[<>]]> '이관'
+          AND 지점 = #{branch}
+          AND YEAR(IIF(초기상담일 = '1900-01-01' , 등록일, ISNULL(초기상담일, ''))) = #{year}
+          AND IIF(초기상담일 = '1900-01-01' , 등록일, ISNULL(초기상담일, '')) >= #{startDate}
+          AND IIF(초기상담일 = '1900-01-01' , 등록일, ISNULL(초기상담일, '')) <![CDATA[<=]]> #{endDate}
+          AND (전담자_계정 IN
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+        )
+    </select>
+
+
+    <select id="reportSelectPerformanceAll" resultType="report">
+        SELECT
+            A.이름 counselorName,
+            A.아이디 UserID,
+            ISNULL(C.금일일반취업, 0) memberTodayEmployment,
+            ISNULL(C.금일알선취업, 0) memberTodayPlacement,
+            ISNULL(C.금주일반취업, 0) memberToWeekEmployment,
+            ISNULL(C.금주알선취업, 0) memberToWeekPlacement,
+            ISNULL(C.금월일반취업, 0) memberToMonthEmployment,
+            ISNULL(C.금월알선취업, 0) memberToMonthPlacement,
+            ISNULL(C.금년일반취업, 0) memberToYearEmployment,
+            ISNULL(C.금년알선취업, 0) memberToYearPlacement,
+            ISNULL(C.업무보고일, '1900-01-01') endUpdateStatus
+        FROM J_참여자관리_로그인정보 A
+        LEFT JOIN (
+            -- 아이디별 최신 업무보고 데이터만 추출
+            SELECT *,
+            ROW_NUMBER() OVER (PARTITION BY 지점, 아이디 ORDER BY 업무보고일 DESC) as rn
+            FROM J_참여자관리_일일업무보고
+        ) C ON A.지점 = C.지점 AND A.아이디 = C.아이디 AND C.rn = 1
+        WHERE A.지점=#{branch}
+        AND (A.아이디 IN
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+        )
+        ORDER BY A.조회순서
+    </select>
+
+    <!-- 2026-01-15 수정 -->
+    <!-- 상담사별 일일업무보고 인원 조회 (배정인원, 금일, 금월, 금년, 금주) -->
+    <select id="dailyReportSelect" resultType="report">
+        SELECT
+            A.이름 counselorName,
+            A.아이디 UserID,
+            ISNULL(C.유형1, 0) todayPersonnelOneType,
+            ISNULL(C.유형2, 0) todayPersonnelTwoType,
+            ISNULL(C.금일일반취업, 0) memberTodayEmployment,
+            ISNULL(C.금일알선취업, 0) memberTodayPlacement,
+            ISNULL(C.금주일반취업, 0) memberToWeekEmployment,
+            ISNULL(C.금주알선취업, 0) memberToWeekPlacement,
+            ISNULL(C.금월일반취업, 0) memberToMonthEmployment,
+            ISNULL(C.금월알선취업, 0) memberToMonthPlacement,
+            ISNULL(C.금년일반취업, 0) memberToYearEmployment,
+            ISNULL(C.금년알선취업, 0) memberToYearPlacement,
+            ISNULL(C.업무보고일, '1900-01-01') endUpdateStatus,
+            A.일일업무일지발급여부 memberDailyWorkDiaryIssuance
+        FROM J_참여자관리_로그인정보 A
+        LEFT JOIN (
+            -- 아이디별 최신 업무보고 데이터만 추출
+            SELECT *,
+                   ROW_NUMBER() OVER (PARTITION BY 지점, 아이디 ORDER BY 업무보고일 DESC) as rn
+            FROM J_참여자관리_일일업무보고
+        ) C ON A.지점 = C.지점 AND A.아이디 = C.아이디 AND C.rn = 1
+        WHERE A.지점=#{branch}
+        ORDER BY A.조회순서
+    </select>
+
+    <!-- 지점 전체 일일배정인원 조회 -->
+    <select id="dailyBranchReportSelect" resultType="report">
+        SELECT
+            ISNULL(SUM(유형1), 0) branchType1,
+            ISNULL(SUM(유형2), 0) branchType2
+        FROM J_참여자관리_일일업무보고
+        WHERE
+            지점 = #{branch} AND
+            업무보고일 = #{dailyUpdateStatusDate}
+        GROUP BY 지점
+    </select>
+
+    <!-- 상담사 배정인원 및 실적 인원 업데이트 -->
+    <update id="dailyWorkSave">
+        <foreach collection="userIds" item="userId" index="index" separator=";">
+            IF EXISTS (SELECT * FROM J_참여자관리_일일업무보고 WHERE 아이디 = #{userId} AND 업무보고일 = CONVERT(CHAR(10), #{dailyUpdateStatusDate}, 23) AND 지점 = #{branch})
+            BEGIN
+            UPDATE J_참여자관리_일일업무보고
+            SET
+                유형1 = #{todayPersonnelOneTypes[${index}]},
+                유형2 = #{todayPersonnelTwoTypes[${index}]},
+                금일일반취업 = #{memberTodayEmployments[${index}]},
+                금일알선취업 = #{memberTodayPlacements[${index}]},
+                금주일반취업 = #{memberToWeekEmployments[${index}]},
+                금주알선취업 = #{memberToWeekPlacements[${index}]},
+                금월일반취업 = #{memberToMonthEmployments[${index}]},
+                금월알선취업 = #{memberToMonthPlacements[${index}]},
+                금년일반취업 = #{memberToYearEmployments[${index}]},
+                금년알선취업 = #{memberToYearPlacements[${index}]},
+                실적수정일 = getdate()
+            WHERE 아이디 = #{userId} AND 업무보고일 = CONVERT(CHAR(10), #{dailyUpdateStatusDate}, 23) AND 지점 = #{branch}
+            END
+            ELSE BEGIN
+            INSERT INTO J_참여자관리_일일업무보고
+            (지점, 아이디, 유형1, 유형2, 금일일반취업, 금일알선취업, 금주일반취업, 금주알선취업, 금월일반취업, 금월알선취업, 금년일반취업, 금년알선취업, 업무보고일)
+            VALUES(
+            #{branch},
+            #{userId},
+            #{todayPersonnelOneTypes[${index}]},
+            #{todayPersonnelTwoTypes[${index}]},
+            #{memberTodayEmployments[${index}]},
+            #{memberTodayPlacements[${index}]},
+            #{memberToWeekEmployments[${index}]},
+            #{memberToWeekPlacements[${index}]},
+            #{memberToMonthEmployments[${index}]},
+            #{memberToMonthPlacements[${index}]},
+            #{memberToYearEmployments[${index}]},
+            #{memberToYearPlacements[${index}]},
+            CONVERT(CHAR(10), #{dailyUpdateStatusDate}, 23)
+            );
+            END;
+        </foreach>
+    </update>
+
+    <update id="assignmentStatusUpdate">
+        UPDATE J_참여자관리_지점
+        SET
+            유형1=#{branchType1},
+            유형2=#{branchType2}
+        WHERE 지점 = #{branch}
+    </update>
+</mapper>

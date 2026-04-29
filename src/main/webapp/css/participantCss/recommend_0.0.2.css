@@ -1,0 +1,20 @@
+.recommend{
+    max-height: 150px;
+}
+
+.recommend div{
+    padding: 8px;
+    cursor: pointer;
+    border-bottom: 1px solid #ddd;
+    background-color: #fff;
+}
+
+#layer {
+    width: 500px;         /* 너비 설정 */
+    height: 600px;        /* 높이 설정 */
+    border: 5px solid #333; /* 테두리 디자인 */
+    /*left: 50%;            !* 화면 중앙 정렬 시작 *!*/
+    /*top: 50%;*/
+    /*margin-left: 0;  !* 너비의 절반만큼 이동 (중앙 정렬) *!*/
+    /*margin-top: 600px;   !* 높이의 절반만큼 이동 (중앙 정렬) *!*/
+}

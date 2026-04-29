@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="BasicDAO">
+    <!-- 기본정보 등록 쿼리문 -->
+    <insert id="basicInsert">
+        INSERT INTO J_참여자관리
+        (지점, 전담자_계정, 초기전담자_계정, 참여자, 생년월일, 성별, 모집경로, 참여유형, 학교명, 전공, 주소, 특정계층, 경력, 학력)
+        VALUES
+        (
+         #{basicBranch},
+         #{basicUserid},
+         #{basicUserid},
+         #{basicPartic},
+         #{basicDob},
+         #{basicGender},
+         #{basicRecruit},
+         #{basicPartType},
+         #{basicSchool},
+         #{basicSpecialty},
+         #{basicAddress},
+         #{basicSpecific},
+         #{basicAntecedents},
+         #{basicEducation}
+        )
+    </insert>
+
+    <!-- 기본 정보 업데이트 쿼리문 -->
+    <update id="basicUpdate">
+        UPDATE
+            J_참여자관리
+        SET
+            참여자 = #{basicPartic},
+            생년월일 = #{basicDob},
+            성별 = #{basicGender},
+            모집경로 = #{basicRecruit},
+            참여유형 = #{basicPartType},
+            학교명 = #{basicSchool},
+            전공 = #{basicSpecialty},
+            주소 = #{basicAddress},
+            특정계층 = #{basicSpecific},
+            경력 = #{basicAntecedents},
+            학력 = #{basicEducation}
+        WHERE
+            구직번호 = #{basicJobNo} AND 전담자_계정 = #{basicUserid}
+    </update>
+
+    <!-- 관리자 기본 정보 업데이트 쿼리문 -->
+    <update id="basicManagerUpdate">
+        UPDATE
+            J_참여자관리
+        SET
+            참여자 = #{basicPartic},
+            생년월일 = #{basicDob},
+            성별 = #{basicGender},
+            모집경로 = #{basicRecruit},
+            참여유형 = #{basicPartType},
+            학교명 = #{basicSchool},
+            전공 = #{basicSpecialty},
+            주소 = #{basicAddress},
+            특정계층 = #{basicSpecific},
+            경력 = #{basicAntecedents},
+            학력 = #{basicEducation}
+        WHERE
+            구직번호 = #{basicJobNo}
+    </update>
+
+    <!-- 마감 여부 update 쿼리 -->
+    <update id="basicCloseUpdate">
+        UPDATE
+            J_참여자관리
+        SET
+            [마감] = #{basicClose}
+        WHERE
+            구직번호 = #{basicJobNo}
+    </update>
+
+    <!-- 마감 여부 확인용 쿼리 -->
+    <select id="basicSelectClose" resultType="basic">
+        SELECT
+            구직번호 AS basicJobNo,
+            [마감] AS basicClose
+        FROM
+            J_참여자관리
+        WHERE
+            구직번호 = #{basicJobNo}
+    </select>
+
+    <!-- 등록전 최신에 등록된 구직번호 확인용 쿼리 -->
+    <select id="basicSelectJOBNO" resultType="basic">
+        SELECT TOP(1) 구직번호 as basicJobNo FROM J_참여자관리 WHERE 전담자_계정 = #{basicUserid} ORDER BY 구직번호 DESC;
+    </select>
+
+    <!-- 전담자 아이디 구직번호 내 참여자인지 확인용 -->
+    <select id="basicSelectOneJOBNO" resultType="basic">
+        SELECT
+            구직번호 AS basicJobNo
+        FROM
+            J_참여자관리
+        WHERE
+            구직번호=#{basicJobNo}
+          AND
+            전담자_계정=#{basicUserid}
+    </select>
+
+    <!-- 구직번호로 참여자 하나 검색하는 용 -->
+    <select id="basicSelectPKONE" resultType="basic">
+        SELECT
+            구직번호 AS basicJobNo,
+            참여자 AS basicPartic,
+            CASE
+                WHEN 생년월일 >= DATEADD(YEAR, -100, GETDATE()) THEN 생년월일
+                END AS basicDob,
+            성별 AS basicGender,
+            모집경로 AS basicRecruit,
+            참여유형 AS basicParttype,
+            주소 AS basicAddress,
+            학교명 AS basicSchool,
+            전공 AS basicSpecialty,
+            경력 AS basicAntecedents,
+            특정계층 AS basicSpecific,
+            학력 AS basicEducation
+        FROM
+            J_참여자관리
+        WHERE
+            구직번호=#{basicJobNo}
+          <choose>
+              <when test="!basicBranchManagement and !basicManagement">
+                  AND
+                  전담자_계정=#{basicUserid}
+              </when>
+          </choose>
+    </select>
+    
+</mapper>

@@ -1,0 +1,157 @@
+.title-header {
+    font-size: 1.25em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+#helpButton {
+    font-size: 0.854em;
+    font-weight: normal;
+    color: #007bff;
+    cursor: pointer;
+}
+
+.file-input {
+    display: none;
+}
+
+.file-button-label {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.response-text-div {
+    display: none;
+    font-size: 0.854em;
+}
+
+.response-text-div .csv-danger {
+    color: red;
+    font-weight: bold;
+}
+
+.title-sub-header {
+    display: none;
+}
+
+.random-button-label {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.score-only-random-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 0;
+}
+
+.reset-button-label {
+    display: none;
+    padding: 10px 20px;
+    background-color: #ffb700;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.save-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #018b38;
+    color: #fff;
+    border: 0;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#varification-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #018b38;
+    color: #fff;
+    border: 0;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#template-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #018b38;
+    color: #fff;
+    border: 0;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.section-card {
+    border: 1px solid #e4e6ef;
+    border-radius: 8px;
+    padding: 12px 14px;
+    background: #fff;
+    margin-bottom: 12px;
+}
+
+.section-title {
+    font-size: 1.05em;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.muted-text {
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+.pra-stepper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.pra-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.pra-step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    font-size: 0.75rem;
+}
+
+.pra-step.is-active {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.pra-step.is-active .pra-step-number {
+    background: #1d4ed8;
+    color: #fff;
+}

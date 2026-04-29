@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ParticcertifDAO">
+
+    <!-- 자격증 등록용 쿼리: 배열이 비어있을 때는 서비스에서 호출을 건너뜀 -->
+    <insert id="particcertifInsert">
+        INSERT INTO J_참여자관리_자격증
+        (구직번호, 자격증)
+        <foreach collection="particcertifCertifs" item="data" separator="," open="VALUES">
+            (
+            #{particcertifJobNo},
+            #{data, jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 자격증 업데이트 용 쿼리 사용안하는 중 -->
+<!--    <update id="particcertifUpdate">
+        UPDATE
+            J_참여자관리_자격증
+        SET
+            자격증 = #{particcertifCertif}
+        WHERE
+            구직번호 = ${particcertifJobNo}
+          AND
+            자격증 = ${particcertifCertif}
+    </update>-->
+
+    <!-- 자격증 삭제용 쿼리 외래키로 자동 삭제 -->
+    <delete id="particcertifDelete">
+        DELETE
+        FROM J_참여자관리_자격증
+        WHERE 구직번호 = #{particcertifJobNo}
+    </delete>
+
+
+    <!-- 참여자 자격증 찾기용 -->
+    <select id="particcertifSelectOne" resultType="particcertif">
+        SELECT
+            자격증번호 AS particcertifPartNo,
+            구직번호 AS particcertifJobNo,
+            자격증 AS particcertifCertif
+        From
+            J_참여자관리_자격증
+        WHERE
+            구직번호=#{particcertifJobNo}
+        AND
+            자격증=#{particcertifCertif}
+    </select>
+
+    <!-- 참여자 전체 자격증 확인용 쿼리 -->
+    <select id="particcertifSelectALLParticOne" resultType="particcertif">
+        SELECT
+            자격증번호 AS particcertifPartNo,
+            구직번호 AS particcertifJobNo,
+            자격증 AS particcertifCertif
+        From
+            J_참여자관리_자격증
+        WHERE
+            구직번호=#{particcertifJobNo}
+    </select>
+
+</mapper>

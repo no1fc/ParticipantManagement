@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ArrangementDAO">
+
+    <sql id="arrangementCardDataCommon">
+        WITH 기초데이터 AS (
+            SELECT
+                지점,
+                진행단계,
+                취업유형,
+                기간만료일,
+                NULLIF(CASE
+                           WHEN 취창업일 > '1900-01-01' THEN 취창업일
+                           WHEN 기간만료일 > '1900-01-01' THEN 기간만료일
+                           ELSE NULL
+                           END, '1900-01-01') AS 실제종료일,
+                NULLIF(전담자_변경일, '1900-01-01') AS 실제변경일
+            FROM
+                J_참여자관리
+            WHERE
+                취업유형 = '알선'
+        ),
+        -- 1. 모든 지점 목록 추출 (기준 집합)
+        모든지점 AS (
+            SELECT
+                DISTINCT 지점,
+                지점인원
+                    FROM
+                        J_참여자관리_지점
+                    WHERE
+                        지점 <![CDATA[<>]]> '테스트'
+        ),
+        -- 2. 조건에 맞는 데이터만 필터링 (타겟 집합)
+        타겟데이터 AS (
+            SELECT
+                *
+            FROM
+                기초데이터
+            WHERE
+              실제종료일 BETWEEN #{arrangementStartDate} AND #{arrangementEndDate}
+                  AND 기간만료일 <![CDATA[>=]]> #{arrangementPerformanceStartDate}
+        ),
+        -- 3. 지점별 순위 및 알선 개수를 출력한다.
+        순위산정 AS (
+            SELECT
+                A.지점 AS 지점,
+                COUNT(B.지점) AS 알선건수, -- B테이블(타겟)의 컬럼을 세어야 NULL인 경우 0이 나옴
+                CONVERT(NUMERIC(10, 2), COUNT(B.지점)/(A.지점인원*1.0)) AS 점수퍼센트,
+                DENSE_RANK() OVER(ORDER BY CONVERT(NUMERIC(10, 2), COUNT(B.지점)/(A.지점인원*1.0)) DESC) AS 순위
+            FROM
+                모든지점 A
+                    LEFT JOIN
+                타겟데이터 B ON A.지점 = B.지점
+            GROUP BY
+                A.지점,A.지점인원
+        )
+    </sql>
+
+    <select id="arrangementCardData" resultType="arrangement">
+        <include refid="arrangementCardDataCommon"/>
+        ,지점별집계 AS (
+            SELECT
+                지점,
+                -- 2026년 1월 (당월)
+                COUNT(CASE WHEN 실제종료일 >= #{arrangementStartDate} AND 실제종료일 <![CDATA[<=]]> #{arrangementEndDate} THEN 1 END) AS 당월건수,
+                -- 2025년 12월 (전월) - 달성률 계산용
+                COUNT(CASE WHEN 실제종료일 >= #{arrangementPreviousMonthStartDate} AND 실제종료일 <![CDATA[<=]]> #{arrangementPreviousMonthEndDate} THEN 1 END) AS 전월건수
+            FROM 기초데이터
+            GROUP BY 지점
+        ),
+        지점점수통합 AS (
+            SELECT
+                A.지점,
+                B.당월건수,
+                B.전월건수,
+                A.알선건수,
+                A.점수퍼센트,
+                A.순위
+            FROM
+                순위산정 A
+            JOIN
+                지점별집계 B
+            ON
+                A.지점 = B.지점
+        )
+        SELECT
+            -- 1. 전체 알선 건수 (당월 전체 합계)
+            (SELECT SUM(당월건수) FROM 지점별집계) AS arrangementTotal,
+            -- 2. 1위 지점 정보
+            MAX(CASE WHEN 순위 = 1 THEN 지점 END) AS arrangementFirstRankBranch,
+            MAX(CASE WHEN 순위 = 1 THEN 당월건수 END) AS arrangementFirstRankCount,
+            MAX(CASE WHEN 순위 = 1 THEN 점수퍼센트 END) AS arrangementFirstRankScorePercent,
+            -- 3. 2위 지점 정보 (2위가 없을 경우 NULL 반환)
+            MAX(CASE WHEN 순위 = 2 THEN 지점 END) AS arrangementSecondRankBranch,
+            MAX(CASE WHEN 순위 = 2 THEN 당월건수 END) AS arrangementSecondRankCount,
+            MAX(CASE WHEN 순위 = 2 THEN 점수퍼센트 END) AS arrangementSecondRankScorePercent,
+            -- 4. 전월 대비 달성률 (전월 0건일 경우 0% 처리)
+            ROUND(
+                CASE
+                    WHEN (SELECT SUM(전월건수) FROM 지점별집계) = 0 THEN 0
+                    ELSE (SELECT SUM(당월건수) FROM 지점별집계) * 100.0 / (SELECT SUM(전월건수) FROM 지점별집계)
+                END, 1
+            ) AS arrangementPreviousMonthAchievementRate
+        FROM 지점점수통합
+    </select>
+
+    <select id="arrangementChartData" resultType="arrangement">
+        <include refid="arrangementCardDataCommon"/>
+        SELECT
+            지점 AS arrangementBranch,
+            알선건수 AS arrangementCount,
+            점수퍼센트 AS arrangementRankScorePercent,
+            순위 AS arrangementRank
+        FROM
+            순위산정
+    </select>
+</mapper>

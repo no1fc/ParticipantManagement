@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="JobPlacementDAO">
+
+    <!-- 검색 필터를 위한 sql Query -->
+    <sql id="externalAllSearch">
+        <where>
+            <!-- 일반 검색 -->
+            <if test="searchKeyword != null and searchKeyword != ''">
+                <choose>
+                    <when test="searchType == null or searchType == '' or searchType == '전체'">
+                        (구직번호 LIKE '%' + #{searchKeyword} + '%' OR 상담사 LIKE '%' + #{searchKeyword} + '%' OR 참여자 LIKE '%' + #{searchKeyword} + '%')
+                    </when>
+                    <when test="searchType == '구직번호'">
+                        구직번호 LIKE '%' + #{searchKeyword} + '%'
+                    </when>
+                    <when test="searchType == '상담사'">
+                        상담사 LIKE '%' + #{searchKeyword} + '%'
+                    </when>
+                    <when test="searchType == '참여자'">
+                        참여자 LIKE '%' + #{searchKeyword} + '%'
+                    </when>
+                </choose>
+            </if>
+
+            <!-- 성별 검색 -->
+            <if test="genderFilter != null and genderFilter != ''">
+                AND 성별 LIKE '%'+ #{genderFilter} + '%'
+            </if>
+
+            <!-- 나이 검색 -->
+            <if test="ageRangeFilter != null and ageRangeFilter != ''">
+                <if test="ageRangeFilter == 10">
+                    AND 나이 <![CDATA[>=]]> #{ageRangeFilter} AND 나이 <![CDATA[<=]]> 39
+                </if>
+                <if test="ageRangeFilter == 40">
+                    AND 나이 <![CDATA[>=]]> #{ageRangeFilter} AND 나이 <![CDATA[<=]]> 59
+                </if>
+                <if test="ageRangeFilter == 60">
+                    AND 나이 <![CDATA[>=]]> #{ageRangeFilter}
+                </if>
+            </if>
+
+            <if test="jobCategoryLargeFilter != null and jobCategoryLargeFilter != ''">
+                AND 직무_카테고리_대 LIKE '%' + #{jobCategoryLargeFilter} + '%'
+            </if>
+
+            <if test="jobCategoryMidFilter != null and jobCategoryMidFilter != ''">
+                AND 직무_카테고리_중 LIKE '%' + #{jobCategoryMidFilter} + '%'
+            </if>
+
+            <if test="searchAddressFilter != null and searchAddressFilter.size() > 0">
+                AND
+                <foreach collection="searchAddressFilter" item="addr" open="(" close=")" separator=" OR ">
+                    주소 LIKE '%' + #{addr} + '%'
+                </foreach>
+            </if>
+        </where>
+    </sql>
+
+    <!-- External List SQL Query -->
+    <select id="selectExternalAll" resultType="jobPlacement">
+        SELECT
+            구직번호 AS jobNumber,
+            상담사 AS counselor,
+            참여자 AS participant,
+            성별 AS gender,
+            주소 AS address,
+            학교명 AS schoolName,
+            나이 AS age,
+            자격증 AS certificate,
+            IIF(희망연봉 <![CDATA[<=]]> 0,'회사내규에 따름',CONVERT(VARCHAR(20),희망연봉)) AS desiredSalary,
+            고유번호 AS uniqueNumber
+            FROM (
+                SELECT
+                    ROW_NUMBER() OVER (ORDER BY 구직번호 DESC) AS RowNum,
+                    구직번호,
+                    상담사,
+                    상담사_아이디,
+                    참여자,
+                    성별,
+                    주소,
+                    학교명,
+                    나이,
+                    자격증,
+                    희망연봉,
+                    고유번호
+                FROM
+                    EXTERNALPARTICIPANT
+        <!-- 알선 관리 검색 필터 -->
+                <if test="filterFlag != null and filterFlag == true">
+                    <include refid="externalAllSearch"/>
+                </if>
+                 GROUP BY
+                    구직번호,
+                    상담사,
+                    상담사_아이디,
+                    참여자,
+                    성별,
+                    주소,
+                    학교명,
+                    나이,
+                    자격증,
+                    희망연봉,
+                    고유번호
+                 ) AS SUB_QUERY
+        WHERE
+            SUB_QUERY.RowNum>#{startPage} AND #{endPage} >= SUB_QUERY.RowNum
+    </select>
+
+    <!-- External List count SQL Query -->
+    <select id="selectExternalCount" resultType="jobPlacement">
+        SELECT
+            COUNT(DISTINCT 구직번호) AS totalCount
+        FROM
+            EXTERNALPARTICIPANT
+        <!-- 알선 관리 검색 필터 -->
+        <if test="filterFlag != null and filterFlag == true">
+            <include refid="externalAllSearch"/>
+        </if>
+    </select>
+
+    <!-- External Detail SQL Query -->
+    <select id="selectExternalDetail" resultType="jobPlacement">
+        SELECT DISTINCT
+            구직번호 AS jobNumber,
+            지점 AS counselorBranch,
+            상담사 AS counselor,
+            상담사_아이디 AS counselorId,
+            참여자 AS participant,
+            성별 AS gender,
+            생년월일 AS birthDate,
+            주소 AS address,
+            학교명 AS schoolName,
+            전공 AS major,
+            경력 AS career,
+            나이 AS age,
+            자격증 AS certificate,
+            IIF(희망연봉 <![CDATA[<=]]> 0,'회사내규에 따름',CONVERT(VARCHAR(20),희망연봉)) AS desiredSalary,
+            상담사이메일 AS email,
+            고유번호 AS uniqueNumber,
+            상세정보 AS placementDetail,
+            추천사 AS suggestionDetail,
+            키워드 AS recommendedKeyword,
+            상담사전화번호 AS counselorPhone
+        FROM
+            EXTERNALPARTICIPANT
+        WHERE
+            구직번호 = #{jobNumber}
+    </select>
+
+    <!-- External Counselor SQL (상담사 검색) Query -->
+    <select id="selectExternalCounselor" resultType="jobPlacement">
+        SELECT
+            DISTINCT 구직번호 AS jobNumber
+        FROM
+            dbo.EXTERNALPARTICIPANT
+        WHERE
+            구직번호 = #{jobNumber} AND 상담사_아이디 = #{counselorId}
+    </select>
+
+    <!-- 알선 기본정보 수정 -->
+    <update id="updateJobPlacementAsync">
+        UPDATE J_참여자관리
+        SET
+            참여자=#{participant},
+            생년월일=#{birthDate},
+            성별=#{gender},
+            주소=#{address},
+            희망급여=#{desiredSalary},
+            학교명=#{schoolName},
+            전공=#{major},
+            경력=#{career},
+            참여자_수정일=GETDATE()
+        WHERE
+            구직번호=#{jobNumber} AND 전담자_계정 = #{counselorId};
+    </update>
+
+    <!-- 희망직무 일괄 삭제 -->
+    <delete id="desiredJobDelete">
+        DELETE FROM J_참여자관리_희망직무 WHERE 구직번호 = #{jobNumber}
+    </delete>
+
+    <!-- 희망직무 일괄 등록 -->
+    <insert id="desiredJobInsert">
+        INSERT INTO J_참여자관리_희망직무
+            (구직번호, 희망순위, 희망직무, 직무_카테고리_대, 직무_카테고리_중, 등록일시)
+        VALUES
+        <foreach collection="desiredJobList" item="job" separator=",">
+            (#{jobNumber}, #{job.desiredJobRank}, #{job.desiredJob},
+             #{job.jobCategoryLarge}, #{job.jobCategoryMid}, GETDATE())
+        </foreach>
+    </insert>
+
+    <!-- 자격증 삭제 Query -->
+    <delete id="certificateDelete">
+        DELETE FROM J_참여자관리_자격증 WHERE 구직번호 = #{jobNumber}
+    </delete>
+
+    <!-- 자격증 등록용 쿼리 -->
+    <insert id="certificateInsert">
+        INSERT INTO J_참여자관리_자격증
+        (구직번호, 자격증)
+        VALUES
+        <foreach collection="certificates" item="data" separator=",">
+            (
+            #{jobNumber},
+            #{data}
+            )
+        </foreach>
+    </insert>
+
+    <!-- select placement Query -->
+    <select id="selectPlacementDetail" resultType="jobPlacement">
+        SELECT
+            등록번호 AS placementDetailNumber,
+            상세정보 AS placementDetail
+        FROM
+            J_참여자관리_알선상세정보
+        WHERE
+            구직번호 = #{jobNumber}
+    </select>
+
+    <!-- 알선 상세 정보 등록 Query -->
+    <insert id="insertPlacementDetail">
+        INSERT INTO J_참여자관리_알선상세정보
+            (구직번호, 상세정보, 등록일, 수정일)
+        VALUES
+            (#{jobNumber},#{placementDetail},GETDATE(),GETDATE())
+    </insert>
+
+    <!-- 알선 상세 정보 수정 Query -->
+    <update id="updatePlacementDetail">
+        UPDATE
+            J_참여자관리_알선상세정보
+        SET
+            상세정보 = #{placementDetail},
+            수정일 = GETDATE()
+        WHERE
+            구직번호 = #{jobNumber}
+    </update>
+
+    <!-- 알선 상세 정보 삭제 Query -->
+    <delete id="deletePlacementDetail">
+        DELETE FROM J_참여자관리_알선상세정보 WHERE 구직번호 = #{jobNumber}
+    </delete>
+
+    <!-- 이력서 요청 Query 시작 -->
+    <insert id="resumeRequestInsertAsync">
+        INSERT INTO J_참여자관리_이력서요청양식
+            (구직번호,
+             기업명,
+             담당자명,
+             이메일,
+             비상연락처,
+             기타요청사항,
+             상태,
+             등록일,
+             수정일,
+             기업개인정보처리동의,
+             기업담당자개인정보처리동의,
+             마케팅개인정보사용동의)
+        VALUES
+            (#{jobNumber},
+             #{companyName},
+             #{contactName},
+             #{contactEmail},
+             #{contactPhone},
+             #{contactOther},
+             '요청',
+             GETDATE(),
+             GETDATE(),
+             #{companyPrivacy},
+             #{contactPrivacy},
+             #{marketingConsent})
+    </insert>
+
+
+    <!-- 이력서 요청 시 담당 상담사 조회 -->
+    <select id="selectCounselorByJobNumber" resultType="jobPlacement">
+        SELECT
+            전담자_계정 AS counselorId,
+            참여자 AS participant
+        FROM J_참여자관리
+        WHERE 구직번호 = #{jobNumber}
+    </select>
+
+    <!-- 이력서 요청 Query 끝 -->
+
+    <!-- ===================== Starbucks 희망직무 필터 ===================== -->
+
+    <!-- Starbucks 참여자 수 -->
+    <select id="selectStarbucksCount" resultType="jobPlacement">
+        SELECT
+            COUNT(DISTINCT 구직번호) AS totalCount
+        FROM
+            EXTERNALPARTICIPANT
+        WHERE (
+            희망직무 LIKE '%슈퍼바이저%' OR
+            희망직무 LIKE '%바리스타%'   OR
+            희망직무 LIKE '%Supervisor%' OR
+            희망직무 LIKE '%Barista%'
+        )
+    </select>
+
+    <!-- Starbucks 참여자 목록 (RowNum 페이지네이션) -->
+    <select id="selectStarbucksAll" resultType="jobPlacement">
+        SELECT
+            구직번호        AS jobNumber,
+            상담사          AS counselor,
+            참여자          AS participant,
+            성별            AS gender,
+            주소            AS address,
+            학교명          AS schoolName,
+            나이             AS age,
+            자격증           AS certificate,
+            IIF(희망연봉 <![CDATA[<=]]> 0, '회사내규에 따름', CONVERT(VARCHAR(20), 희망연봉)) AS desiredSalary,
+            고유번호         AS uniqueNumber
+        FROM (
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY 구직번호 DESC) AS RowNum,
+                구직번호,
+                상담사,
+                참여자,
+                성별,
+                주소,
+                학교명,
+                나이,
+                자격증,
+                희망연봉,
+                고유번호
+            FROM
+                EXTERNALPARTICIPANT
+            WHERE (
+                희망직무 LIKE '%슈퍼바이저%' OR
+                희망직무 LIKE '%바리스타%'   OR
+                희망직무 LIKE '%Supervisor%' OR
+                희망직무 LIKE '%Barista%'
+            )
+            GROUP BY
+                구직번호,
+                상담사,
+                참여자,
+                성별,
+                주소,
+                학교명,
+                나이,
+                자격증,
+                희망연봉,
+                고유번호
+        ) AS SUB_QUERY
+        WHERE
+            SUB_QUERY.RowNum > #{startPage} AND #{endPage} >= SUB_QUERY.RowNum
+    </select>
+
+    <!-- 구직번호별 희망직무 목록 조회 (순위별 개별 데이터) -->
+    <select id="selectDesiredJobList" resultType="jobPlacement">
+        SELECT
+            희망순위 AS desiredJobRank,
+            직무_카테고리_대 AS jobCategoryLarge,
+            직무_카테고리_중 AS jobCategoryMid,
+            희망직무 AS desiredJob
+        FROM
+            EXTERNALPARTICIPANT
+        WHERE
+            구직번호 = #{jobNumber}
+        ORDER BY 희망순위
+    </select>
+
+    <!-- ================================================================= -->
+
+</mapper>

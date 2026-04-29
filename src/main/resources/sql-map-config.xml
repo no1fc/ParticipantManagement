@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+<!--    <settings>-->
+<!--        &lt;!&ndash; 사용할 로깅 구현체 지정 &ndash;&gt;-->
+<!--        <setting name="logImpl" value="SLF4J"/>-->
+<!--        &lt;!&ndash; 또는 LOG4J, LOG4J2, JDK_LOGGING, COMMONS_LOGGING, STDOUT_LOGGING 중 선택 &ndash;&gt;-->
+<!--    </settings>-->
+
+    <typeAliases>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.login.MemberDTO" alias="member" />
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.participant.ParticipantDTO" alias="participant" />
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.participantBasic.BasicDTO" alias="basic" />
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.participantCounsel.CounselDTO" alias="counsel" />
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.participantCounsel.WishJobDTO" alias="wishJob" />
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.participantEmployment.EmploymentDTO" alias="employment" />
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.particcertif.ParticcertifDTO" alias="particcertif" />
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.participantEducation.EducationDTO" alias="education" />
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.dashboard.DashboardDTO" alias="dashboard" />
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.report.ReportDTO" alias="report" />
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.participantRandomAssignment.ParticipantRandomAssignmentDTO" alias="pra"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.participantRandomAssignment.PraHistoryRequestDTO" alias="praHistoryRequest"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.participantRandomAssignment.PraDailyReportDTO" alias="praDailyReport"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.participantRandomAssignment.PraScoringConfigHistoryDTO" alias="praScoringConfigHistory"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.participantRandomAssignment.PraCsvHistoryDTO" alias="praCsvHistory"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.dashboard.ArrangementDTO" alias="arrangement"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.adminpage.AdminDTO" alias="admin"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.recommend.ParticipantJobRecommendDTO"     alias="jobRecommend"/>
+        <typeAlias type="com.jobmoa.app.jobPlacement.biz.jobPlacement.JobPlacementDTO" alias="jobPlacement"/>
+        <typeAlias type="com.jobmoa.app.recruitmentFormation.biz.dto.RecruitmentPostingDTO"            alias="recruitmentPosting"/>
+        <typeAlias type="com.jobmoa.app.recruitmentFormation.biz.dto.RecruitmentSearchDTO"             alias="recruitmentSearch"/>
+        <typeAlias type="com.jobmoa.app.recruitmentFormation.biz.dto.RecruitmentResultDTO$JobItem"     alias="jobItem"/>
+        <typeAlias type="com.jobmoa.app.recruitmentFormation.biz.dto.RecruitmentDetailDTO"             alias="recruitmentDetail"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.recommend.RecommendParticipantDTO" alias="recommendParticipant"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.recommend.RecommendCategoryDTO" alias="recommendCategory"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.recommend.RecommendReferralDTO" alias="recommendReferral"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.recommend.JobCandidateDTO"         alias="jobCandidate"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.recommend.JobCategoryDTO"          alias="jobCategory"/>
+
+    </typeAliases>
+
+    <mappers>
+        <mapper resource="mappings/Member-mapping.xml" />
+        <mapper resource="mappings/Participant-mapping.xml" />
+        <mapper resource="mappings/Basic-mapping.xml" />
+        <mapper resource="mappings/Counsel-mapping.xml" />
+        <mapper resource="mappings/Employment-mapping.xml" />
+        <mapper resource="mappings/Particcertif-mapping.xml" />
+        <mapper resource="mappings/Education-mapping.xml" />
+        <mapper resource="mappings/Dashboard-mapping.xml" />
+        <mapper resource="mappings/Report-mapping.xml" />
+        <mapper resource="mappings/jobPlacement-mapping.xml"/>
+        <mapper resource="mappings/Arrangement-mapping.xml"/>
+        <mapper resource="mappings/RandomAssignment-mapping.xml"/>
+        <mapper resource="mappings/Admin-mapping.xml"/>
+        <mapper resource="mappings/Recruitment-mapping.xml"/>
+        <mapper resource="mappings/ParticipantJobRecommend-mapping.xml"/>
+    </mappers>
+</configuration>

@@ -1,0 +1,32 @@
+.report-date-box {
+    width: 100%;
+    max-width: 160px;
+    text-align: center;
+}
+
+.report-label {
+    font-size: 14px;
+}
+
+.min-width-75 {
+    min-width: 75px;
+}
+
+.report-kpi {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 12px 0 16px;
+}
+
+.report-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #1f2937;
+}

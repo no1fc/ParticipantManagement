@@ -1,0 +1,897 @@
+/* recommend-modal_0.0.1.css */
+
+/* =========================
+   모달 오버레이
+   ========================= */
+#recommendModal.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.65);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(4px);
+}
+
+/* =========================
+   모달 본체
+   ========================= */
+#recommendModal .modal-container {
+    width: min(1120px, 96vw);
+    max-height: 92vh;
+    background: #fff;
+    border-radius: 18px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+/* =========================
+   상단 헤더
+   ========================= */
+#recommendModal .modal-header {
+    background: linear-gradient(90deg, #283593 0%, #3949ab 40%, #3f51b5 100%);
+    color: #fff;
+    padding: 18px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+#recommendModal .modal-header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+#recommendModal #modalTitle {
+    margin: 0;
+    font-size: 1.65rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+#recommendModal .modal-subtitle {
+    margin: 0;
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+#recommendModal .btn-modal-close {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+#recommendModal .btn-modal-close:hover {
+    background: rgba(255, 255, 255, 0.24);
+    transform: scale(1.05);
+}
+
+/* =========================
+   참여자 요약 카드
+   - 총 5개 카드로 표시
+   - avatar + 카드 5개가 한 줄에서 정리되도록 조정
+   ========================= */
+#recommendModal .modal-participant-summary {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 18px;
+    align-items: center;
+    padding: 20px 20px 0 20px;
+}
+
+#recommendModal .summary-avatar {
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1d4ed8;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.12);
+}
+
+/* 기존 4칸 그리드를 5칸 카드로 변경 */
+#recommendModal .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    align-items: stretch;
+}
+
+#recommendModal .summary-item {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
+    min-height: 92px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#recommendModal .summary-label {
+    display: block;
+    font-size: 0.82rem;
+    color: #6b7280;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+#recommendModal .summary-value {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1e293b;
+    line-height: 1.35;
+    word-break: keep-all;
+}
+
+/* =========================
+   섹션 카드 공통
+   ========================= */
+#recommendModal .modal-section-card {
+    margin: 18px 20px 0 20px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+#recommendModal .section-title {
+    font-size: 1.02rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 14px;
+}
+
+#recommendModal .section-title-blue {
+    color: #1e40af;
+}
+
+/* =========================
+   정보 테이블
+   ========================= */
+#recommendModal .info-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    table-layout: fixed;
+}
+
+#recommendModal .info-table th {
+    width: 11%;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-align: left;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+}
+
+#recommendModal .info-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    color: #1e293b;
+    font-size: 0.95rem;
+    font-weight: 600;
+    vertical-align: top;
+    word-break: break-word;
+}
+
+#recommendModal .info-table tr:last-child th,
+#recommendModal .info-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* =========================
+   상태 표시
+   ========================= */
+#recommendModal .status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+#recommendModal .status-pill.is-highlight {
+    background: #fff3e0;
+    color: #ef6c00;
+    border: 1px solid #ffcc80;
+}
+
+#recommendModal .status-pill.is-success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+}
+
+/* =========================
+   카테고리 및 희망직무 표시
+   ========================= */
+#recommendModal .category-rank,
+#recommendModal .wanted-job-rank {
+    font-weight: 700;
+    color: #475569;
+    padding: 0 0 5px 0;
+}
+
+/* =========================
+   액션 영역
+   ========================= */
+#recommendModal .modal-action-area {
+    margin: 18px 20px 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+#recommendModal .btn-ai-recommend {
+    background: var(--brand-primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 11px 18px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(67, 97, 238, 0.2);
+    transition: transform 0.15s ease, background 0.2s ease;
+}
+
+#recommendModal .btn-ai-recommend:hover {
+    background: var(--brand-secondary);
+    transform: translateY(-1px);
+}
+
+#recommendModal .status-msg {
+    margin: 10px;
+    color: #475569;
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+#recommendModal .recommend-slot-info {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    margin-left: 12px;
+}
+
+#recommendModal .recommend-slot-info .slot-warning {
+    color: #f72585;
+    font-weight: 700;
+}
+
+/* =========================
+   로딩 영역
+   ========================= */
+#recommendModal .loading-area {
+    margin: 18px 20px 0 20px;
+    padding: 14px 16px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    color: #334155;
+    font-weight: 600;
+}
+
+/* =========================
+   베스트 추천 영역
+   ========================= */
+#recommendModal .best-recommend-area {
+    margin: 18px 20px 0 20px;
+    background: #eef4ff;
+    border: 1px solid #dbe7ff;
+    border-radius: 16px;
+    padding: 18px;
+}
+
+#recommendModal .best-card {
+    background: #fff;
+    border: 1px solid #dbe3ff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.08);
+}
+
+/* =========================
+   추천 리스트
+   ========================= */
+#recommendModal .empty-msg {
+    padding: 16px;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #64748b;
+    text-align: center;
+    border: 1px dashed #cbd5e1;
+}
+
+#recommendModal .recommend-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+#recommendModal .recommend-table thead th {
+    background: #f8fafc;
+    color: #334155;
+    font-size: 0.88rem;
+    font-weight: 800;
+    padding: 12px 10px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: center;
+}
+
+#recommendModal .recommend-table tbody td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #eef2f7;
+    text-align: center;
+    font-size: 0.92rem;
+    color: #1e293b;
+    vertical-align: middle;
+}
+
+#recommendModal .recommend-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+#recommendModal .recommend-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+#recommendModal .score-bar-wrap {
+    width: 80px;
+    background: #eee;
+    border-radius: 4px;
+    position: relative;
+    height: 18px;
+}
+#recommendModal .score-bar {
+    background: #27ae60;
+    height: 100%;
+    border-radius: 4px;
+}
+#recommendModal .score-text {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    text-align: center;
+    font-size: 11px;
+    line-height: 18px;
+    color: #333;
+}
+
+#recommendModal .loading-spinner {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border: 3px solid #ddd;
+    border-top-color: #2980b9;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* =========================
+   집중알선 배지
+   ========================= */
+#recommendModal .badge-jibjoong {
+    display: inline-flex;
+    align-items: center;
+    background: #f59e0b;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+    margin-left: 6px;
+}
+
+/* =========================
+   섹션 헤더 + 액션 버튼 레이아웃
+   ========================= */
+#recommendModal .section-title-with-action {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+#recommendModal .section-action-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* =========================
+   체크박스 스타일
+   ========================= */
+#recommendModal .recommend-check,
+#recommendModal #checkAll {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #FEE500;
+}
+
+/* =========================
+   공유 진행 프로그레스 바
+   ========================= */
+#recommendModal .kakao-share-progress {
+    background: #fffbe6;
+    border: 1px solid #FEE500;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+}
+
+#recommendModal .share-progress-bar {
+    height: 6px;
+    background: #e8e8e8;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+#recommendModal .share-progress-fill {
+    height: 100%;
+    background: #FEE500;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+#recommendModal .share-progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #555;
+}
+
+#recommendModal .share-next-info {
+    color: #191919;
+    font-weight: 600;
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* =========================
+   공유 버튼 활성 상태 (큐 진행 중)
+   ========================= */
+#recommendModal .btn-kakao-share.btn-kakao-share-active {
+    background: #191919;
+    color: #FEE500;
+    animation: kakao-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes kakao-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(254, 229, 0, 0.5); }
+    50% { box-shadow: 0 0 0 6px rgba(254, 229, 0, 0); }
+}
+
+/* =========================
+   공유 취소 버튼
+   ========================= */
+#recommendModal .btn-kakao-cancel {
+    display: inline-flex;
+    align-items: center;
+    background: #f5f5f5;
+    color: #666;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#recommendModal .btn-kakao-cancel:hover {
+    background: #e8e8e8;
+    color: #333;
+}
+
+#recommendModal .btn-kakao-share {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #FEE500;
+    color: #191919;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#recommendModal .btn-kakao-share:hover {
+    background: #F5DC00;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(254, 229, 0, 0.4);
+}
+
+#recommendModal .btn-kakao-share:active {
+    transform: translateY(0);
+}
+
+#recommendModal .kakao-icon {
+    flex-shrink: 0;
+}
+
+#recommendModal .kakao-share-status {
+    font-size: 0.82rem;
+    color: #666;
+}
+
+#recommendModal .kakao-share-status.status-success {
+    color: #2e7d32;
+    font-weight: 600;
+}
+
+#recommendModal .kakao-share-status.status-error {
+    color: #c62828;
+    font-weight: 600;
+}
+
+/* =========================
+   행 내 카카오 공유 버튼 (소형)
+   ========================= */
+#recommendModal .btn-kakao-share-sm {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: #FEE500;
+    color: #191919;
+    border: none;
+    border-radius: 5px;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+#recommendModal .btn-kakao-share-sm:hover {
+    background: #F5DC00;
+    transform: translateY(-1px);
+}
+
+/* =========================
+   친구 선택 오버레이
+   ========================= */
+#recommendModal .friends-picker-overlay {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 10;
+    justify-content: center;
+    align-items: center;
+}
+
+#recommendModal .friends-picker-container {
+    background: #fff;
+    border-radius: 14px;
+    width: 380px;
+    max-height: 500px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+#recommendModal .friends-picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #eee;
+}
+
+#recommendModal .friends-picker-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+#recommendModal .btn-friends-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: #333;
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+    transition: color 0.15s;
+}
+
+#recommendModal .btn-friends-close:hover {
+    color: #c62828;
+}
+
+#recommendModal .friends-picker-body {
+    padding: 12px 16px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+#recommendModal .friends-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#recommendModal .friend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 8px;
+    border-bottom: 1px solid #f2f2f2;
+}
+
+#recommendModal .friend-item:last-child {
+    border-bottom: none;
+}
+
+#recommendModal .friend-thumb {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+#recommendModal .friend-thumb-default {
+    background: #ddd;
+}
+
+#recommendModal .friend-name {
+    flex: 1;
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+
+#recommendModal .friend-fav {
+    color: #FEE500;
+    font-size: 1rem;
+}
+
+#recommendModal .btn-send-friend {
+    background: #FEE500;
+    color: #191919;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+#recommendModal .btn-send-friend:hover {
+    background: #F5DC00;
+}
+
+/* =========================
+   추가 동의 영역
+   ========================= */
+#recommendModal .friends-consent-area {
+    text-align: center;
+    padding: 24px 16px;
+}
+
+#recommendModal .friends-consent-area .consent-msg {
+    font-size: 0.88rem;
+    color: #555;
+    margin-bottom: 16px;
+}
+
+/* =========================
+   테이블 내 추천 채용정보 버튼
+   ========================= */
+.btn-recommend {
+    background: transparent;
+    color: var(--brand-primary);
+    border: 1px solid var(--brand-primary);
+    border-radius: var(--radius-sm);
+    padding: 0.35rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-recommend:hover {
+    background: var(--brand-primary);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* =========================
+   더보기/접기 토글 버튼
+   ========================= */
+#recommendModal .reason-toggle {
+    background: none;
+    border: none;
+    color: var(--brand-primary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 2px 4px;
+    margin-left: 4px;
+    transition: all 0.15s ease;
+}
+
+#recommendModal .reason-toggle:hover {
+    text-decoration: underline;
+}
+
+/* =========================
+   반응형
+   ========================= */
+@media (max-width: 1200px) {
+    #recommendModal .summary-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 992px) {
+    #recommendModal .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    #recommendModal .modal-container {
+        width: 100%;
+        max-height: 96vh;
+        border-radius: 14px;
+    }
+
+    #recommendModal .modal-participant-summary {
+        grid-template-columns: 1fr;
+    }
+
+    #recommendModal .summary-avatar {
+        margin: 0 auto;
+    }
+
+    #recommendModal .summary-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    #recommendModal #modalTitle {
+        font-size: 1.25rem;
+    }
+
+    #recommendModal .info-table,
+    #recommendModal .recommend-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+
+/* ===========================
+   AI 추천 완료 토스트 알림
+   =========================== */
+.recommend-toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.recommend-toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    animation: toast-slide-in 0.3s ease;
+    min-width: 300px;
+    max-width: 480px;
+}
+
+.recommend-toast-success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+}
+
+.recommend-toast-error {
+    background: #fce4ec;
+    color: #c62828;
+    border: 1px solid #ef9a9a;
+}
+
+.recommend-toast-warning {
+    background: #fff8e1;
+    color: #f57f17;
+    border: 1px solid #ffe082;
+}
+
+.recommend-toast .toast-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.recommend-toast .toast-message {
+    flex: 1;
+    line-height: 1.4;
+}
+
+.recommend-toast .toast-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: inherit;
+    opacity: 0.6;
+    margin-left: auto;
+    flex-shrink: 0;
+    padding: 0 4px;
+}
+
+.recommend-toast .toast-close:hover {
+    opacity: 1;
+}
+
+.recommend-toast-fade-out {
+    animation: toast-fade-out 0.3s ease forwards;
+}
+
+@keyframes toast-slide-in {
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes toast-fade-out {
+    from { opacity: 1; }
+    to   { opacity: 0; transform: translateY(-10px); }
+}
