@@ -38,7 +38,7 @@
             아이디 = #{memberUserID}
     </update>
 
-    <!-- 회원 정보 조회 TODO 수정해야함 -->
+    <!-- 회원 정보 조회 (비밀번호 확인 포함) -->
     <select id="OneMemberDataSelect" resultType="member">
         SELECT
             A.전담자번호,
@@ -53,17 +53,19 @@
             A.입사일 memberJoinedDate,
             A.최종발령일 memberAssignedDate,
             A.근속기간구분 memberContinuous,
-            B.금일일반취업 memberTodayEmployment,
-            B.금일알선취업 memberTodayPlacement,
-            B.금주일반취업 memberToWeekEmployment,
-            B.금주알선취업 memberToWeekPlacement,
-            B.금월일반취업 memberToMonthEmployment,
-            B.금월알선취업 memberToMonthPlacement,
-            B.금년일반취업 memberToYearEmployment,
-            B.금년알선취업 memberToYearPlacement,
+            ISNULL(B.금일일반취업, 0) memberTodayEmployment,
+            ISNULL(B.금일알선취업, 0) memberTodayPlacement,
+            ISNULL(B.금주일반취업, 0) memberToWeekEmployment,
+            ISNULL(B.금주알선취업, 0) memberToWeekPlacement,
+            ISNULL(B.금월일반취업, 0) memberToMonthEmployment,
+            ISNULL(B.금월알선취업, 0) memberToMonthPlacement,
+            ISNULL(B.금년일반취업, 0) memberToYearEmployment,
+            ISNULL(B.금년알선취업, 0) memberToYearPlacement,
             B.업무보고일 endUpdateStatus
         FROM J_참여자관리_로그인정보 A
-        LEFT OUTER JOIN J_참여자관리_일일업무보고 B ON A.아이디 = B.아이디
+        LEFT OUTER JOIN J_참여자관리_일일업무보고 B
+            ON A.아이디 = B.아이디
+            AND B.업무보고일 = CONVERT(CHAR(10), GETDATE(), 23)
         WHERE
             A.아이디=#{memberUserID}
         AND
@@ -84,21 +86,25 @@
             A.입사일 memberJoinedDate,
             A.최종발령일 memberAssignedDate,
             A.근속기간구분 memberContinuous,
-            A.금일일반취업 memberTodayEmployment,
-            A.금일알선취업 memberTodayPlacement,
-            A.금주일반취업 memberToWeekEmployment,
-            A.금주알선취업 memberToWeekPlacement,
-            A.금월일반취업 memberToMonthEmployment,
-            A.금월알선취업 memberToMonthPlacement,
-            A.금년일반취업 memberToYearEmployment,
-            A.금년알선취업 memberToYearPlacement,
-            A.실적저장일 endUpdateStatus
+            ISNULL(B.금일일반취업, 0) memberTodayEmployment,
+            ISNULL(B.금일알선취업, 0) memberTodayPlacement,
+            ISNULL(B.금주일반취업, 0) memberToWeekEmployment,
+            ISNULL(B.금주알선취업, 0) memberToWeekPlacement,
+            ISNULL(B.금월일반취업, 0) memberToMonthEmployment,
+            ISNULL(B.금월알선취업, 0) memberToMonthPlacement,
+            ISNULL(B.금년일반취업, 0) memberToYearEmployment,
+            ISNULL(B.금년알선취업, 0) memberToYearPlacement,
+            B.업무보고일 endUpdateStatus
         FROM J_참여자관리_로그인정보 A
+        LEFT OUTER JOIN J_참여자관리_일일업무보고 B
+            ON A.아이디 = B.아이디
+            AND B.업무보고일 = CONVERT(CHAR(10), GETDATE(), 23)
         WHERE
             A.아이디=#{memberUserID}
     </select>
 
     <update id="accountUpdate">
+        <!-- 1) 로그인정보 테이블: 비밀번호, 전화번호만 수정 -->
         UPDATE J_참여자관리_로그인정보
         SET
             <choose>
@@ -106,18 +112,47 @@
                     비밀번호 = #{memberUserChangePW},
                 </when>
             </choose>
-            전화번호 = #{memberPhoneNumber},
-            금일일반취업 = #{memberTodayEmployment},
-            금일알선취업 = #{memberTodayPlacement},
-            금주일반취업 = #{memberToWeekEmployment},
-            금주알선취업 = #{memberToWeekPlacement},
-            금월일반취업 = #{memberToMonthEmployment},
-            금월알선취업 = #{memberToMonthPlacement},
-            금년일반취업 = #{memberToYearEmployment},
-            금년알선취업 = #{memberToYearPlacement},
-            실적저장일 = GETDATE()
+            전화번호 = #{memberPhoneNumber}
         WHERE
-            아이디 = #{memberUserID}
+            아이디 = #{memberUserID};
+
+        <!-- 2) 일일업무보고 테이블: 실적 UPSERT -->
+        IF EXISTS (
+            SELECT 1 FROM J_참여자관리_일일업무보고
+            WHERE 아이디 = #{memberUserID}
+              AND 지점 = #{memberBranch}
+              AND 업무보고일 = CONVERT(CHAR(10), GETDATE(), 23)
+        )
+        BEGIN
+            UPDATE J_참여자관리_일일업무보고
+            SET
+                금일일반취업 = #{memberTodayEmployment},
+                금일알선취업 = #{memberTodayPlacement},
+                금주일반취업 = #{memberToWeekEmployment},
+                금주알선취업 = #{memberToWeekPlacement},
+                금월일반취업 = #{memberToMonthEmployment},
+                금월알선취업 = #{memberToMonthPlacement},
+                금년일반취업 = #{memberToYearEmployment},
+                금년알선취업 = #{memberToYearPlacement},
+                실적수정일 = GETDATE()
+            WHERE 아이디 = #{memberUserID}
+              AND 지점 = #{memberBranch}
+              AND 업무보고일 = CONVERT(CHAR(10), GETDATE(), 23)
+        END
+        ELSE
+        BEGIN
+            INSERT INTO J_참여자관리_일일업무보고
+            (지점, 아이디, 금일일반취업, 금일알선취업, 금주일반취업, 금주알선취업,
+             금월일반취업, 금월알선취업, 금년일반취업, 금년알선취업, 업무보고일)
+            VALUES (
+                #{memberBranch}, #{memberUserID},
+                #{memberTodayEmployment}, #{memberTodayPlacement},
+                #{memberToWeekEmployment}, #{memberToWeekPlacement},
+                #{memberToMonthEmployment}, #{memberToMonthPlacement},
+                #{memberToYearEmployment}, #{memberToYearPlacement},
+                CONVERT(CHAR(10), GETDATE(), 23)
+            )
+        END
     </update>
 
     <update id="memberOrderUpdate">

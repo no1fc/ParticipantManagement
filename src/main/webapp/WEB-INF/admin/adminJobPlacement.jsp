@@ -73,6 +73,45 @@
                     </div>
                 </div>
 
+                <!-- 검색 패널 -->
+                <div class="search-panel">
+                    <h5 class="mb-3"><i class="bi bi-search"></i> 알선 검색</h5>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">지점</label>
+                            <select class="form-control form-control-modern" id="searchBranch">
+                                <option value="">전체</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">상담사</label>
+                            <select class="form-control form-control-modern" id="searchCounselor">
+                                <option value="">전체</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">참여자명</label>
+                            <input type="text" class="form-control form-control-modern" id="searchName" placeholder="이름 입력">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">등록일 (시작)</label>
+                            <input type="date" class="form-control form-control-modern" id="searchStartDate">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">등록일 (종료)</label>
+                            <input type="date" class="form-control form-control-modern" id="searchEndDate">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-light w-100 me-2" onclick="searchJobPlacements()">
+                                <i class="bi bi-search"></i> 검색
+                            </button>
+                            <button class="btn btn-outline-secondary w-100" onclick="resetSearch()">
+                                <i class="bi bi-arrow-counterclockwise"></i> 초기화
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row mb-3">
                     <div class="col-12 text-end">
                         <button class="btn btn-primary" onclick="openAddModal()">
@@ -89,6 +128,9 @@
                                 <tr>
                                     <th>등록번호</th>
                                     <th>구직번호</th>
+                                    <th>참여자명</th>
+                                    <th>지점</th>
+                                    <th>상담사</th>
                                     <th>상세정보 (요약)</th>
                                     <th>추천사 (요약)</th>
                                     <th>등록일</th>
@@ -154,7 +196,7 @@
         integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
 <script src="/js/adminlte.js"></script>
 
-<script src="/js/adminJs/adminJobPlacement_0.0.1.js"></script>
+<script src="/js/adminJs/adminJobPlacement_0.0.2.js"></script>
 
 </body>
 </html>

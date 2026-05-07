@@ -52,7 +52,7 @@ import java.util.Properties;
     "com.jobmoa.app.jobPlacement.biz.jobPlacement",
     "com.jobmoa.app.recruitmentFormation.biz",
 })
-@PropertySource(value = "classpath:production.application.properties", ignoreResourceNotFound = true)
+@PropertySource(value = "classpath:.env", ignoreResourceNotFound = true)
 @EnableTransactionManagement(proxyTargetClass = true)
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 @EnableScheduling

@@ -212,7 +212,11 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">아이디 <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="userId" name="아이디" required>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="userId" name="아이디" required>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="checkDuplicateId()">중복확인</button>
+                            </div>
+                            <span id="userIdFeedback"></span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">비밀번호 <span class="text-danger">*</span></label>
@@ -332,7 +336,7 @@
         integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
 <script src="/js/adminlte.js"></script>
 
-<script src="/js/adminJs/adminUserManagement_0.0.1.js"></script>
+<script src="/js/adminJs/adminUserManagement_0.0.2.js"></script>
 <!--end::Script-->
 
 </body>

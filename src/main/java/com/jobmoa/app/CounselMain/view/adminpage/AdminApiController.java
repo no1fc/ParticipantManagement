@@ -2,6 +2,8 @@ package com.jobmoa.app.CounselMain.view.adminpage;
 
 import com.jobmoa.app.CounselMain.biz.adminpage.AdminDTO;
 import com.jobmoa.app.CounselMain.biz.adminpage.AdminService;
+import com.jobmoa.app.CounselMain.biz.bean.LoginBean;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,31 +21,54 @@ public class AdminApiController {
     @Autowired
     private AdminService adminService;
 
-    // ===== 대시보드 KPI =====
-    @GetMapping("/kpi")
-    public ResponseEntity<Map<String, Object>> getKpi() {
-        log.info("GET /admin/api/kpi");
-        return ResponseEntity.ok(adminService.getDashboardData());
+    private ResponseEntity<Map<String, Object>> checkAccess(HttpSession session) {
+        LoginBean login = AdminAccessSupport.getLoginBean(session);
+        if (login == null) return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요합니다."));
+        if (!AdminAccessSupport.hasAdminAccess(session)) return ResponseEntity.status(403).body(Map.of("message", "관리자 권한이 필요합니다."));
+        return null;
     }
 
-    // ===== 사용자 관리 =====
+    private ResponseEntity<Map<String, Object>> checkManagerOnly(HttpSession session) {
+        LoginBean login = AdminAccessSupport.getLoginBean(session);
+        if (login == null) return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요합니다."));
+        if (!AdminAccessSupport.isManager(session)) return ResponseEntity.status(403).body(Map.of("message", "시스템 관리자 권한이 필요합니다."));
+        return null;
+    }
+
+    // ===== 대시보드 KPI =====
+    @GetMapping("/kpi")
+    public ResponseEntity<?> getKpi(AdminDTO dto, HttpSession session) {
+        log.info("GET /admin/api/kpi");
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
+        AdminAccessSupport.enforceBranchScope(session, dto);
+        return ResponseEntity.ok(adminService.getDashboardData(dto));
+    }
+
+    // ===== 사용자 관리 (시스템 관리자 전용) =====
     @GetMapping("/users")
-    public ResponseEntity<List<AdminDTO>> getUsers(AdminDTO dto) {
+    public ResponseEntity<?> getUsers(AdminDTO dto, HttpSession session) {
         log.info("GET /admin/api/users");
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         return ResponseEntity.ok(adminService.getUserList(dto));
     }
 
     @GetMapping("/users/{userNo}")
-    public ResponseEntity<AdminDTO> getUser(@PathVariable int userNo) {
+    public ResponseEntity<?> getUser(@PathVariable int userNo, HttpSession session) {
         log.info("GET /admin/api/users/{}", userNo);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setMemberNo(userNo);
         return ResponseEntity.ok(adminService.getUserOne(dto));
     }
 
     @PostMapping("/users")
-    public ResponseEntity<Map<String, Object>> addUser(@RequestBody AdminDTO dto) {
+    public ResponseEntity<?> addUser(@RequestBody AdminDTO dto, HttpSession session) {
         log.info("POST /admin/api/users");
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         Map<String, Object> result = new HashMap<>();
         boolean success = adminService.addUser(dto);
         result.put("success", success);
@@ -52,8 +77,10 @@ public class AdminApiController {
     }
 
     @PutMapping("/users/{userNo}")
-    public ResponseEntity<Map<String, Object>> updateUser(@PathVariable int userNo, @RequestBody AdminDTO dto) {
+    public ResponseEntity<?> updateUser(@PathVariable int userNo, @RequestBody AdminDTO dto, HttpSession session) {
         log.info("PUT /admin/api/users/{}", userNo);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         dto.setMemberNo(userNo);
         Map<String, Object> result = new HashMap<>();
         boolean success = adminService.modifyUser(dto);
@@ -63,8 +90,10 @@ public class AdminApiController {
     }
 
     @DeleteMapping("/users/{userNo}")
-    public ResponseEntity<Map<String, Object>> deleteUser(@PathVariable int userNo) {
+    public ResponseEntity<?> deleteUser(@PathVariable int userNo, HttpSession session) {
         log.info("DELETE /admin/api/users/{}", userNo);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setMemberNo(userNo);
         Map<String, Object> result = new HashMap<>();
@@ -75,8 +104,10 @@ public class AdminApiController {
     }
 
     @PutMapping("/users/{userNo}/reset-password")
-    public ResponseEntity<Map<String, Object>> resetPassword(@PathVariable int userNo) {
+    public ResponseEntity<?> resetPassword(@PathVariable int userNo, HttpSession session) {
         log.info("PUT /admin/api/users/{}/reset-password", userNo);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setMemberNo(userNo);
         Map<String, Object> result = new HashMap<>();
@@ -86,24 +117,47 @@ public class AdminApiController {
         return ResponseEntity.ok(result);
     }
 
-    // ===== 지점 관리 =====
+    @GetMapping("/users/next-no")
+    public ResponseEntity<?> getNextMemberNo(HttpSession session) {
+        log.info("GET /admin/api/users/next-no");
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(Map.of("nextNo", adminService.getNextMemberNo()));
+    }
+
+    @GetMapping("/users/check-id")
+    public ResponseEntity<?> checkUserId(AdminDTO dto, HttpSession session) {
+        log.info("GET /admin/api/users/check-id");
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
+        boolean exists = adminService.checkUserIdExists(dto);
+        return ResponseEntity.ok(Map.of("exists", exists));
+    }
+
+    // ===== 지점 관리 (시스템 관리자 ���용) =====
     @GetMapping("/branches")
-    public ResponseEntity<List<AdminDTO>> getBranches(AdminDTO dto) {
+    public ResponseEntity<?> getBranches(AdminDTO dto, HttpSession session) {
         log.info("GET /admin/api/branches");
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         return ResponseEntity.ok(adminService.getBranchList(dto));
     }
 
     @GetMapping("/branches/{branchNo}")
-    public ResponseEntity<AdminDTO> getBranch(@PathVariable int branchNo) {
+    public ResponseEntity<?> getBranch(@PathVariable int branchNo, HttpSession session) {
         log.info("GET /admin/api/branches/{}", branchNo);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setBranchNo(branchNo);
         return ResponseEntity.ok(adminService.getBranchOne(dto));
     }
 
     @PostMapping("/branches")
-    public ResponseEntity<Map<String, Object>> addBranch(@RequestBody AdminDTO dto) {
+    public ResponseEntity<?> addBranch(@RequestBody AdminDTO dto, HttpSession session) {
         log.info("POST /admin/api/branches");
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         Map<String, Object> result = new HashMap<>();
         boolean success = adminService.addBranch(dto);
         result.put("success", success);
@@ -112,8 +166,10 @@ public class AdminApiController {
     }
 
     @PutMapping("/branches/{branchNo}")
-    public ResponseEntity<Map<String, Object>> updateBranch(@PathVariable int branchNo, @RequestBody AdminDTO dto) {
+    public ResponseEntity<?> updateBranch(@PathVariable int branchNo, @RequestBody AdminDTO dto, HttpSession session) {
         log.info("PUT /admin/api/branches/{}", branchNo);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         dto.setBranchNo(branchNo);
         Map<String, Object> result = new HashMap<>();
         boolean success = adminService.modifyBranch(dto);
@@ -123,35 +179,44 @@ public class AdminApiController {
     }
 
     @DeleteMapping("/branches/{branchNo}")
-    public ResponseEntity<Map<String, Object>> deleteBranch(@PathVariable int branchNo) {
+    public ResponseEntity<?> deleteBranch(@PathVariable int branchNo, HttpSession session) {
         log.info("DELETE /admin/api/branches/{}", branchNo);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setBranchNo(branchNo);
         Map<String, Object> result = new HashMap<>();
         boolean success = adminService.removeBranch(dto);
         result.put("success", success);
-        result.put("message", success ? "지점이 삭제되었습니다." : "삭제에 실패했습니다.");
+        result.put("message", success ? "지점�� 삭제되었습니다." : "삭제에 실패했습니다.");
         return ResponseEntity.ok(result);
     }
 
     // ===== 참여자 관리 =====
     @GetMapping("/participants")
-    public ResponseEntity<List<AdminDTO>> getParticipants(AdminDTO dto) {
+    public ResponseEntity<?> getParticipants(AdminDTO dto, HttpSession session) {
         log.info("GET /admin/api/participants");
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
+        AdminAccessSupport.enforceBranchScope(session, dto);
         return ResponseEntity.ok(adminService.getParticipantList(dto));
     }
 
     @GetMapping("/participants/{jobNo}")
-    public ResponseEntity<AdminDTO> getParticipant(@PathVariable int jobNo) {
+    public ResponseEntity<?> getParticipant(@PathVariable int jobNo, HttpSession session) {
         log.info("GET /admin/api/participants/{}", jobNo);
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setJobNo(jobNo);
         return ResponseEntity.ok(adminService.getParticipantOne(dto));
     }
 
     @DeleteMapping("/participants/{jobNo}")
-    public ResponseEntity<Map<String, Object>> deleteParticipant(@PathVariable int jobNo) {
+    public ResponseEntity<?> deleteParticipant(@PathVariable int jobNo, HttpSession session) {
         log.info("DELETE /admin/api/participants/{}", jobNo);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setJobNo(jobNo);
         Map<String, Object> result = new HashMap<>();
@@ -163,29 +228,38 @@ public class AdminApiController {
 
     // ===== 일일업무보고 =====
     @GetMapping("/daily-reports")
-    public ResponseEntity<List<AdminDTO>> getDailyReports(AdminDTO dto) {
+    public ResponseEntity<?> getDailyReports(AdminDTO dto, HttpSession session) {
         log.info("GET /admin/api/daily-reports");
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
+        AdminAccessSupport.enforceBranchScope(session, dto);
         return ResponseEntity.ok(adminService.getDailyReportList(dto));
     }
 
-    // ===== 기준금액 =====
+    // ===== 기준금액 (시스템 관리자 전용) =====
     @GetMapping("/standard-amounts")
-    public ResponseEntity<List<AdminDTO>> getStandardAmounts(AdminDTO dto) {
+    public ResponseEntity<?> getStandardAmounts(AdminDTO dto, HttpSession session) {
         log.info("GET /admin/api/standard-amounts");
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         return ResponseEntity.ok(adminService.getStandardAmountList(dto));
     }
 
     @GetMapping("/standard-amounts/{pk}")
-    public ResponseEntity<AdminDTO> getStandardAmount(@PathVariable int pk) {
+    public ResponseEntity<?> getStandardAmount(@PathVariable int pk, HttpSession session) {
         log.info("GET /admin/api/standard-amounts/{}", pk);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setPk(pk);
         return ResponseEntity.ok(adminService.getStandardAmountOne(dto));
     }
 
     @PostMapping("/standard-amounts")
-    public ResponseEntity<Map<String, Object>> addStandardAmount(@RequestBody AdminDTO dto) {
+    public ResponseEntity<?> addStandardAmount(@RequestBody AdminDTO dto, HttpSession session) {
         log.info("POST /admin/api/standard-amounts");
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         Map<String, Object> result = new HashMap<>();
         boolean success = adminService.addStandardAmount(dto);
         result.put("success", success);
@@ -194,8 +268,10 @@ public class AdminApiController {
     }
 
     @PutMapping("/standard-amounts/{pk}")
-    public ResponseEntity<Map<String, Object>> updateStandardAmount(@PathVariable int pk, @RequestBody AdminDTO dto) {
+    public ResponseEntity<?> updateStandardAmount(@PathVariable int pk, @RequestBody AdminDTO dto, HttpSession session) {
         log.info("PUT /admin/api/standard-amounts/{}", pk);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         dto.setPk(pk);
         Map<String, Object> result = new HashMap<>();
         boolean success = adminService.modifyStandardAmount(dto);
@@ -205,8 +281,10 @@ public class AdminApiController {
     }
 
     @DeleteMapping("/standard-amounts/{pk}")
-    public ResponseEntity<Map<String, Object>> deleteStandardAmount(@PathVariable int pk) {
+    public ResponseEntity<?> deleteStandardAmount(@PathVariable int pk, HttpSession session) {
         log.info("DELETE /admin/api/standard-amounts/{}", pk);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setPk(pk);
         Map<String, Object> result = new HashMap<>();
@@ -216,24 +294,30 @@ public class AdminApiController {
         return ResponseEntity.ok(result);
     }
 
-    // ===== 나은기준임금 =====
+    // ===== 나은기준임금 (시스템 관리자 전용) =====
     @GetMapping("/better-wages")
-    public ResponseEntity<List<AdminDTO>> getBetterWages(AdminDTO dto) {
+    public ResponseEntity<?> getBetterWages(AdminDTO dto, HttpSession session) {
         log.info("GET /admin/api/better-wages");
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         return ResponseEntity.ok(adminService.getBetterWageList(dto));
     }
 
     @GetMapping("/better-wages/{pk}")
-    public ResponseEntity<AdminDTO> getBetterWage(@PathVariable int pk) {
+    public ResponseEntity<?> getBetterWage(@PathVariable int pk, HttpSession session) {
         log.info("GET /admin/api/better-wages/{}", pk);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setPk(pk);
         return ResponseEntity.ok(adminService.getBetterWageOne(dto));
     }
 
     @PostMapping("/better-wages")
-    public ResponseEntity<Map<String, Object>> addBetterWage(@RequestBody AdminDTO dto) {
+    public ResponseEntity<?> addBetterWage(@RequestBody AdminDTO dto, HttpSession session) {
         log.info("POST /admin/api/better-wages");
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         Map<String, Object> result = new HashMap<>();
         boolean success = adminService.addBetterWage(dto);
         result.put("success", success);
@@ -242,8 +326,10 @@ public class AdminApiController {
     }
 
     @PutMapping("/better-wages/{pk}")
-    public ResponseEntity<Map<String, Object>> updateBetterWage(@PathVariable int pk, @RequestBody AdminDTO dto) {
+    public ResponseEntity<?> updateBetterWage(@PathVariable int pk, @RequestBody AdminDTO dto, HttpSession session) {
         log.info("PUT /admin/api/better-wages/{}", pk);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         dto.setPk(pk);
         Map<String, Object> result = new HashMap<>();
         boolean success = adminService.modifyBetterWage(dto);
@@ -253,8 +339,10 @@ public class AdminApiController {
     }
 
     @DeleteMapping("/better-wages/{pk}")
-    public ResponseEntity<Map<String, Object>> deleteBetterWage(@PathVariable int pk) {
+    public ResponseEntity<?> deleteBetterWage(@PathVariable int pk, HttpSession session) {
         log.info("DELETE /admin/api/better-wages/{}", pk);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setPk(pk);
         Map<String, Object> result = new HashMap<>();
@@ -266,35 +354,48 @@ public class AdminApiController {
 
     // ===== 배정 히스토리 =====
     @GetMapping("/assignment-csv-history")
-    public ResponseEntity<List<AdminDTO>> getCsvHistory(AdminDTO dto) {
+    public ResponseEntity<?> getCsvHistory(AdminDTO dto, HttpSession session) {
         log.info("GET /admin/api/assignment-csv-history");
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
+        AdminAccessSupport.enforceBranchScope(session, dto);
         return ResponseEntity.ok(adminService.getCsvHistoryList(dto));
     }
 
     @GetMapping("/assignment-formula-history")
-    public ResponseEntity<List<AdminDTO>> getFormulaHistory(AdminDTO dto) {
+    public ResponseEntity<?> getFormulaHistory(AdminDTO dto, HttpSession session) {
         log.info("GET /admin/api/assignment-formula-history");
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
+        AdminAccessSupport.enforceBranchScope(session, dto);
         return ResponseEntity.ok(adminService.getFormulaHistoryList(dto));
     }
 
     // ===== 알선 관리 =====
     @GetMapping("/job-placements")
-    public ResponseEntity<List<AdminDTO>> getJobPlacements(AdminDTO dto) {
+    public ResponseEntity<?> getJobPlacements(AdminDTO dto, HttpSession session) {
         log.info("GET /admin/api/job-placements");
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
+        AdminAccessSupport.enforceBranchScope(session, dto);
         return ResponseEntity.ok(adminService.getJobPlacementList(dto));
     }
 
     @GetMapping("/job-placements/{regNo}")
-    public ResponseEntity<AdminDTO> getJobPlacement(@PathVariable int regNo) {
+    public ResponseEntity<?> getJobPlacement(@PathVariable int regNo, HttpSession session) {
         log.info("GET /admin/api/job-placements/{}", regNo);
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setRegistrationNo(regNo);
         return ResponseEntity.ok(adminService.getJobPlacementOne(dto));
     }
 
     @PostMapping("/job-placements")
-    public ResponseEntity<Map<String, Object>> addJobPlacement(@RequestBody AdminDTO dto) {
+    public ResponseEntity<?> addJobPlacement(@RequestBody AdminDTO dto, HttpSession session) {
         log.info("POST /admin/api/job-placements");
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
         Map<String, Object> result = new HashMap<>();
         boolean success = adminService.addJobPlacement(dto);
         result.put("success", success);
@@ -303,8 +404,10 @@ public class AdminApiController {
     }
 
     @PutMapping("/job-placements/{regNo}")
-    public ResponseEntity<Map<String, Object>> updateJobPlacement(@PathVariable int regNo, @RequestBody AdminDTO dto) {
+    public ResponseEntity<?> updateJobPlacement(@PathVariable int regNo, @RequestBody AdminDTO dto, HttpSession session) {
         log.info("PUT /admin/api/job-placements/{}", regNo);
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
         dto.setRegistrationNo(regNo);
         Map<String, Object> result = new HashMap<>();
         boolean success = adminService.modifyJobPlacement(dto);
@@ -314,8 +417,10 @@ public class AdminApiController {
     }
 
     @DeleteMapping("/job-placements/{regNo}")
-    public ResponseEntity<Map<String, Object>> deleteJobPlacement(@PathVariable int regNo) {
+    public ResponseEntity<?> deleteJobPlacement(@PathVariable int regNo, HttpSession session) {
         log.info("DELETE /admin/api/job-placements/{}", regNo);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setRegistrationNo(regNo);
         Map<String, Object> result = new HashMap<>();
@@ -327,22 +432,29 @@ public class AdminApiController {
 
     // ===== 이력서 요청 =====
     @GetMapping("/resume-requests")
-    public ResponseEntity<List<AdminDTO>> getResumeRequests(AdminDTO dto) {
+    public ResponseEntity<?> getResumeRequests(AdminDTO dto, HttpSession session) {
         log.info("GET /admin/api/resume-requests");
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
+        AdminAccessSupport.enforceBranchScope(session, dto);
         return ResponseEntity.ok(adminService.getResumeRequestList(dto));
     }
 
     @GetMapping("/resume-requests/{regNo}")
-    public ResponseEntity<AdminDTO> getResumeRequest(@PathVariable int regNo) {
+    public ResponseEntity<?> getResumeRequest(@PathVariable int regNo, HttpSession session) {
         log.info("GET /admin/api/resume-requests/{}", regNo);
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setResumeRegNo(regNo);
         return ResponseEntity.ok(adminService.getResumeRequestOne(dto));
     }
 
     @PutMapping("/resume-requests/{regNo}/status")
-    public ResponseEntity<Map<String, Object>> updateResumeStatus(@PathVariable int regNo, @RequestBody AdminDTO dto) {
+    public ResponseEntity<?> updateResumeStatus(@PathVariable int regNo, @RequestBody AdminDTO dto, HttpSession session) {
         log.info("PUT /admin/api/resume-requests/{}/status", regNo);
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
         dto.setResumeRegNo(regNo);
         Map<String, Object> result = new HashMap<>();
         boolean success = adminService.updateResumeStatus(dto);
@@ -351,16 +463,20 @@ public class AdminApiController {
         return ResponseEntity.ok(result);
     }
 
-    // ===== 자격증 =====
+    // ===== 자격증 (시스템 관리자 전용) =====
     @GetMapping("/certificates")
-    public ResponseEntity<List<AdminDTO>> getCertificates(AdminDTO dto) {
+    public ResponseEntity<?> getCertificates(AdminDTO dto, HttpSession session) {
         log.info("GET /admin/api/certificates");
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         return ResponseEntity.ok(adminService.getCertificateList(dto));
     }
 
     @PostMapping("/certificates")
-    public ResponseEntity<Map<String, Object>> addCertificate(@RequestBody AdminDTO dto) {
+    public ResponseEntity<?> addCertificate(@RequestBody AdminDTO dto, HttpSession session) {
         log.info("POST /admin/api/certificates");
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         Map<String, Object> result = new HashMap<>();
         boolean success = adminService.addCertificate(dto);
         result.put("success", success);
@@ -369,8 +485,10 @@ public class AdminApiController {
     }
 
     @PutMapping("/certificates/{id}")
-    public ResponseEntity<Map<String, Object>> updateCertificate(@PathVariable int id, @RequestBody AdminDTO dto) {
+    public ResponseEntity<?> updateCertificate(@PathVariable int id, @RequestBody AdminDTO dto, HttpSession session) {
         log.info("PUT /admin/api/certificates/{}", id);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         dto.setCertificateNo(id);
         Map<String, Object> result = new HashMap<>();
         boolean success = adminService.modifyCertificate(dto);
@@ -380,8 +498,10 @@ public class AdminApiController {
     }
 
     @DeleteMapping("/certificates/{id}")
-    public ResponseEntity<Map<String, Object>> deleteCertificate(@PathVariable int id) {
+    public ResponseEntity<?> deleteCertificate(@PathVariable int id, HttpSession session) {
         log.info("DELETE /admin/api/certificates/{}", id);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setCertificateNo(id);
         Map<String, Object> result = new HashMap<>();
@@ -391,16 +511,20 @@ public class AdminApiController {
         return ResponseEntity.ok(result);
     }
 
-    // ===== 직업훈련 =====
+    // ===== 직업훈련 (시스템 관리자 전용) =====
     @GetMapping("/trainings")
-    public ResponseEntity<List<AdminDTO>> getTrainings(AdminDTO dto) {
+    public ResponseEntity<?> getTrainings(AdminDTO dto, HttpSession session) {
         log.info("GET /admin/api/trainings");
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         return ResponseEntity.ok(adminService.getTrainingList(dto));
     }
 
     @PostMapping("/trainings")
-    public ResponseEntity<Map<String, Object>> addTraining(@RequestBody AdminDTO dto) {
+    public ResponseEntity<?> addTraining(@RequestBody AdminDTO dto, HttpSession session) {
         log.info("POST /admin/api/trainings");
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         Map<String, Object> result = new HashMap<>();
         boolean success = adminService.addTraining(dto);
         result.put("success", success);
@@ -409,8 +533,10 @@ public class AdminApiController {
     }
 
     @PutMapping("/trainings/{id}")
-    public ResponseEntity<Map<String, Object>> updateTraining(@PathVariable int id, @RequestBody AdminDTO dto) {
+    public ResponseEntity<?> updateTraining(@PathVariable int id, @RequestBody AdminDTO dto, HttpSession session) {
         log.info("PUT /admin/api/trainings/{}", id);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         dto.setTrainingNo(id);
         Map<String, Object> result = new HashMap<>();
         boolean success = adminService.modifyTraining(dto);
@@ -420,8 +546,10 @@ public class AdminApiController {
     }
 
     @DeleteMapping("/trainings/{id}")
-    public ResponseEntity<Map<String, Object>> deleteTraining(@PathVariable int id) {
+    public ResponseEntity<?> deleteTraining(@PathVariable int id, HttpSession session) {
         log.info("DELETE /admin/api/trainings/{}", id);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setTrainingNo(id);
         Map<String, Object> result = new HashMap<>();
@@ -429,5 +557,25 @@ public class AdminApiController {
         result.put("success", success);
         result.put("message", success ? "직업훈련이 삭제되었습니다." : "삭제에 실패했습니다.");
         return ResponseEntity.ok(result);
+    }
+
+    // ===== 상담사 목록 (공통 API) =====
+    @GetMapping("/counselors")
+    public ResponseEntity<?> getCounselors(AdminDTO dto, HttpSession session) {
+        log.info("GET /admin/api/counselors");
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
+        AdminAccessSupport.enforceBranchScope(session, dto);
+        return ResponseEntity.ok(adminService.getCounselorList(dto));
+    }
+
+    // ===== 상담사별 통계 =====
+    @GetMapping("/placement-stats")
+    public ResponseEntity<?> getPlacementStats(AdminDTO dto, HttpSession session) {
+        log.info("GET /admin/api/placement-stats");
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
+        AdminAccessSupport.enforceBranchScope(session, dto);
+        return ResponseEntity.ok(adminService.getPlacementStatsByCounselor(dto));
     }
 }

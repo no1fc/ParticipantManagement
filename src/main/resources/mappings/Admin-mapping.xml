@@ -164,10 +164,12 @@
             A.성별 gender,
             A.지점 branch,
             A.전담자_계정 counselorAccount,
+            M.이름 counselorName,
             A.진행단계 progressStage,
             CONVERT(varchar, A.등록일, 23) participantRegDate,
             A.마감 closed
         FROM J_참여자관리 A
+        LEFT JOIN J_참여자관리_로그인정보 M ON A.전담자_계정 = M.아이디
         WHERE 1=1
         <if test="searchJobNo != null and searchJobNo != ''">
             AND CAST(A.구직번호 AS NVARCHAR) LIKE #{searchJobNo} + '%'
@@ -178,14 +180,17 @@
         <if test="searchBranch != null and searchBranch != ''">
             AND A.지점 = #{searchBranch}
         </if>
+        <if test="searchCounselor != null and searchCounselor != ''">
+            AND A.전담자_계정 = #{searchCounselor}
+        </if>
         <if test="searchStatus != null and searchStatus != ''">
             AND A.진행단계 = #{searchStatus}
         </if>
         <if test="searchStartDate != null and searchStartDate != ''">
-            AND A.등록일 >= #{searchStartDate}
+            AND A.등록일 <![CDATA[>=]]> CAST(#{searchStartDate} AS date)
         </if>
         <if test="searchEndDate != null and searchEndDate != ''">
-            AND A.등록일 <![CDATA[<=]]> #{searchEndDate}
+            AND A.등록일 <![CDATA[<]]> DATEADD(day, 1, CAST(#{searchEndDate} AS date))
         </if>
         <if test="searchClosed != null and searchClosed != ''">
             AND A.마감 = #{searchClosed}
@@ -208,7 +213,7 @@
             A.학력 education,
             A.특정계층 specialClass,
             A.취업역량 employmentCapacity,
-            A.희망직무 desiredJob,
+            (SELECT TOP 1 W.희망직무 FROM J_참여자관리_희망직무 W WHERE W.구직번호 = A.구직번호 ORDER BY W.희망순위) desiredJob,
             A.희망급여 desiredSalary,
             CONVERT(varchar, A.등록일, 23) participantRegDate,
             A.메모 memo,
@@ -394,14 +399,36 @@
     <!-- ===== 알선 관리 (J_참여자관리_알선상세정보) ===== -->
     <select id="selectJobPlacementList" resultType="admin">
         SELECT
-            등록번호 registrationNo,
-            구직번호 placementJobNo,
-            LEFT(상세정보, 50) detailInfo,
-            LEFT(추천사, 50) recommendation,
-            CONVERT(varchar, 등록일, 120) placementRegDate,
-            CONVERT(varchar, 수정일, 120) placementUpdateDate
-        FROM J_참여자관리_알선상세정보
-        ORDER BY 등록번호 DESC
+            A.등록번호 registrationNo,
+            A.구직번호 placementJobNo,
+            P.참여자 participantName,
+            P.지점 branch,
+            P.전담자_계정 counselorAccount,
+            M.이름 counselorName,
+            LEFT(A.상세정보, 50) detailInfo,
+            LEFT(A.추천사, 50) recommendation,
+            CONVERT(varchar, A.등록일, 120) placementRegDate,
+            CONVERT(varchar, A.수정일, 120) placementUpdateDate
+        FROM J_참여자관리_알선상세정보 A
+        LEFT JOIN J_참여자관리 P ON A.구직번호 = P.구직번호
+        LEFT JOIN J_참여자관리_로그인정보 M ON P.전담자_계정 = M.아이디
+        WHERE 1=1
+        <if test="searchBranch != null and searchBranch != ''">
+            AND P.지점 = #{searchBranch}
+        </if>
+        <if test="searchCounselor != null and searchCounselor != ''">
+            AND P.전담자_계정 = #{searchCounselor}
+        </if>
+        <if test="searchName != null and searchName != ''">
+            AND P.참여자 LIKE '%' + #{searchName} + '%'
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+            AND A.등록일 <![CDATA[>=]]> CAST(#{searchStartDate} AS date)
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+            AND A.등록일 <![CDATA[<]]> DATEADD(day, 1, CAST(#{searchEndDate} AS date))
+        </if>
+        ORDER BY A.등록번호 DESC
     </select>
 
     <select id="selectJobPlacementOne" resultType="admin">
@@ -442,17 +469,42 @@
     <!-- ===== 이력서 요청 (J_참여자관리_이력서요청양식) ===== -->
     <select id="selectResumeRequestList" resultType="admin">
         SELECT
-            등록번호 resumeRegNo,
-            구직번호 resumeJobNo,
-            기업명 companyName,
-            담당자명 managerName,
-            이메일 managerEmail,
-            비상연락처 emergencyContact,
-            상태 requestStatus,
-            CONVERT(varchar, 등록일, 120) resumeRegDate,
-            CONVERT(varchar, 수정일, 120) resumeUpdateDate
-        FROM J_참여자관리_이력서요청양식
-        ORDER BY 등록번호 DESC
+            R.등록번호 resumeRegNo,
+            R.구직번호 resumeJobNo,
+            P.참여자 participantName,
+            P.지점 branch,
+            P.전담자_계정 counselorAccount,
+            M.이름 counselorName,
+            R.기업명 companyName,
+            R.담당자명 managerName,
+            R.이메일 managerEmail,
+            R.비상연락처 emergencyContact,
+            R.상태 requestStatus,
+            CONVERT(varchar, R.등록일, 120) resumeRegDate,
+            CONVERT(varchar, R.수정일, 120) resumeUpdateDate
+        FROM J_참여자관리_이력서요청양식 R
+        LEFT JOIN J_참여자관리 P ON R.구직번호 = P.구직번호
+        LEFT JOIN J_참여자관리_로그인정보 M ON P.전담자_계정 = M.아이디
+        WHERE 1=1
+        <if test="searchBranch != null and searchBranch != ''">
+            AND P.지점 = #{searchBranch}
+        </if>
+        <if test="searchCounselor != null and searchCounselor != ''">
+            AND P.전담자_계정 = #{searchCounselor}
+        </if>
+        <if test="searchName != null and searchName != ''">
+            AND P.참여자 LIKE '%' + #{searchName} + '%'
+        </if>
+        <if test="searchStatus != null and searchStatus != ''">
+            AND R.상태 = #{searchStatus}
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+            AND R.등록일 <![CDATA[>=]]> CAST(#{searchStartDate} AS date)
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+            AND R.등록일 <![CDATA[<]]> DATEADD(day, 1, CAST(#{searchEndDate} AS date))
+        </if>
+        ORDER BY R.등록번호 DESC
     </select>
 
     <select id="selectResumeRequestOne" resultType="admin">
@@ -663,6 +715,341 @@
         FROM J_참여자관리_지점 B
         LEFT JOIN branch_stats S ON S.지점 = B.지점
         ORDER BY B.순서 ASC
+    </select>
+
+    <!-- ===== 상담사 목록 ===== -->
+    <select id="selectCounselorsByBranch" resultType="admin">
+        SELECT
+            아이디 AS userId,
+            이름 AS memberName,
+            지점 AS branch
+        FROM J_참여자관리_로그인정보
+        WHERE 아이디사용여부 = '사용'
+        <if test="searchBranch != null and searchBranch != ''">
+            AND 지점 = #{searchBranch}
+        </if>
+        ORDER BY 지점, 조회순서, 이름
+    </select>
+
+    <!-- ===== 사용자 보조 ===== -->
+    <select id="selectNextMemberNo" resultType="int">
+        SELECT ISNULL(MAX(전담자번호), 0) + 1 FROM J_참여자관리_로그인정보
+    </select>
+
+    <select id="selectUserIdExists" resultType="int">
+        SELECT COUNT(*) FROM J_참여자관리_로그인정보
+        WHERE 아이디 = #{userId}
+        <if test="memberNo > 0">
+            AND 전담자번호 != #{memberNo}
+        </if>
+    </select>
+
+    <!-- ===== 참여자 Excel ===== -->
+    <!-- ===== 참여자 Excel 전체 컬럼 ===== -->
+    <select id="selectParticipantExcelFullList" resultType="admin">
+        SELECT
+            A.구직번호 jobNo,
+            A.참여자 participantName,
+            CONVERT(varchar, A.생년월일, 23) birthDate,
+            A.성별 gender,
+            A.지점 branch,
+            A.전담자_계정 counselorAccount,
+            M.이름 counselorName,
+            A.진행단계 progressStage,
+            A.모집경로 recruitPath,
+            A.참여유형 participationType,
+            A.학교명 schoolName,
+            A.전공 major,
+            A.주소 address,
+            A.경력 career,
+            A.학력 education,
+            A.특정계층 specialClass,
+            A.알선요청 placementRequest,
+            A.취업역량 employmentCapacity,
+            CONVERT(varchar, A.최근상담일, 23) lastCounselDate,
+            CONVERT(varchar, A.초기상담일, 23) initialCounselDate,
+            CONVERT(varchar, A.구직만료일, 23) jobExpiryDate,
+            CONVERT(varchar, A.IAP수료일, 23) iapCompletionDate,
+            CONVERT(varchar, A.[3단계진입일], 23) stage3EntryDate,
+            CONVERT(varchar, A.기간만료일, 23) periodExpiryDate,
+            CONVERT(varchar, A.클리닉실시일, 23) clinicDate,
+            A.희망급여 desiredSalary,
+            (SELECT TOP 1 W.희망직무 FROM J_참여자관리_희망직무 W WHERE W.구직번호 = A.구직번호 ORDER BY W.희망순위) desiredJob,
+            CONVERT(varchar, A.취창업일, 23) employmentDate,
+            CONVERT(varchar, A.취창업처리일, 23) employmentProcessDate,
+            A.취업유형 employmentType,
+            A.취업처 employer,
+            A.임금 salary,
+            A.직무 jobRole,
+            A.취업인센티브_구분 incentiveType,
+            A.일경험분류 workExperienceType,
+            A.메모 memo,
+            A.기타 others,
+            A.마감 closed,
+            CONVERT(varchar, A.퇴사일, 23) resignationDate,
+            A.간접고용서비스 indirectEmploymentService,
+            CONVERT(varchar, A.전담자_변경일, 23) managerChangeDate,
+            A.초기전담자_계정 initialManagerAccount,
+            CONVERT(varchar, A.참여자_수정일, 23) participantModifyDate,
+            A.IAP3개월여부 iap3Month,
+            A.IAP5개월여부 iap5Month,
+            CONVERT(varchar, A.IAP3개월일자, 23) iap3MonthDate,
+            CONVERT(varchar, A.IAP5개월일자, 23) iap5MonthDate,
+            CONVERT(varchar, A.수당지급일, 23) allowanceDate,
+            CONVERT(varchar, A.등록일, 23) participantRegDate,
+            A.집중알선여부 intensivePlacement
+        FROM J_참여자관리 A
+        LEFT JOIN J_참여자관리_로그인정보 M ON A.전담자_계정 = M.아이디
+        WHERE 1=1
+        <if test="searchJobNo != null and searchJobNo != ''">
+            AND CAST(A.구직번호 AS NVARCHAR) LIKE #{searchJobNo} + '%'
+        </if>
+        <if test="searchName != null and searchName != ''">
+            AND A.참여자 LIKE '%' + #{searchName} + '%'
+        </if>
+        <if test="searchBranch != null and searchBranch != ''">
+            AND A.지점 = #{searchBranch}
+        </if>
+        <if test="searchCounselor != null and searchCounselor != ''">
+            AND A.전담자_계정 = #{searchCounselor}
+        </if>
+        <if test="searchStatus != null and searchStatus != ''">
+            AND A.진행단계 = #{searchStatus}
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+            AND A.등록일 <![CDATA[>=]]> CAST(#{searchStartDate} AS date)
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+            AND A.등록일 <![CDATA[<]]> DATEADD(day, 1, CAST(#{searchEndDate} AS date))
+        </if>
+        <if test="searchClosed != null and searchClosed != ''">
+            AND A.마감 = #{searchClosed}
+        </if>
+        ORDER BY A.구직번호 DESC
+    </select>
+
+    <select id="selectParticipantExcelList" resultType="admin">
+        SELECT
+            A.구직번호 jobNo,
+            A.참여자 participantName,
+            CONVERT(varchar, A.생년월일, 23) birthDate,
+            A.성별 gender,
+            A.지점 branch,
+            A.전담자_계정 counselorAccount,
+            M.이름 counselorName,
+            A.진행단계 progressStage,
+            A.모집경로 recruitPath,
+            A.참여유형 participationType,
+            A.경력 career,
+            A.학력 education,
+            A.특정계층 specialClass,
+            A.취업역량 employmentCapacity,
+            (SELECT TOP 1 W.희망직무 FROM J_참여자관리_희망직무 W WHERE W.구직번호 = A.구직번호 ORDER BY W.희망순위) desiredJob,
+            A.희망급여 desiredSalary,
+            CONVERT(varchar, A.등록일, 23) participantRegDate,
+            A.마감 closed
+        FROM J_참여자관리 A
+        LEFT JOIN J_참여자관리_로그인정보 M ON A.전담자_계정 = M.아이디
+        WHERE 1=1
+        <if test="searchJobNo != null and searchJobNo != ''">
+            AND CAST(A.구직번호 AS NVARCHAR) LIKE #{searchJobNo} + '%'
+        </if>
+        <if test="searchName != null and searchName != ''">
+            AND A.참여자 LIKE '%' + #{searchName} + '%'
+        </if>
+        <if test="searchBranch != null and searchBranch != ''">
+            AND A.지점 = #{searchBranch}
+        </if>
+        <if test="searchCounselor != null and searchCounselor != ''">
+            AND A.전담자_계정 = #{searchCounselor}
+        </if>
+        <if test="searchStatus != null and searchStatus != ''">
+            AND A.진행단계 = #{searchStatus}
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+            AND A.등록일 <![CDATA[>=]]> CAST(#{searchStartDate} AS date)
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+            AND A.등록일 <![CDATA[<]]> DATEADD(day, 1, CAST(#{searchEndDate} AS date))
+        </if>
+        <if test="searchClosed != null and searchClosed != ''">
+            AND A.마감 = #{searchClosed}
+        </if>
+        ORDER BY A.구직번호 DESC
+    </select>
+
+    <!-- ===== Excel 빌더 - 희망직무 ===== -->
+    <select id="selectExcelWishJobList" resultType="admin">
+        SELECT
+            A.구직번호 jobNo,
+            A.참여자 participantName,
+            M.이름 counselorName,
+            W.직무_카테고리_대 excelCategoryLarge,
+            W.직무_카테고리_중 excelCategoryMid,
+            W.희망직무 excelWishJob,
+            W.희망순위 wishJobRank
+        FROM J_참여자관리_희망직무 W
+        INNER JOIN J_참여자관리 A ON W.구직번호 = A.구직번호
+        LEFT JOIN J_참여자관리_로그인정보 M ON A.전담자_계정 = M.아이디
+        WHERE 1=1
+        <if test="searchJobNo != null and searchJobNo != ''">
+            AND CAST(A.구직번호 AS NVARCHAR) LIKE #{searchJobNo} + '%'
+        </if>
+        <if test="searchName != null and searchName != ''">
+            AND A.참여자 LIKE '%' + #{searchName} + '%'
+        </if>
+        <if test="searchBranch != null and searchBranch != ''">
+            AND A.지점 = #{searchBranch}
+        </if>
+        <if test="searchCounselor != null and searchCounselor != ''">
+            AND A.전담자_계정 = #{searchCounselor}
+        </if>
+        <if test="searchStatus != null and searchStatus != ''">
+            AND A.진행단계 = #{searchStatus}
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+            AND A.등록일 <![CDATA[>=]]> CAST(#{searchStartDate} AS date)
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+            AND A.등록일 <![CDATA[<]]> DATEADD(day, 1, CAST(#{searchEndDate} AS date))
+        </if>
+        <if test="searchClosed != null and searchClosed != ''">
+            AND A.마감 = #{searchClosed}
+        </if>
+        ORDER BY A.구직번호 DESC, W.희망순위
+    </select>
+
+    <!-- ===== Excel 빌더 - 자격증 ===== -->
+    <select id="selectExcelCertificateList" resultType="admin">
+        SELECT
+            A.구직번호 jobNo,
+            A.참여자 participantName,
+            M.이름 counselorName,
+            C.자격증 excelCertificateName
+        FROM J_참여자관리_자격증 C
+        INNER JOIN J_참여자관리 A ON C.구직번호 = A.구직번호
+        LEFT JOIN J_참여자관리_로그인정보 M ON A.전담자_계정 = M.아이디
+        WHERE 1=1
+        <if test="searchJobNo != null and searchJobNo != ''">
+            AND CAST(A.구직번호 AS NVARCHAR) LIKE #{searchJobNo} + '%'
+        </if>
+        <if test="searchName != null and searchName != ''">
+            AND A.참여자 LIKE '%' + #{searchName} + '%'
+        </if>
+        <if test="searchBranch != null and searchBranch != ''">
+            AND A.지점 = #{searchBranch}
+        </if>
+        <if test="searchCounselor != null and searchCounselor != ''">
+            AND A.전담자_계정 = #{searchCounselor}
+        </if>
+        <if test="searchStatus != null and searchStatus != ''">
+            AND A.진행단계 = #{searchStatus}
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+            AND A.등록일 <![CDATA[>=]]> CAST(#{searchStartDate} AS date)
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+            AND A.등록일 <![CDATA[<]]> DATEADD(day, 1, CAST(#{searchEndDate} AS date))
+        </if>
+        <if test="searchClosed != null and searchClosed != ''">
+            AND A.마감 = #{searchClosed}
+        </if>
+        ORDER BY A.구직번호 DESC
+    </select>
+
+    <!-- ===== Excel 빌더 - 직업훈련 ===== -->
+    <select id="selectExcelTrainingList" resultType="admin">
+        SELECT
+            A.구직번호 jobNo,
+            A.참여자 participantName,
+            M.이름 counselorName,
+            T.직업훈련 excelTrainingName
+        FROM J_참여자관리_직업훈련 T
+        INNER JOIN J_참여자관리 A ON T.구직번호 = A.구직번호
+        LEFT JOIN J_참여자관리_로그인정보 M ON A.전담자_계정 = M.아이디
+        WHERE 1=1
+        <if test="searchJobNo != null and searchJobNo != ''">
+            AND CAST(A.구직번호 AS NVARCHAR) LIKE #{searchJobNo} + '%'
+        </if>
+        <if test="searchName != null and searchName != ''">
+            AND A.참여자 LIKE '%' + #{searchName} + '%'
+        </if>
+        <if test="searchBranch != null and searchBranch != ''">
+            AND A.지점 = #{searchBranch}
+        </if>
+        <if test="searchCounselor != null and searchCounselor != ''">
+            AND A.전담자_계정 = #{searchCounselor}
+        </if>
+        <if test="searchStatus != null and searchStatus != ''">
+            AND A.진행단계 = #{searchStatus}
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+            AND A.등록일 <![CDATA[>=]]> CAST(#{searchStartDate} AS date)
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+            AND A.등록일 <![CDATA[<]]> DATEADD(day, 1, CAST(#{searchEndDate} AS date))
+        </if>
+        <if test="searchClosed != null and searchClosed != ''">
+            AND A.마감 = #{searchClosed}
+        </if>
+        ORDER BY A.구직번호 DESC
+    </select>
+
+    <!-- ===== 상담사별 통계 ===== -->
+    <select id="selectPlacementStatsByCounselor" resultType="admin">
+        WITH fiscal_dates AS (
+            SELECT
+                DATEFROMPARTS(
+                    CASE WHEN MONTH(GETDATE()) <![CDATA[>=]]> 11 THEN YEAR(GETDATE()) ELSE YEAR(GETDATE()) - 1 END,
+                    11, 1) AS start_date,
+                DATEFROMPARTS(
+                    CASE WHEN MONTH(GETDATE()) <![CDATA[>=]]> 11 THEN YEAR(GETDATE()) + 1 ELSE YEAR(GETDATE()) END,
+                    10, 31) AS end_date
+        ),
+        base AS (
+            SELECT P.*,
+                NULLIF(CASE WHEN 취창업일 <![CDATA[>]]> '1900-01-01' THEN 취창업일
+                            WHEN 기간만료일 <![CDATA[>]]> '1900-01-01' THEN 기간만료일 END, '1900-01-01') AS 실제종료일
+            FROM J_참여자관리 P
+            WHERE 지점 NOT IN ('테스트','공통')
+              AND ISNULL(모집경로,'') <![CDATA[<>]]> '이관'
+              AND ISNULL(참여유형,'') <![CDATA[<>]]> '이관'
+              AND 진행단계 <![CDATA[<>]]> '취소'
+            <if test="searchBranch != null and searchBranch != ''">
+              AND P.지점 = #{searchBranch}
+            </if>
+            <if test="searchCounselor != null and searchCounselor != ''">
+              AND P.전담자_계정 = #{searchCounselor}
+            </if>
+        ),
+        scored AS (
+            SELECT B.지점, B.전담자_계정,
+                CASE WHEN B.진행단계 IN ('미고보','고보일반','등록창업','미등록창업','미취업사후관리','미취업사후종료','중단')
+                          AND B.실제종료일 BETWEEN F.start_date AND F.end_date
+                          AND B.기간만료일 <![CDATA[>=]]> F.start_date
+                     THEN 1 ELSE 0 END AS 종료_F,
+                CASE WHEN B.취창업일 <![CDATA[>=]]> F.start_date
+                          AND B.진행단계 IN ('등록창업','고보일반','미취업사후종료','중단')
+                          AND (B.취업인센티브_구분 NOT LIKE '%파견%' OR B.취업인센티브_구분 IS NULL)
+                     THEN 1 ELSE 0 END AS 취업_F,
+                CASE WHEN B.취업유형 = '알선' THEN 1 ELSE 0 END AS 알선_F
+            FROM base B
+            CROSS JOIN fiscal_dates F
+        )
+        SELECT
+            S.지점 AS branch,
+            S.전담자_계정 AS counselorAccount,
+            M.이름 AS counselorName,
+            SUM(S.종료_F) AS completedCount,
+            SUM(S.종료_F * S.취업_F) AS employedCount,
+            SUM(S.종료_F * S.취업_F * S.알선_F) AS placementEmployedCount,
+            CASE WHEN SUM(S.종료_F) = 0 THEN 0.0
+                 ELSE CAST(SUM(S.종료_F * S.취업_F) AS FLOAT) / SUM(S.종료_F) * 100
+            END AS employmentRate
+        FROM scored S
+        LEFT JOIN J_참여자관리_로그인정보 M ON S.전담자_계정 = M.아이디
+        GROUP BY S.지점, S.전담자_계정, M.이름
+        ORDER BY S.지점, M.이름
     </select>
 
 </mapper>

@@ -123,6 +123,24 @@ public class ParticipantAllExcel {
             //log.info("createExcel datas : [{}]",datas);
             createRow(sheet,1,datas);
 
+            // 희망직무 시트 생성
+            List<ParticipantDTO> wishJobDatas = selectExcelSheetData(participantDTO, "participantExcelWishJob");
+            Sheet wishJobSheet = workbook.createSheet("희망직무");
+            createSheetHeader(wishJobSheet, new String[]{"구직번호", "상담사명", "참여자명", "카테고리_대", "카테고리_중", "희망직무"});
+            createWishJobRows(wishJobSheet, wishJobDatas);
+
+            // 자격증 시트 생성
+            List<ParticipantDTO> certifDatas = selectExcelSheetData(participantDTO, "participantExcelCertificate");
+            Sheet certifSheet = workbook.createSheet("자격증");
+            createSheetHeader(certifSheet, new String[]{"구직번호", "상담사명", "참여자명", "자격증명"});
+            createCertificateRows(certifSheet, certifDatas);
+
+            // 직업훈련 시트 생성
+            List<ParticipantDTO> trainingDatas = selectExcelSheetData(participantDTO, "participantExcelTraining");
+            Sheet trainingSheet = workbook.createSheet("직업훈련");
+            createSheetHeader(trainingSheet, new String[]{"구직번호", "상담사명", "참여자명", "직업훈련명"});
+            createTrainingRows(trainingSheet, trainingDatas);
+
             // 수식이 포함된 셀들의 계산을 실행
             // 1. 워크북의 CreationHelper를 얻어옴
             // 2. FormulaEvaluator 생성
@@ -264,5 +282,92 @@ public class ParticipantAllExcel {
         setCellValue(row, colIndex++, data.getParticipantManagerChangeDate()); // 전담자_변경일
         setCellValue(row, colIndex++, data.getParticipantInitialManagerAccount()); // 초기전담자_계정
         setCellValue(row, colIndex, data.getParticipantModifyDate());   // 참여자_수정일
+    }
+
+    /**
+     * 엑셀 시트 데이터 조회 helper
+     * participantCondition을 바꿔서 기존 selectAll을 재사용한다.
+     */
+    private List<ParticipantDTO> selectExcelSheetData(ParticipantDTO participantDTO, String condition) {
+        participantDTO.setParticipantCondition(condition);
+        try {
+            List<ParticipantDTO> datas = participantService.selectAll(participantDTO);
+            return datas == null ? List.of() : datas;
+        } catch (Exception e) {
+            log.error("엑셀 시트 데이터 조회 실패 condition: {}", condition, e);
+            return List.of();
+        }
+    }
+
+    /**
+     * 텍스트 전용 셀 값 설정 (null을 빈 문자열로 처리)
+     */
+    private void setStringCellValue(Row row, int columnIndex, Object value) {
+        Cell cell = row.getCell(columnIndex);
+        if (cell == null) {
+            cell = row.createCell(columnIndex);
+        }
+        cell.setCellValue(value == null ? "" : String.valueOf(value));
+    }
+
+    /**
+     * 시트 헤더 행 생성
+     */
+    private void createSheetHeader(Sheet sheet, String[] headers) {
+        Row headerRow = sheet.createRow(0);
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+        }
+    }
+
+    /**
+     * 희망직무 시트 행 생성
+     */
+    private void createWishJobRows(Sheet sheet, List<ParticipantDTO> datas) {
+        if (datas == null || datas.isEmpty()) return;
+        int rowIndex = 1;
+        for (ParticipantDTO data : datas) {
+            Row row = sheet.createRow(rowIndex++);
+            int col = 0;
+            setStringCellValue(row, col++, data.getParticipantJobNo());
+            setStringCellValue(row, col++, data.getParticipantUserName());
+            setStringCellValue(row, col++, data.getParticipantPartic());
+            setStringCellValue(row, col++, data.getExcelCategoryLarge());
+            setStringCellValue(row, col++, data.getExcelCategoryMid());
+            setStringCellValue(row, col, data.getExcelWishJob());
+        }
+    }
+
+    /**
+     * 자격증 시트 행 생성
+     */
+    private void createCertificateRows(Sheet sheet, List<ParticipantDTO> datas) {
+        if (datas == null || datas.isEmpty()) return;
+        int rowIndex = 1;
+        for (ParticipantDTO data : datas) {
+            Row row = sheet.createRow(rowIndex++);
+            int col = 0;
+            setStringCellValue(row, col++, data.getParticipantJobNo());
+            setStringCellValue(row, col++, data.getParticipantUserName());
+            setStringCellValue(row, col++, data.getParticipantPartic());
+            setStringCellValue(row, col, data.getExcelCertificateName());
+        }
+    }
+
+    /**
+     * 직업훈련 시트 행 생성
+     */
+    private void createTrainingRows(Sheet sheet, List<ParticipantDTO> datas) {
+        if (datas == null || datas.isEmpty()) return;
+        int rowIndex = 1;
+        for (ParticipantDTO data : datas) {
+            Row row = sheet.createRow(rowIndex++);
+            int col = 0;
+            setStringCellValue(row, col++, data.getParticipantJobNo());
+            setStringCellValue(row, col++, data.getParticipantUserName());
+            setStringCellValue(row, col++, data.getParticipantPartic());
+            setStringCellValue(row, col, data.getExcelTrainingName());
+        }
     }
 }

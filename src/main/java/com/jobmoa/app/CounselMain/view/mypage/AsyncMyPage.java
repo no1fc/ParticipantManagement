@@ -78,6 +78,7 @@ public class AsyncMyPage {
 
             // 계정 정보 업데이트 로직
             memberDTO.setMemberUserID(userID);
+            memberDTO.setMemberBranch(loginBean.getMemberBranch());
             memberDTO.setMemberCondition("accountUpdate");
             boolean updateResult = memberService.update(memberDTO);
 

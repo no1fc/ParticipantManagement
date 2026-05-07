@@ -70,5 +70,26 @@ public interface AdminService {
     boolean removeTraining(AdminDTO dto);
 
     // 대시보드 KPI
-    Map<String, Object> getDashboardData();
+    Map<String, Object> getDashboardData(AdminDTO dto);
+
+    // 상담사 목록
+    List<AdminDTO> getCounselorList(AdminDTO dto);
+
+    // 사용자 보조
+    int getNextMemberNo();
+    boolean checkUserIdExists(AdminDTO dto);
+
+    // 참여자 Excel
+    List<AdminDTO> getParticipantExcelList(AdminDTO dto);
+
+    // 상담사별 통계
+    List<AdminDTO> getPlacementStatsByCounselor(AdminDTO dto);
+
+    // 참여자 Excel 전체 컬럼
+    List<AdminDTO> getParticipantExcelFullList(AdminDTO dto);
+
+    // Excel 빌더 - 시트별 데이터
+    List<AdminDTO> getExcelWishJobList(AdminDTO dto);
+    List<AdminDTO> getExcelCertificateList(AdminDTO dto);
+    List<AdminDTO> getExcelTrainingList(AdminDTO dto);
 }

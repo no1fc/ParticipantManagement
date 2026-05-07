@@ -66,6 +66,39 @@ public class AdminDTO {
     private String searchStatus;
     private String searchClosed;
 
+    // J_참여자관리 (참여자 - 전체 컬럼 Excel용)
+    private String schoolName;
+    private String major;
+    private String address;
+    private String placementRequest;
+    private String lastCounselDate;
+    private String initialCounselDate;
+    private String jobExpiryDate;
+    private String iapCompletionDate;
+    private String stage3EntryDate;
+    private String periodExpiryDate;
+    private String clinicDate;
+    private String employmentDate;
+    private String employmentProcessDate;
+    private String employmentType;
+    private String employer;
+    private String salary;
+    private String jobRole;
+    private String incentiveType;
+    private String workExperienceType;
+    private String others;
+    private String resignationDate;
+    private String indirectEmploymentService;
+    private String managerChangeDate;
+    private String initialManagerAccount;
+    private String participantModifyDate;
+    private boolean iap3Month;
+    private boolean iap5Month;
+    private String iap3MonthDate;
+    private String iap5MonthDate;
+    private String allowanceDate;
+    private String intensivePlacement;
+
     // J_참여자관리_일일업무보고 (일일업무보고)
     private String reportUserId;
     private String reportBranch;
@@ -165,4 +198,31 @@ public class AdminDTO {
     private String branchLabel;
     private int employmentCount;
     private int placementCount;
+
+    // 상담사 필터/표시
+    private String searchCounselor;
+    private String counselorName;
+
+    // 상담사별 통계
+    private int completedCount;
+    private int employedCount;
+    private int placementEmployedCount;
+
+    // Excel 빌더 - 희망직무 시트
+    private String excelCategoryLarge;
+    private String excelCategoryMid;
+    private String excelWishJob;
+    private int wishJobRank;
+
+    // Excel 빌더 - 자격증 시트
+    private String excelCertificateName;
+
+    // Excel 빌더 - 직업훈련 시트
+    private String excelTrainingName;
+
+    // Excel 빌더 - 시트 선택 파라미터
+    private String excelSheets;
+
+    // Excel 빌더 - 컬럼 선택 파라미터
+    private String excelColumns;
 }

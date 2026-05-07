@@ -2,7 +2,7 @@
   참여자 관리 페이지 (Participant Management)
   Created by: JobMoa Admin System
   Date: 2026-03-17
-  Description: 참여자 정보 조회, 등록, 수정, 삭제 및 상세 정보 관리
+  Description: 참여자 정보 조회, 검색, 상세 조회, 엑셀 다운로드
   DB: J_참여자관리, J_참여자관리_자격증, J_참여자관리_직업훈련
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" pageEncoding="UTF-8" %>
@@ -56,10 +56,11 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.js"></script>
     <script src="/js/sweetAlert_0.0.1.js"></script>
 
-    <!-- Modern Design System -->
-    <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
+    <!-- Admin Common Design System -->
+    <link rel="stylesheet" href="/css/adminCss/adminCommon_0.0.1.css">
 
-    <link rel="stylesheet" href="/css/adminCss/adminParticipantManagement_0.0.1.css">
+    <!-- Page-specific CSS -->
+    <link rel="stylesheet" href="/css/adminCss/adminParticipantManagement_0.0.2.css">
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 
@@ -77,105 +78,144 @@
             <div class="container-fluid">
 
                 <!-- 페이지 헤더 -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card-modern border-0 shadow-sm">
-                            <div class="card-body">
-                                <h3 class="fw-bold text-brand mb-2">
-                                    <i class="bi bi-people-fill"></i> 참여자 관리
-                                </h3>
-                                <p class="text-muted mb-0">참여자 정보를 조회, 등록, 수정, 삭제할 수 있습니다.</p>
+                <div class="admin-page-header">
+                    <div class="admin-page-title">
+                        <h4><i class="bi bi-people"></i> 참여자 관리</h4>
+                        <p>참여자 정보를 조회하고 상세 내용을 확인할 수 있습니다.</p>
+                    </div>
+                    <div class="admin-page-actions">
+                        <button class="btn btn-outline-secondary" onclick="loadParticipants()" title="새로고침">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                        <button class="btn btn-success" onclick="exportToExcel()">
+                            <i class="bi bi-file-earmark-excel"></i> 현재 검색 결과 엑셀 다운로드
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 메트릭 카드 -->
+                <div class="admin-metric-grid">
+                    <div class="admin-metric-card">
+                        <div class="admin-metric-icon icon-total"><i class="bi bi-people"></i></div>
+                        <div class="admin-metric-info">
+                            <div class="admin-metric-value" id="metricTotal">0</div>
+                            <div class="admin-metric-label">전체 참여자</div>
+                        </div>
+                    </div>
+                    <div class="admin-metric-card">
+                        <div class="admin-metric-icon icon-active"><i class="bi bi-play-circle"></i></div>
+                        <div class="admin-metric-info">
+                            <div class="admin-metric-value" id="metricActive">0</div>
+                            <div class="admin-metric-label">진행중</div>
+                        </div>
+                    </div>
+                    <div class="admin-metric-card">
+                        <div class="admin-metric-icon icon-closed"><i class="bi bi-stop-circle"></i></div>
+                        <div class="admin-metric-info">
+                            <div class="admin-metric-value" id="metricClosed">0</div>
+                            <div class="admin-metric-label">마감</div>
+                        </div>
+                    </div>
+                    <div class="admin-metric-card">
+                        <div class="admin-metric-icon icon-employed"><i class="bi bi-briefcase"></i></div>
+                        <div class="admin-metric-info">
+                            <div class="admin-metric-value" id="metricEmployed">0</div>
+                            <div class="admin-metric-label">취업</div>
+                        </div>
+                    </div>
+                    <div class="admin-metric-card">
+                        <div class="admin-metric-icon icon-recent"><i class="bi bi-clock-history"></i></div>
+                        <div class="admin-metric-info">
+                            <div class="admin-metric-value" id="metricRecent">0</div>
+                            <div class="admin-metric-label">최근 등록</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 검색 필터 패널 -->
+                <div class="admin-filter-panel">
+                    <div class="admin-filter-title"><i class="bi bi-search"></i> 참여자 검색</div>
+                    <div class="admin-filter-row">
+                        <div class="admin-filter-group">
+                            <label>구직번호</label>
+                            <input type="text" class="form-control" id="searchJobNo" placeholder="구직번호 입력">
+                        </div>
+                        <div class="admin-filter-group">
+                            <label>참여자명</label>
+                            <input type="text" class="form-control" id="searchName" placeholder="이름 입력">
+                        </div>
+                        <div class="admin-filter-group">
+                            <label>지점</label>
+                            <select class="form-select" id="searchBranch">
+                                <option value="">전체</option>
+                            </select>
+                        </div>
+                        <div class="admin-filter-group">
+                            <label>상담사</label>
+                            <select class="form-select" id="searchCounselor">
+                                <option value="">전체</option>
+                            </select>
+                        </div>
+                        <div class="admin-filter-actions">
+                            <button class="btn btn-primary" onclick="searchParticipants()"><i class="bi bi-search"></i> 검색</button>
+                            <button class="btn btn-outline-secondary" onclick="resetParticipantFilters()"><i class="bi bi-arrow-counterclockwise"></i> 초기화</button>
+                            <button class="btn btn-outline-secondary" id="btnToggleAdvanced"><i class="bi bi-chevron-down"></i> 고급검색</button>
+                        </div>
+                    </div>
+                    <!-- 고급 검색 필터 -->
+                    <div class="admin-advanced-filters" id="advancedFilters">
+                        <div class="admin-filter-row">
+                            <div class="admin-filter-group">
+                                <label>진행단계</label>
+                                <select class="form-select" id="searchStatus">
+                                    <option value="">전체</option>
+                                    <option value="IAP전">IAP전</option>
+                                    <option value="IAP후">IAP후</option>
+                                    <option value="취업">취업</option>
+                                </select>
+                            </div>
+                            <div class="admin-filter-group">
+                                <label>등록일 시작</label>
+                                <input type="date" class="form-control" id="searchStartDate">
+                            </div>
+                            <div class="admin-filter-group">
+                                <label>등록일 종료</label>
+                                <input type="date" class="form-control" id="searchEndDate">
+                            </div>
+                            <div class="admin-filter-group">
+                                <label>마감여부</label>
+                                <select class="form-select" id="searchClosed">
+                                    <option value="">전체</option>
+                                    <option value="0">진행중</option>
+                                    <option value="1">마감</option>
+                                </select>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 검색 패널 -->
-                <div class="search-panel">
-                    <h5 class="mb-3"><i class="bi bi-search"></i> 참여자 검색</h5>
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label">구직번호</label>
-                            <input type="text" class="form-control form-control-modern" id="searchJobNo" placeholder="구직번호 입력">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">참여자명</label>
-                            <input type="text" class="form-control form-control-modern" id="searchName" placeholder="이름 입력">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">지점</label>
-                            <select class="form-control form-control-modern" id="searchBranch">
-                                <option value="">전체</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">진행단계</label>
-                            <select class="form-control form-control-modern" id="searchStatus">
-                                <option value="">전체</option>
-                                <option value="IAP전">IAP전</option>
-                                <option value="IAP후">IAP후</option>
-                                <option value="취업">취업</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">등록일 (시작)</label>
-                            <input type="date" class="form-control form-control-modern" id="searchStartDate">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">등록일 (종료)</label>
-                            <input type="date" class="form-control form-control-modern" id="searchEndDate">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">마감여부</label>
-                            <select class="form-control form-control-modern" id="searchClosed">
-                                <option value="">전체</option>
-                                <option value="0">진행중</option>
-                                <option value="1">마감</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 d-flex align-items-end">
-                            <button class="btn btn-light w-100" onclick="searchParticipants()">
-                                <i class="bi bi-search"></i> 검색
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 액션 버튼 -->
-                <div class="row mb-3">
-                    <div class="col-12 text-end">
-                        <button class="btn btn-primary" onclick="openAddModal()">
-                            <i class="bi bi-plus-circle"></i> 참여자 추가
-                        </button>
-                        <button class="btn btn-success" onclick="exportToExcel()">
-                            <i class="bi bi-file-earmark-excel"></i> 엑셀 다운로드
-                        </button>
-                    </div>
-                </div>
-
                 <!-- 참여자 목록 테이블 -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="table-modern">
-                            <table id="participantTable" class="table table-hover mb-0">
-                                <thead>
-                                <tr>
-                                    <th>구직번호</th>
-                                    <th>참여자명</th>
-                                    <th>생년월일</th>
-                                    <th>성별</th>
-                                    <th>지점</th>
-                                    <th>전담자</th>
-                                    <th>진행단계</th>
-                                    <th>등록일</th>
-                                    <th>마감여부</th>
-                                    <th>액션</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="admin-table-card">
+                    <div class="table-responsive">
+                        <table id="participantTable" class="table admin-data-table mb-0">
+                            <thead>
+                            <tr>
+                                <th class="col-check"><input type="checkbox" class="form-check-input" id="selectAll"></th>
+                                <th>구직번호</th>
+                                <th>참여자명</th>
+                                <th>생년월일</th>
+                                <th>성별</th>
+                                <th>지점</th>
+                                <th>상담사</th>
+                                <th>진행단계</th>
+                                <th>등록일</th>
+                                <th>마감여부</th>
+                                <th>액션</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -195,123 +235,48 @@
 </div>
 <!--end::App Wrapper-->
 
-<!-- 참여자 추가/수정 모달 -->
-<div class="modal fade" id="participantModal" tabindex="-1" aria-labelledby="participantModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="participantModalLabel">참여자 정보</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="participantForm">
-                    <div class="row g-3">
-                        <!-- 기본 정보 -->
-                        <div class="col-12">
-                            <h6 class="fw-bold text-primary border-bottom pb-2">기본 정보</h6>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">구직번호 <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="jobNo" name="구직번호" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">참여자명 <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="participantName" name="참여자" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">생년월일</label>
-                            <input type="date" class="form-control" id="birthDate" name="생년월일">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">성별</label>
-                            <select class="form-control" id="gender" name="성별">
-                                <option value="">선택</option>
-                                <option value="남">남</option>
-                                <option value="여">여</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">지점</label>
-                            <select class="form-control" id="branch" name="지점">
-                                <option value="">선택</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">모집경로</label>
-                            <input type="text" class="form-control" id="recruitPath" name="모집경로">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">참여유형</label>
-                            <input type="text" class="form-control" id="participationType" name="참여유형">
-                        </div>
-
-                        <!-- 학력 및 경력 -->
-                        <div class="col-12 mt-4">
-                            <h6 class="fw-bold text-primary border-bottom pb-2">학력 및 경력</h6>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">학력</label>
-                            <input type="text" class="form-control" id="education" name="학력">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">경력</label>
-                            <input type="text" class="form-control" id="career" name="경력">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">특정계층</label>
-                            <input type="text" class="form-control" id="specialClass" name="특정계층">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">취업역량</label>
-                            <input type="text" class="form-control" id="employmentCapacity" name="취업역량">
-                        </div>
-
-                        <!-- 상담 정보 -->
-                        <div class="col-12 mt-4">
-                            <h6 class="fw-bold text-primary border-bottom pb-2">상담 정보</h6>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">전담자 계정</label>
-                            <input type="text" class="form-control" id="counselorAccount" name="전담자_계정">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">진행단계</label>
-                            <select class="form-control" id="progressStage" name="진행단계">
-                                <option value="">선택</option>
-                                <option value="IAP 전">IAP전</option>
-                                <option value="IAP 후">IAP후</option>
-                                <option value="취업">취업</option>
-                            </select>
-                        </div>
-
-                        <!-- 희망 정보 -->
-                        <div class="col-12 mt-4">
-                            <h6 class="fw-bold text-primary border-bottom pb-2">희망 정보</h6>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">희망직무</label>
-                            <input type="text" class="form-control" id="desiredJob" name="희망직무">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">희망급여</label>
-                            <input type="text" class="form-control" id="desiredSalary" name="희망급여">
-                        </div>
-
-                        <!-- 기타 정보 -->
-                        <div class="col-12 mt-4">
-                            <h6 class="fw-bold text-primary border-bottom pb-2">기타 정보</h6>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">메모</label>
-                            <textarea class="form-control" id="memo" name="메모" rows="3"></textarea>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                <button type="button" class="btn btn-primary" onclick="saveParticipant()">저장</button>
-            </div>
+<!-- 참여자 상세 오프캔버스 -->
+<div class="offcanvas offcanvas-end admin-offcanvas" tabindex="-1" id="participantOffcanvas">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasTitle">참여자 상세</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <!-- 기본 정보 -->
+        <div class="participant-detail-section">
+            <h6><i class="bi bi-person"></i> 기본 정보</h6>
+            <div class="detail-row"><span class="detail-label">구직번호</span><span class="detail-value" id="detailJobNo"></span></div>
+            <div class="detail-row"><span class="detail-label">참여자명</span><span class="detail-value" id="detailName"></span></div>
+            <div class="detail-row"><span class="detail-label">생년월일</span><span class="detail-value" id="detailBirthDate"></span></div>
+            <div class="detail-row"><span class="detail-label">성별</span><span class="detail-value" id="detailGender"></span></div>
+            <div class="detail-row"><span class="detail-label">지점</span><span class="detail-value" id="detailBranch"></span></div>
+            <div class="detail-row"><span class="detail-label">모집경로</span><span class="detail-value" id="detailRecruitPath"></span></div>
+            <div class="detail-row"><span class="detail-label">참여유형</span><span class="detail-value" id="detailParticipationType"></span></div>
+        </div>
+        <!-- 학력 및 경력 -->
+        <div class="participant-detail-section">
+            <h6><i class="bi bi-mortarboard"></i> 학력 및 경력</h6>
+            <div class="detail-row"><span class="detail-label">학력</span><span class="detail-value" id="detailEducation"></span></div>
+            <div class="detail-row"><span class="detail-label">경력</span><span class="detail-value" id="detailCareer"></span></div>
+            <div class="detail-row"><span class="detail-label">특정계층</span><span class="detail-value" id="detailSpecialClass"></span></div>
+            <div class="detail-row"><span class="detail-label">취업역량</span><span class="detail-value" id="detailEmploymentCapacity"></span></div>
+        </div>
+        <!-- 상담 정보 -->
+        <div class="participant-detail-section">
+            <h6><i class="bi bi-chat-dots"></i> 상담 정보</h6>
+            <div class="detail-row"><span class="detail-label">상담사</span><span class="detail-value" id="detailCounselor"></span></div>
+            <div class="detail-row"><span class="detail-label">진행단계</span><span class="detail-value" id="detailProgressStage"></span></div>
+        </div>
+        <!-- 희망 정보 -->
+        <div class="participant-detail-section">
+            <h6><i class="bi bi-star"></i> 희망 정보</h6>
+            <div class="detail-row"><span class="detail-label">희망직무</span><span class="detail-value" id="detailDesiredJob"></span></div>
+            <div class="detail-row"><span class="detail-label">희망급여</span><span class="detail-value" id="detailDesiredSalary"></span></div>
+        </div>
+        <!-- 메모 -->
+        <div class="participant-detail-section" style="border-bottom: none;">
+            <h6><i class="bi bi-journal-text"></i> 메모</h6>
+            <p class="detail-value" id="detailMemo" style="white-space: pre-wrap;"></p>
         </div>
     </div>
 </div>
@@ -325,11 +290,11 @@
         integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
 <script src="/js/adminlte.js"></script>
 
-<script src="/js/adminJs/adminParticipantManagement_0.0.1.js"></script>
+<script src="/js/adminJs/adminParticipantManagement_0.0.3.js"></script>
 <!--end::Script-->
 
 <script>
-    // OverlayScrollbars 초기화 (adminParticipantManagement_0.0.1.js 이후 실행)
+    // OverlayScrollbars 초기화
     const {
         OverlayScrollbars: OS2
     } = OverlayScrollbarsGlobal;

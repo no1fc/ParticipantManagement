@@ -21,7 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./mvnw clean compile
 ```
 
-Output WAR: `target/JobmoaProject-1.3.3-SNAPSHOT.war`
+Output WAR: `target/JobmoaProject-1.4.0-SNAPSHOT.war`
 
 ## Technology Stack
 
@@ -30,11 +30,13 @@ Output WAR: `target/JobmoaProject-1.3.3-SNAPSHOT.war`
 - **MyBatis 3.5.6** for SQL (XML mappers, no Spring Data)
 - **MSSQL Server** as the primary database (T-SQL syntax; Korean column names are common)
 - **Redis (Jedis)** for caching with Jackson serialization
-- **Google Gemini AI** (`google-genai`) for AI-powered job recommendation
+- **Google Gemini AI** (`google-genai` SDK v1.47.0) for AI-powered job recommendation
 - **Apache POI** for Excel generation
 - **Spring WebSocket** with STOMP/SockJS
 - **Lombok** for boilerplate reduction
 - **OkHttp** for external HTTP calls
+- **AdminLTE 3** (Bootstrap 4) for frontend UI framework
+- **jQuery** + SweetAlert2 + ApexCharts for frontend interactivity
 
 ## Project Structure
 
@@ -62,13 +64,14 @@ src/main/java/com/jobmoa/app/
     └── view/jobinfo/               # jobinfoMainController, jobinfoApiController
 
 src/main/resources/
-├── application.properties          # DB, Redis, Mail, Gemini API config (dev/default)
-├── production.application.properties # Production overrides (loaded by RootConfig @PropertySource)
+├── application.properties          # Config with env var placeholders (${JDBC_URL}, etc.)
+├── .env                            # Actual credentials (git-ignored, loaded via @PropertySource)
 ├── sql-map-config.xml              # MyBatis type aliases + mapper registration
-└── mappings/*.xml                  # MyBatis SQL statements (15 mapper files)
+└── mappings/*.xml                  # MyBatis SQL statements
 
 src/main/webapp/
 ├── WEB-INF/views/                  # JSP views (participantMain, admin/, chatBot/, etc.)
+├── WEB-INF/tags/                   # Custom JSP tags (gnb.tag, adminGnb.tag, footer.tag, etc.)
 ├── js/                             # JavaScript files (versioned: {feature}_0.0.X.js)
 └── css/                            # CSS files with module subdirectories
 ```
@@ -90,45 +93,65 @@ src/main/webapp/
 - `view/` — `@Controller` classes, one per feature domain
 
 **Service/DAO pattern:**
-- Services follow interface + `*Impl` pattern
-- DAOs use `SqlSessionTemplate` directly with XML mapper namespaces
+- Services follow interface + `*Impl` pattern with `@Service`
+- DAOs use `@Repository` + `SqlSessionTemplate` (bean name `mybatis`) with XML mapper namespaces
+- DAO namespace constant: `private static final String ns = "ClassNameDAO.";` — must match XML `<mapper namespace="ClassNameDAO">`
 - No Spring Data repositories — all SQL is in `src/main/resources/mappings/*.xml`
 
+**Controller naming:**
+- Page controllers: `*Controller` with `@Controller`, return JSP view names
+- REST API: `*ApiController` with `@RestController`, return JSON
+- Async: `*AsyncController` with `@RestController`
+
 **URL mapping patterns (mixed):**
-- Legacy: `.do` suffix patterns (e.g., `/login.do`, `/participantMain.do`)
+- Legacy: `.do` suffix patterns (e.g., `/login.do`, `/participantMain.do`) — do NOT refactor to REST unless explicitly asked
 - Modern: REST-style `@GetMapping`/`@PostMapping` (e.g., `/admin`, `/admin/users`)
-- Async controllers use `@RestController` with `/...Async` paths
 
 **AOP Transactions:**
 - Declared in `RootConfig.java` via `AspectJExpressionPointcut`
-- Pointcut: `execution(* com.jobmoa.app.CounselMain.biz.*.*Impl.*(..))`
+- CounselMain pointcut: `execution(* com.jobmoa.app.CounselMain.biz..*.*Impl.*(..))` (recursive `..`)
+- jobPlacement pointcut: `execution(* com.jobmoa.app.jobPlacement.biz.*.*Impl.*(..))` (single level `*`)
 - Methods prefixed `select*` are read-only; all others use `PROPAGATION_REQUIRED`
-- Separate transaction advisor exists for `jobPlacement` package
+- **Do NOT use `@Transactional` annotations** — AOP handles all transaction boundaries
 
 **Authentication:**
 - `LoginInterceptor` checks `HTTPSession` attribute `JOBMOA_LOGIN_DATA` (a `LoginBean`)
-- Excludes `/login.do`, `/jobinfo/**`, static resources, and WebSocket endpoints
-- Role/branch access data comes from `MemberDTO`
+- Excludes: `/login.do`, `/jobinfo/**`, `/recruitmentInformation/**`, `/jobPlacement/**`, `/Starbucks/**`, static resources, WebSocket endpoints
 
 **MyBatis mapper convention:**
 - Each DAO class has a corresponding `*-mapping.xml` in `mappings/`
 - The XML `namespace` matches the DAO class name
-- Mapper files named by module: `{Module}-mapping.xml` (e.g., `Participant-mapping.xml`)
-- All mappers must be registered in `sql-map-config.xml`
+- Mapper files named: `{Module}-mapping.xml` (e.g., `Participant-mapping.xml`)
+- All mappers must be registered in `sql-map-config.xml` (both `<typeAliases>` for DTOs and `<mappers>` for XML files)
+- **T-SQL syntax only** (MSSQL): `TOP N`, `IIF()`, `ISNULL()`, `GETDATE()`, string concat with `+`
+- **Korean column names are intentional** (government schema) — do not rename to English
+- Use `#{param}` for parameters (PreparedStatement). Never use `${param}` (SQL injection risk)
+- Wrap comparison operators (`<=`, `>=`) in `<![CDATA[]]>`
 
 **Gemini AI integration (`CounselMain/biz/recommend/`):**
 - `GeminiApiService` uses Google Generative AI SDK (`com.google.genai.Client`) for job recommendation
 - `ParticipantJobRecommendServiceImpl` orchestrates the full recommendation flow
 - `RecommendConcurrencyManager` handles concurrent recommendation requests
-- Model configured via `gemini.api.model` property; client bean initialized in `RootConfig.java`
-- Recommendation results stored in DB via `ParticipantJobRecommendDAO` (mapper: `ParticipantJobRecommend-mapping.xml`)
+- Default model: `gemma-4-31b-it` (configurable via `gemini.api.model`); client bean in `RootConfig.java`
 
 ## Key Configuration
 
-**Property loading:** `RootConfig.java` uses `@PropertySource("classpath:production.application.properties")` — so production config is loaded from `production.application.properties`, while `application.properties` provides Spring Boot defaults (port, session, etc.). Both files are tracked in git — do not add new secrets without team awareness.
+**Environment variables:** `application.properties` contains `${VAR}` placeholders. Actual credentials go in `src/main/resources/.env` (git-ignored). `RootConfig.java` loads `.env` via `@PropertySource(value = "classpath:.env", ignoreResourceNotFound = true)`.
+
+Required env vars: `JDBC_URL`, `JDBC_USERNAME`, `JDBC_PASSWORD`, `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `GEMINI_API_KEY`, `WORK24_API_KEY`, `KAKAO_JAVASCRIPT_KEY`.
 
 Server runs on port `8088`. Session timeout is 6 hours (`21600` seconds).
 
 WebSocket endpoints: `/ws`, `/ws-notification`; message broker prefixes: `/topic` (subscribe), `/app` (send).
 
 ViewResolver: prefix `/WEB-INF/` + suffix `.jsp`.
+
+## Conventions & Prohibitions
+
+- **No JPA/Hibernate/Spring Data** — MyBatis + XML mappers only
+- **No React/Vue/Angular** — jQuery + JSP stack only; no npm/webpack/vite
+- **All UI text in Korean** — no i18n or English translation
+- **Lombok required** — use `@Data`/`@Getter`/`@Setter` for DTOs, `@Slf4j` for logging
+- **JS/CSS versioning** — files named `{feature}_0.0.X.js` / `{feature}_0.0.X.css`; bump patch version on changes
+- **Frontend libs** — jQuery `$.ajax()` for AJAX, SweetAlert2 for alerts, ApexCharts for charts
+- **Custom JSP tags** — `gnb.tag`, `adminGnb.tag`, `footer.tag`, `pagination.tag` in `/WEB-INF/tags/`

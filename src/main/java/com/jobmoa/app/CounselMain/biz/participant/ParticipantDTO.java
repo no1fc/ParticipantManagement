@@ -124,6 +124,13 @@ public class ParticipantDTO {
     private String searchStartDate;
     private String searchEndDate;
 
+    //Excel 시트 전용 보조 필드
+    private String excelCategoryLarge;    // 희망직무 시트 카테고리_대
+    private String excelCategoryMid;      // 희망직무 시트 카테고리_중
+    private String excelWishJob;          // 희망직무 시트 희망직무
+    private String excelCertificateName;  // 자격증 시트 자격증명
+    private String excelTrainingName;     // 직업훈련 시트 직업훈련명
+
     // 이력서 요청 관련 필드들
     private String companyName; // 기업명
     private String contactName; // 담당자명

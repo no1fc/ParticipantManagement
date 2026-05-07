@@ -403,7 +403,7 @@
         ISNULL(A.IAP5개월여부, '') AS participantISIAP5Month,
         ISNULL(A.IAP5개월일자, '') AS participantIAP5Month,
         ISNULL(A.수당지급일, '') AS participantAllowanceDate,
---         ISNULL(A.희망직무, '') AS participantJobWant,
+        ISNULL(WISH1.희망직무, '') AS participantJobWant,
         ISNULL(
         IIF(ISNUMERIC(A.희망급여) = 1, ROUND(CONVERT(DECIMAL(10,2), A.희망급여), 0), '0'), '0'
         ) AS participantSalWant,
@@ -430,6 +430,12 @@
         FROM J_참여자관리 A
         LEFT JOIN J_참여자관리_로그인정보 B
         ON A.전담자_계정 = B.아이디
+        OUTER APPLY (
+            SELECT TOP 1 W.희망직무
+            FROM J_참여자관리_희망직무 W
+            WHERE W.구직번호 = A.구직번호
+            ORDER BY W.희망순위 ASC, W.PK ASC
+        ) WISH1
         WHERE
         <include refid="participantAuthCondition"/> <!-- sql 조회 아이디 및 권한 관리 -->
         <if test="searchOption != null">
@@ -439,6 +445,74 @@
         <include refid="participantRowNumberCondition"/> <!-- sql 조회 정렬 -->
     </select>
     <!-- 지점 관리자 및 개인 참여자 전체 데이터 엑셀 다운 쿼리 끝 -->
+
+    <!-- 엑셀 희망직무 시트 쿼리 시작 -->
+    <select id="participantExcelWishJob" resultType="participant">
+        SELECT
+            A.구직번호 AS participantJobNo,
+            ISNULL(B.이름, '') AS participantUserName,
+            ISNULL(A.참여자, '') AS participantPartic,
+            ISNULL(C.직무_카테고리_대, '') AS excelCategoryLarge,
+            ISNULL(C.직무_카테고리_중, '') AS excelCategoryMid,
+            ISNULL(C.희망직무, '') AS excelWishJob
+        FROM J_참여자관리 A
+        LEFT JOIN J_참여자관리_로그인정보 B
+            ON A.전담자_계정 = B.아이디
+        INNER JOIN J_참여자관리_희망직무 C
+            ON A.구직번호 = C.구직번호
+        WHERE
+            <include refid="participantAuthCondition"/>
+            <if test="searchOption != null">
+                <include refid="participantSearchCondition"/>
+                <include refid="participantSearchFiterCondition"/>
+            </if>
+        ORDER BY A.구직번호 DESC, C.희망순위 ASC, C.PK ASC
+    </select>
+    <!-- 엑셀 희망직무 시트 쿼리 끝 -->
+
+    <!-- 엑셀 자격증 시트 쿼리 시작 -->
+    <select id="participantExcelCertificate" resultType="participant">
+        SELECT
+            A.구직번호 AS participantJobNo,
+            ISNULL(B.이름, '') AS participantUserName,
+            ISNULL(A.참여자, '') AS participantPartic,
+            ISNULL(C.자격증, '') AS excelCertificateName
+        FROM J_참여자관리 A
+        LEFT JOIN J_참여자관리_로그인정보 B
+            ON A.전담자_계정 = B.아이디
+        INNER JOIN J_참여자관리_자격증 C
+            ON A.구직번호 = C.구직번호
+        WHERE
+            <include refid="participantAuthCondition"/>
+            <if test="searchOption != null">
+                <include refid="participantSearchCondition"/>
+                <include refid="participantSearchFiterCondition"/>
+            </if>
+        ORDER BY A.구직번호 DESC, C.자격증번호 ASC
+    </select>
+    <!-- 엑셀 자격증 시트 쿼리 끝 -->
+
+    <!-- 엑셀 직업훈련 시트 쿼리 시작 -->
+    <select id="participantExcelTraining" resultType="participant">
+        SELECT
+            A.구직번호 AS participantJobNo,
+            ISNULL(B.이름, '') AS participantUserName,
+            ISNULL(A.참여자, '') AS participantPartic,
+            ISNULL(C.직업훈련, '') AS excelTrainingName
+        FROM J_참여자관리 A
+        LEFT JOIN J_참여자관리_로그인정보 B
+            ON A.전담자_계정 = B.아이디
+        INNER JOIN J_참여자관리_직업훈련 C
+            ON A.구직번호 = C.구직번호
+        WHERE
+            <include refid="participantAuthCondition"/>
+            <if test="searchOption != null">
+                <include refid="participantSearchCondition"/>
+                <include refid="participantSearchFiterCondition"/>
+            </if>
+        ORDER BY A.구직번호 DESC, C.직업훈련번호 ASC
+    </select>
+    <!-- 엑셀 직업훈련 시트 쿼리 끝 -->
 
     <!-- 데이터 이전 쿼리 시작 -->
     <select id="transferSelect" resultType="participant">

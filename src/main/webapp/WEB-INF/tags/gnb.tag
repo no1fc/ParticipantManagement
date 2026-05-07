@@ -315,6 +315,11 @@
                                     <small><p>자격증/직업훈련 관리</p></small>
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a href="/admin/excel-builder" class="nav-link">
+                                    <small><p>엑셀 다운로드 설정</p></small>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 </c:if>

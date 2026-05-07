@@ -244,12 +244,65 @@ public class AdminServiceImpl implements AdminService {
 
     // ===== 대시보드 KPI =====
     @Override
-    public Map<String, Object> getDashboardData() {
+    public Map<String, Object> getDashboardData(AdminDTO dto) {
         Map<String, Object> result = new HashMap<>();
-        AdminDTO kpi = adminDAO.selectDashboardKpi();
-        List<AdminDTO> branchStats = adminDAO.selectBranchParticipantStats();
+        AdminDTO kpi = adminDAO.selectDashboardKpi(dto);
+        List<AdminDTO> branchStats = adminDAO.selectBranchParticipantStats(dto);
         result.put("kpi", kpi);
         result.put("branchStats", branchStats);
         return result;
+    }
+
+    // ===== 상담사 목록 =====
+    @Override
+    public List<AdminDTO> getCounselorList(AdminDTO dto) {
+        return adminDAO.selectCounselorsByBranch(dto);
+    }
+
+    // ===== 사용자 보조 =====
+    @Override
+    public int getNextMemberNo() {
+        return adminDAO.selectNextMemberNo();
+    }
+
+    @Override
+    public boolean checkUserIdExists(AdminDTO dto) {
+        return adminDAO.selectUserIdExists(dto) > 0;
+    }
+
+    // ===== 참여자 Excel =====
+    @Override
+    public List<AdminDTO> getParticipantExcelList(AdminDTO dto) {
+        return adminDAO.selectParticipantExcelList(dto);
+    }
+
+    // ===== 상담사별 통계 =====
+    @Override
+    public List<AdminDTO> getPlacementStatsByCounselor(AdminDTO dto) {
+        return adminDAO.selectPlacementStatsByCounselor(dto);
+    }
+
+    // ===== 참여자 Excel 전체 컬럼 =====
+    @Override
+    public List<AdminDTO> getParticipantExcelFullList(AdminDTO dto) {
+        return adminDAO.selectParticipantExcelFullList(dto);
+    }
+
+    // ===== Excel 빌더 - 희망직무 =====
+    @Override
+    public List<AdminDTO> getExcelWishJobList(AdminDTO dto) {
+        return adminDAO.selectExcelWishJobList(dto);
+    }
+
+    // ===== Excel 빌더 - 자격증 =====
+    @Override
+    public List<AdminDTO> getExcelCertificateList(AdminDTO dto) {
+        return adminDAO.selectExcelCertificateList(dto);
+    }
+
+    // ===== Excel 빌더 - 직업훈련 =====
+    @Override
+    public List<AdminDTO> getExcelTrainingList(AdminDTO dto) {
+        return adminDAO.selectExcelTrainingList(dto);
     }
 }

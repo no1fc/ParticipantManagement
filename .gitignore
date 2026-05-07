@@ -39,8 +39,8 @@ src/main/resources/SQL/*.sql
 
 ### Sensitive Configuration Files ###
 # application.properties → 환경변수 placeholder만 포함 (커밋 대상)
-# 실제 credential이 담긴 파일은 반드시 제외
-src/main/resources/production.application.properties
+# 실제 credential이 담긴 .env 파일은 반드시 제외
+src/main/resources/.env
 .env
 .env.*
 

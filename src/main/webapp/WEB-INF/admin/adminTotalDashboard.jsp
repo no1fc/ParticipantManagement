@@ -92,6 +92,41 @@
                     </div>
                 </div>
 
+                <!-- 검색 패널 -->
+                <div class="search-panel">
+                    <h5 class="mb-3"><i class="bi bi-search"></i> 대시보드 필터</h5>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">지점</label>
+                            <select class="form-control form-control-modern" id="searchBranch">
+                                <option value="">전체</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">상담사</label>
+                            <select class="form-control form-control-modern" id="searchCounselor">
+                                <option value="">전체</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">시작일</label>
+                            <input type="date" class="form-control form-control-modern" id="searchStartDate">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">종료일</label>
+                            <input type="date" class="form-control form-control-modern" id="searchEndDate">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button class="btn btn-light w-100 me-2" onclick="searchDashboard()">
+                                <i class="bi bi-search"></i> 검색
+                            </button>
+                            <button class="btn btn-outline-secondary w-100" onclick="resetSearch()">
+                                <i class="bi bi-arrow-counterclockwise"></i> 초기화
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- KPI 카드 섹션 -->
                 <div class="row g-3 mb-5">
                     <div class="col-md-4">
@@ -152,6 +187,38 @@
                     </div>
                 </div>
 
+                <!-- 상담사별 실적 통계 테이블 -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card-modern border-0 shadow-sm">
+                            <div class="card-header bg-transparent">
+                                <h5 class="card-title fw-bold mb-0">
+                                    <i class="bi bi-table text-brand"></i> 상담사별 실적 통계
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-modern">
+                                    <table id="placementStatsTable" class="table table-hover mb-0">
+                                        <thead>
+                                        <tr>
+                                            <th>지점</th>
+                                            <th>상담사ID</th>
+                                            <th>상담사명</th>
+                                            <th>종료자수</th>
+                                            <th>취업자수</th>
+                                            <th>알선취업자수</th>
+                                            <th>취업률</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 상태별 참여자 분포 -->
                 <div class="row mb-4">
                     <!-- 상태별 참여자 분포 -->
@@ -204,7 +271,7 @@
 <script src="/js/adminlte.js"></script>
 
 <!-- 대시보드 전용 JS -->
-<script src="/js/adminJs/adminTotalDashboard_0.0.1.js"></script>
+<script src="/js/adminJs/adminTotalDashboard_0.0.2.js"></script>
 <!--end::Script-->
 
 </body>

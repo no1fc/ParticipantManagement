@@ -244,13 +244,66 @@ public class AdminDAO {
     }
 
     // ===== 대시보드 KPI =====
-    public AdminDTO selectDashboardKpi() {
+    public AdminDTO selectDashboardKpi(AdminDTO dto) {
         log.info("AdminDAO selectDashboardKpi");
-        return sqlSession.selectOne(ns + "selectDashboardKpi");
+        return sqlSession.selectOne(ns + "selectDashboardKpi", dto);
     }
 
-    public List<AdminDTO> selectBranchParticipantStats() {
+    public List<AdminDTO> selectBranchParticipantStats(AdminDTO dto) {
         log.info("AdminDAO selectBranchParticipantStats");
-        return sqlSession.selectList(ns + "selectBranchParticipantStats");
+        return sqlSession.selectList(ns + "selectBranchParticipantStats", dto);
+    }
+
+    // ===== 상담사 목록 =====
+    public List<AdminDTO> selectCounselorsByBranch(AdminDTO dto) {
+        log.info("AdminDAO selectCounselorsByBranch");
+        return sqlSession.selectList(ns + "selectCounselorsByBranch", dto);
+    }
+
+    // ===== 사용자 보조 =====
+    public int selectNextMemberNo() {
+        log.info("AdminDAO selectNextMemberNo");
+        return sqlSession.selectOne(ns + "selectNextMemberNo");
+    }
+
+    public int selectUserIdExists(AdminDTO dto) {
+        log.info("AdminDAO selectUserIdExists userId={}", dto.getUserId());
+        return sqlSession.selectOne(ns + "selectUserIdExists", dto);
+    }
+
+    // ===== 참여자 Excel =====
+    public List<AdminDTO> selectParticipantExcelList(AdminDTO dto) {
+        log.info("AdminDAO selectParticipantExcelList");
+        return sqlSession.selectList(ns + "selectParticipantExcelList", dto);
+    }
+
+    // ===== 상담사별 통계 =====
+    public List<AdminDTO> selectPlacementStatsByCounselor(AdminDTO dto) {
+        log.info("AdminDAO selectPlacementStatsByCounselor");
+        return sqlSession.selectList(ns + "selectPlacementStatsByCounselor", dto);
+    }
+
+    // ===== 참여자 Excel 전체 컬럼 =====
+    public List<AdminDTO> selectParticipantExcelFullList(AdminDTO dto) {
+        log.info("AdminDAO selectParticipantExcelFullList");
+        return sqlSession.selectList(ns + "selectParticipantExcelFullList", dto);
+    }
+
+    // ===== Excel 빌더 - 희망직무 =====
+    public List<AdminDTO> selectExcelWishJobList(AdminDTO dto) {
+        log.info("AdminDAO selectExcelWishJobList");
+        return sqlSession.selectList(ns + "selectExcelWishJobList", dto);
+    }
+
+    // ===== Excel 빌더 - 자격증 =====
+    public List<AdminDTO> selectExcelCertificateList(AdminDTO dto) {
+        log.info("AdminDAO selectExcelCertificateList");
+        return sqlSession.selectList(ns + "selectExcelCertificateList", dto);
+    }
+
+    // ===== Excel 빌더 - 직업훈련 =====
+    public List<AdminDTO> selectExcelTrainingList(AdminDTO dto) {
+        log.info("AdminDAO selectExcelTrainingList");
+        return sqlSession.selectList(ns + "selectExcelTrainingList", dto);
     }
 }
