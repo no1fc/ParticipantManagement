@@ -189,6 +189,11 @@
                                 <small><p>신규 참여자</p></small>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="./schedule.login" class="nav-link">
+                                <small><p>상담 일정</p></small>
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 <!--end::상담관리-->

@@ -96,6 +96,8 @@
     <link rel="stylesheet" href="/css/participantCss/dashBoardUi_0.0.2.css">
     <!-- Modern Design System -->
     <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
+    <!-- 상담일정 위젯 -->
+    <link href="/css/scheduleCss/schedule_0.0.1.css" rel="stylesheet">
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 
@@ -287,6 +289,22 @@
                                 <div class="h-100 d-flex flex-column justify-content-between">
                                     <canvas id="ex-chart-bar1" style="height:30vh; width:50vw;"></canvas>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 세 번째 줄: 금일 상담일정 위젯 -->
+                <div class="row g-4 mt-1">
+                    <!-- 금일 상담일정 위젯 -->
+                    <div class="col-lg-4">
+                        <div class="today-schedule-widget">
+                            <div class="today-schedule-header">
+                                <h6><i class="fas fa-calendar-day mr-1"></i>오늘 상담일정</h6>
+                                <span class="count-badge" id="todayScheduleCount">0건</span>
+                            </div>
+                            <div class="today-schedule-body" id="todayScheduleBody">
+                                <div class="today-schedule-empty">로딩 중...</div>
                             </div>
                         </div>
                     </div>
@@ -722,5 +740,38 @@
         }
     }
 </script>
+
+<%-- 금일 상담일정 위젯 Start --%>
+<script>
+    $(document).ready(function () {
+        // 금일 상담일정 위젯
+        $.ajax({
+            url: '/api/schedule/today',
+            type: 'GET',
+            success: function(res) {
+                if (res.success) {
+                    $('#todayScheduleCount').text(res.count + '건');
+                    if (res.data.length === 0) {
+                        $('#todayScheduleBody').html('<div class="today-schedule-empty">오늘 예정된 상담일정이 없습니다.</div>');
+                        return;
+                    }
+                    var badgeMap = {'대면상담':'badge-face','전화상담':'badge-phone','화상상담':'badge-video','기타':'badge-etc'};
+                    var html = res.data.map(function(s) {
+                        var badge = badgeMap[s.scheduleType] || 'badge-etc';
+                        return '<div class="today-schedule-item" onclick="location.href=\'./schedule.login\'">'
+                            + '<div class="time">' + s.startTime + '</div>'
+                            + '<div class="info"><div class="p-name">' + s.participantName + '</div>'
+                            + '<div class="p-type"><span class="badge-schedule ' + badge + '">' + s.scheduleType + '</span></div></div></div>';
+                    }).join('');
+                    $('#todayScheduleBody').html(html);
+                }
+            },
+            error: function() {
+                $('#todayScheduleBody').html('<div class="today-schedule-empty">일정을 불러올 수 없습니다.</div>');
+            }
+        });
+    });
+</script>
+<%-- 금일 상담일정 위젯 End --%>
 
 </html>
