@@ -62,6 +62,15 @@
                     handleGnbNotification(notification);
                 }
             );
+            // 일정 변경 알림 (관리자가 내 일정을 수정/삭제했을 때)
+            _stompClient.subscribe(
+                '/topic/schedule-modified/' + JOBMOA_USER_ID,
+                function(msg) {
+                    var notification = JSON.parse(msg.body);
+                    notification._notifType = 'schedule-modified';
+                    handleGnbNotification(notification);
+                }
+            );
         }, function() {
             _wsConnected = false;
             _stompClient = null;
@@ -77,6 +86,8 @@
         var notifType;
         if (notification._notifType === 'schedule-alert') {
             notifType = 'warning';
+        } else if (notification._notifType === 'schedule-modified') {
+            notifType = 'info';
         } else if (notification._notifType === 'resume-request') {
             notifType = 'info';
         } else {

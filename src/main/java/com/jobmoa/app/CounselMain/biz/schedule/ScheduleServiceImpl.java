@@ -82,4 +82,29 @@ public class ScheduleServiceImpl implements ScheduleService {
     public List<ScheduleDTO> getAlertTargets() {
         return scheduleDAO.selectAlertTargets();
     }
+
+    // ===== 2단계: 관리자 지점 일정 통합 조회 =====
+
+    @Override
+    public List<ScheduleDTO> getBranchScheduleList(ScheduleDTO dto) {
+        return scheduleDAO.selectScheduleByBranch(dto);
+    }
+
+    @Override
+    public ScheduleDTO getScheduleStats(ScheduleDTO dto) {
+        return scheduleDAO.selectScheduleStats(dto);
+    }
+
+    @Override
+    public List<ScheduleDTO> getCounselorsByBranch(ScheduleDTO dto) {
+        return scheduleDAO.selectCounselorsByBranch(dto);
+    }
+
+    // ===== 3단계: 공개 일정 인증 =====
+
+    @Override
+    public boolean selectVerifyPublicAccess(ScheduleDTO dto) {
+        int count = scheduleDAO.selectVerifyPublicAccess(dto);
+        return count > 0;
+    }
 }

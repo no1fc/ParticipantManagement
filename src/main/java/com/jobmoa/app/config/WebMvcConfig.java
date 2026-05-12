@@ -31,6 +31,7 @@ import java.util.List;
     "com.jobmoa.app.CounselMain.view.mypage",
     "com.jobmoa.app.CounselMain.view.adminpage",
     "com.jobmoa.app.CounselMain.view.schedule",
+    "com.jobmoa.app.CounselMain.view.schedulePublic",
     "com.jobmoa.app.jobPlacement.view.jobPlacement",
     "com.jobmoa.app.jobPlacement.view.async",
     "com.jobmoa.app.jobPlacement.view.webSocket",
@@ -79,7 +80,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/recruitmentInformation/**", // 채용공고 검색 API (공개)
                         "/jobPlacement/**", // 참여자 정보 페이지
                         "/Starbucks",
-                        "/Starbucks/**"
+                        "/Starbucks/**",
+                        "/schedulePublic/**"   // 공개 일정 조회 (독립 인증)
                 );
     }
 

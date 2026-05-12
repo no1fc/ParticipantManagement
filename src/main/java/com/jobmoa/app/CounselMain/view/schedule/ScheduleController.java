@@ -23,4 +23,24 @@ public class ScheduleController {
         model.addAttribute("counselorName", login.getMemberUserName());
         return "views/schedule/schedulePage";
     }
+
+    @GetMapping("scheduleManager.login")
+    public String scheduleManagerPage(HttpSession session, Model model) {
+        log.info("GET /scheduleManager.login");
+        LoginBean login = (LoginBean) session.getAttribute("JOBMOA_LOGIN_DATA");
+        if (login == null) {
+            return "redirect:/login.do";
+        }
+
+        Boolean isManager = (Boolean) session.getAttribute("IS_MANAGER");
+        Boolean isBranchManager = (Boolean) session.getAttribute("IS_BRANCH_MANAGER");
+        if (!Boolean.TRUE.equals(isManager) && !Boolean.TRUE.equals(isBranchManager)) {
+            return "redirect:/schedule.login";
+        }
+
+        model.addAttribute("counselorId", login.getMemberUserID());
+        model.addAttribute("counselorName", login.getMemberUserName());
+        model.addAttribute("branch", login.getMemberBranch());
+        return "views/schedule/scheduleManagerPage";
+    }
 }

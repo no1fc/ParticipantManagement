@@ -35,4 +35,16 @@ public class ScheduleDTO {
     private String newDate;
     private String newStartTime;
     private String newEndTime;
+
+    // 지점 필터 (2단계: 관리자 통합 조회)
+    private String branch;
+
+    // 통계 결과 (2단계)
+    private Integer counselorCount;
+    private Integer weeklyCount;
+    private Integer todayCount;
+    private Integer monthlyCount;
+
+    // 공개 일정 인증용 (3단계)
+    private String uniqueNumber;
 }

@@ -68,4 +68,28 @@ public class ScheduleDAO {
         log.info("ScheduleDAO selectAlertTargets");
         return sqlSession.selectList(ns + "selectAlertTargets");
     }
+
+    // ===== 2단계: 관리자 지점 일정 통합 조회 =====
+
+    public List<ScheduleDTO> selectScheduleByBranch(ScheduleDTO dto) {
+        log.info("ScheduleDAO selectScheduleByBranch branch={}", dto.getBranch());
+        return sqlSession.selectList(ns + "selectScheduleByBranch", dto);
+    }
+
+    public ScheduleDTO selectScheduleStats(ScheduleDTO dto) {
+        log.info("ScheduleDAO selectScheduleStats branch={}", dto.getBranch());
+        return sqlSession.selectOne(ns + "selectScheduleStats", dto);
+    }
+
+    public List<ScheduleDTO> selectCounselorsByBranch(ScheduleDTO dto) {
+        log.info("ScheduleDAO selectCounselorsByBranch branch={}", dto.getBranch());
+        return sqlSession.selectList(ns + "selectCounselorsByBranch", dto);
+    }
+
+    // ===== 3단계: 공개 일정 인증 =====
+
+    public int selectVerifyPublicAccess(ScheduleDTO dto) {
+        log.info("ScheduleDAO selectVerifyPublicAccess branch={}", dto.getBranch());
+        return sqlSession.selectOne(ns + "selectVerifyPublicAccess", dto);
+    }
 }

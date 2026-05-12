@@ -23,4 +23,14 @@ public interface ScheduleService {
     List<ScheduleDTO> getTodaySchedule(ScheduleDTO dto);
 
     List<ScheduleDTO> getAlertTargets();
+
+    // 2단계: 관리자 지점 일정 통합 조회
+    List<ScheduleDTO> getBranchScheduleList(ScheduleDTO dto);
+
+    ScheduleDTO getScheduleStats(ScheduleDTO dto);
+
+    List<ScheduleDTO> getCounselorsByBranch(ScheduleDTO dto);
+
+    // 3단계: 공개 일정 인증
+    boolean selectVerifyPublicAccess(ScheduleDTO dto);
 }

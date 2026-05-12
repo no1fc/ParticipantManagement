@@ -194,6 +194,13 @@
                                 <small><p>상담 일정</p></small>
                             </a>
                         </li>
+                        <c:if test="${IS_BRANCH_MANAGER or IS_MANAGER}">
+                        <li class="nav-item">
+                            <a href="./scheduleManager.login" class="nav-link">
+                                <small><p>지점 일정 통합 조회</p></small>
+                            </a>
+                        </li>
+                        </c:if>
                     </ul>
                 </li>
                 <!--end::상담관리-->

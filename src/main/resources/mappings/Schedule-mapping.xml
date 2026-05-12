@@ -178,4 +178,86 @@
               = CONVERT(VARCHAR(5), GETDATE(), 108)
     </select>
 
+    <!-- ===== 2단계: 관리자 지점 일정 통합 조회 ===== -->
+
+    <!-- 지점 전체 일정 조회 (상담사별 색상 구분용) -->
+    <select id="selectScheduleByBranch" parameterType="schedule" resultType="schedule">
+        SELECT
+            A.일정ID         AS scheduleId,
+            A.구직번호       AS participantJobNo,
+            A.상담사ID       AS counselorId,
+            C.이름           AS counselorName,
+            CONVERT(VARCHAR(10), A.일정날짜, 23)  AS scheduleDate,
+            CONVERT(VARCHAR(5), A.시작시간, 108)   AS startTime,
+            CONVERT(VARCHAR(5), A.종료시간, 108)   AS endTime,
+            A.일정유형       AS scheduleType,
+            A.메모           AS memo,
+            A.알림분         AS alertMinutes,
+            ISNULL(B.참여자, '(미정)') AS participantName,
+            B.진행단계       AS participantStage
+        FROM J_참여자관리_상담일정 A
+        LEFT JOIN J_참여자관리 B ON A.구직번호 = B.구직번호
+        INNER JOIN J_참여자관리_로그인정보 C ON A.상담사ID = C.아이디
+        WHERE A.삭제여부 = 'N'
+          AND C.지점 = #{branch}
+          AND A.일정날짜 <![CDATA[>=]]> #{searchStartDate}
+          AND A.일정날짜 <![CDATA[<=]]> #{searchEndDate}
+          <if test="counselorId != null and counselorId != ''">
+          AND A.상담사ID = #{counselorId}
+          </if>
+        ORDER BY A.일정날짜, A.시작시간
+    </select>
+
+    <!-- 지점 일정 통계 (상담사수, 주간/오늘/월간 일정 수) -->
+    <select id="selectScheduleStats" parameterType="schedule" resultType="schedule">
+        SELECT
+            (SELECT COUNT(DISTINCT 아이디)
+             FROM J_참여자관리_로그인정보
+             WHERE 지점 = #{branch}
+               AND (아이디사용여부 NOT IN ('퇴사','정지','잠금') OR 아이디사용여부 IS NULL OR 아이디사용여부 = '')
+            ) AS counselorCount,
+            (SELECT COUNT(*)
+             FROM J_참여자관리_상담일정 A
+             INNER JOIN J_참여자관리_로그인정보 C ON A.상담사ID = C.아이디
+             WHERE A.삭제여부 = 'N' AND C.지점 = #{branch}
+               AND A.일정날짜 <![CDATA[>=]]> DATEADD(WEEK, DATEDIFF(WEEK, 0, GETDATE()), 0)
+               AND A.일정날짜 <![CDATA[<]]> DATEADD(WEEK, DATEDIFF(WEEK, 0, GETDATE()) + 1, 0)
+            ) AS weeklyCount,
+            (SELECT COUNT(*)
+             FROM J_참여자관리_상담일정 A
+             INNER JOIN J_참여자관리_로그인정보 C ON A.상담사ID = C.아이디
+             WHERE A.삭제여부 = 'N' AND C.지점 = #{branch}
+               AND A.일정날짜 = CONVERT(VARCHAR(10), GETDATE(), 23)
+            ) AS todayCount,
+            (SELECT COUNT(*)
+             FROM J_참여자관리_상담일정 A
+             INNER JOIN J_참여자관리_로그인정보 C ON A.상담사ID = C.아이디
+             WHERE A.삭제여부 = 'N' AND C.지점 = #{branch}
+               AND YEAR(A.일정날짜) = YEAR(GETDATE())
+               AND MONTH(A.일정날짜) = MONTH(GETDATE())
+            ) AS monthlyCount
+    </select>
+
+    <!-- 지점 내 상담사 목록 (필터 칩 표시용) -->
+    <select id="selectCounselorsByBranch" parameterType="schedule" resultType="schedule">
+        SELECT
+            아이디   AS counselorId,
+            이름     AS counselorName
+        FROM J_참여자관리_로그인정보
+        WHERE 지점 = #{branch}
+          AND (아이디사용여부 NOT IN ('퇴사','정지','잠금') OR 아이디사용여부 IS NULL OR 아이디사용여부 = '')
+        ORDER BY 조회순서 ASC
+    </select>
+
+    <!-- ===== 3단계: 공개 일정 인증 ===== -->
+
+    <!-- 고유번호 + 지점 검증 -->
+    <select id="selectVerifyPublicAccess" parameterType="schedule" resultType="int">
+        SELECT COUNT(*)
+        FROM J_참여자관리_로그인정보
+        WHERE 고유번호 = #{uniqueNumber}
+          AND 지점 = #{branch}
+          AND (아이디사용여부 NOT IN ('퇴사','정지','잠금') OR 아이디사용여부 IS NULL OR 아이디사용여부 = '')
+    </select>
+
 </mapper>

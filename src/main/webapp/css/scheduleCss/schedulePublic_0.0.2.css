@@ -1,0 +1,275 @@
+/* ===== 공개 일정 조회 (메인 데스크용) CSS ===== */
+
+:root { --primary: #0d6efd; }
+
+/* Public Header */
+.public-header {
+    background: #fff;
+    border-bottom: 2px solid var(--primary);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.public-header .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.public-header .logo h4 {
+    margin: 0;
+    color: #343a40;
+    font-weight: 700;
+}
+.public-header .logo i {
+    font-size: 1.5rem;
+    color: var(--primary);
+}
+.public-header .branch-info {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.container-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+/* Auth Card */
+.auth-card {
+    max-width: 480px;
+    margin: 80px auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.1);
+    overflow: hidden;
+}
+.auth-card .auth-header {
+    background: linear-gradient(135deg, #0d6efd, #0056b3);
+    color: #fff;
+    padding: 32px;
+    text-align: center;
+}
+.auth-card .auth-header i {
+    font-size: 3rem;
+    margin-bottom: 12px;
+}
+.auth-card .auth-header h3 { margin: 0 0 8px; }
+.auth-card .auth-header p {
+    margin: 0;
+    opacity: 0.85;
+    font-size: 0.9rem;
+}
+.auth-card .auth-body { padding: 32px; }
+.auth-card .form-label { font-weight: 500; }
+.auth-card .btn-verify {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    background: var(--primary);
+    border: none;
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.auth-card .btn-verify:hover { background: #0056b3; }
+.auth-error { display: none; margin-top: 12px; }
+
+/* Schedule View */
+.schedule-view { display: none; }
+.schedule-view.show { display: block; }
+
+#calendar {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+}
+.fc .fc-toolbar-title { font-size: 1.2rem; }
+.fc .fc-button-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+.fc .fc-daygrid-event {
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+/* 일정유형 필터 바 */
+.type-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    background: #fff;
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+}
+.type-filter-bar .filter-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #495057;
+    white-space: nowrap;
+}
+.type-chip {
+    cursor: pointer;
+    user-select: none;
+    transition: opacity 0.2s;
+    padding: 2px;
+    border-radius: 14px;
+}
+.type-chip.active { opacity: 1; }
+.type-chip.inactive { opacity: 0.35; }
+.type-chip .badge-schedule {
+    padding: 5px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Day Detail Panel - 전체 화면 */
+.day-detail-panel {
+    background: #fff;
+    border-radius: 0;
+    padding: 0;
+    display: none;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1040;
+}
+.day-detail-panel.show { display: flex; flex-direction: column; }
+.day-detail-header {
+    background: #f8f9fa;
+    padding: 16px 24px;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+.day-detail-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Time Table */
+.time-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.time-table thead th {
+    background: #f8f9fa;
+    padding: 14px 12px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    font-size: 1.1rem;
+    font-weight: 700;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+.time-table td {
+    padding: 10px 10px;
+    border: 1px solid #dee2e6;
+    text-align: center;
+    font-size: 0.95rem;
+    vertical-align: middle;
+}
+.time-table td.time-col {
+    background: #f8f9fa;
+    font-weight: 600;
+    width: 80px;
+}
+.time-table .has-schedule {
+    background: #f0f7ff;
+    cursor: default;
+}
+/* 현재 시간대 강조 */
+.time-table tr.current-hour-row td {
+    background: #fff8e1;
+    border-top: 2px solid #ffc107;
+    border-bottom: 2px solid #ffc107;
+}
+.time-table tr.current-hour-row td.time-col {
+    background: #ffc107;
+    color: #fff;
+    font-weight: 700;
+}
+.time-table tr.current-hour-row td.has-schedule {
+    background: #fff3cd;
+}
+.schedule-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+.schedule-cell .p-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #343a40;
+}
+.badge-schedule {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+}
+.badge-face { background: #d4edda; color: #155724; }
+.badge-phone { background: #cce5ff; color: #004085; }
+.badge-video { background: #fff3cd; color: #856404; }
+.badge-etc { background: #e2e3e5; color: #383d41; }
+
+/* Legend */
+.legend-section {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    background: #fff;
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+}
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+.branch-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--primary);
+    color: #fff;
+    padding: 4px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.table-scroll { overflow: auto; flex: 1; }
+
+/* Footer */
+.public-footer {
+    text-align: center;
+    padding: 24px;
+    color: #adb5bd;
+    font-size: 0.8rem;
+    margin-top: 40px;
+}
