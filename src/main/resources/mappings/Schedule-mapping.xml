@@ -54,8 +54,8 @@
 
     <!-- 일정 등록 -->
     <insert id="insertSchedule" parameterType="schedule">
-        <selectKey keyProperty="scheduleId" resultType="int" order="AFTER">
-            SELECT SCOPE_IDENTITY()
+        <selectKey keyProperty="scheduleId" resultType="java.lang.Integer" order="AFTER">
+            SELECT CAST(SCOPE_IDENTITY() AS INT)
         </selectKey>
         INSERT INTO J_참여자관리_상담일정 (
             구직번호, 상담사ID, 일정날짜, 시작시간, 종료시간,
