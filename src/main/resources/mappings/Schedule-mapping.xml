@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ScheduleDAO">
+
+    <!-- 월별 일정 목록 조회 (참여자 LEFT JOIN) -->
+    <select id="selectScheduleList" parameterType="schedule" resultType="schedule">
+        SELECT
+            A.일정ID         AS scheduleId,
+            A.구직번호       AS participantJobNo,
+            A.상담사ID       AS counselorId,
+            CONVERT(VARCHAR(10), A.일정날짜, 23)  AS scheduleDate,
+            CONVERT(VARCHAR(5), A.시작시간, 108)   AS startTime,
+            CONVERT(VARCHAR(5), A.종료시간, 108)   AS endTime,
+            A.일정유형       AS scheduleType,
+            A.메모           AS memo,
+            A.알림분         AS alertMinutes,
+            CONVERT(VARCHAR(19), A.등록일, 20)     AS regDate,
+            CONVERT(VARCHAR(19), A.수정일, 20)     AS modDate,
+            A.삭제여부       AS deleteYn,
+            B.참여자         AS participantName,
+            B.진행단계       AS participantStage
+        FROM J_참여자관리_상담일정 A
+        LEFT JOIN 참여자관리 B ON A.구직번호 = B.구직번호
+        WHERE A.삭제여부 = 'N'
+          AND A.상담사ID = #{counselorId}
+          AND A.일정날짜 <![CDATA[>=]]> #{searchStartDate}
+          AND A.일정날짜 <![CDATA[<=]]> #{searchEndDate}
+        ORDER BY A.일정날짜, A.시작시간
+    </select>
+
+    <!-- 일정 상세 조회 -->
+    <select id="selectScheduleDetail" parameterType="schedule" resultType="schedule">
+        SELECT
+            A.일정ID         AS scheduleId,
+            A.구직번호       AS participantJobNo,
+            A.상담사ID       AS counselorId,
+            CONVERT(VARCHAR(10), A.일정날짜, 23)  AS scheduleDate,
+            CONVERT(VARCHAR(5), A.시작시간, 108)   AS startTime,
+            CONVERT(VARCHAR(5), A.종료시간, 108)   AS endTime,
+            A.일정유형       AS scheduleType,
+            A.메모           AS memo,
+            A.알림분         AS alertMinutes,
+            CONVERT(VARCHAR(19), A.등록일, 20)     AS regDate,
+            CONVERT(VARCHAR(19), A.수정일, 20)     AS modDate,
+            A.삭제여부       AS deleteYn,
+            B.참여자         AS participantName,
+            B.진행단계       AS participantStage
+        FROM J_참여자관리_상담일정 A
+        LEFT JOIN 참여자관리 B ON A.구직번호 = B.구직번호
+        WHERE A.일정ID = #{scheduleId}
+          AND A.삭제여부 = 'N'
+    </select>
+
+    <!-- 일정 등록 -->
+    <insert id="insertSchedule" parameterType="schedule">
+        <selectKey keyProperty="scheduleId" resultType="int" order="AFTER">
+            SELECT SCOPE_IDENTITY()
+        </selectKey>
+        INSERT INTO J_참여자관리_상담일정 (
+            구직번호, 상담사ID, 일정날짜, 시작시간, 종료시간,
+            일정유형, 메모, 알림분, 등록일, 삭제여부
+        ) VALUES (
+            #{participantJobNo}, #{counselorId}, #{scheduleDate}, #{startTime}, #{endTime},
+            #{scheduleType}, #{memo}, #{alertMinutes}, GETDATE(), 'N'
+        )
+    </insert>
+
+    <!-- 일정 수정 -->
+    <update id="updateSchedule" parameterType="schedule">
+        UPDATE J_참여자관리_상담일정
+        SET 구직번호   = #{participantJobNo},
+            일정날짜   = #{scheduleDate},
+            시작시간   = #{startTime},
+            종료시간   = #{endTime},
+            일정유형   = #{scheduleType},
+            메모       = #{memo},
+            알림분     = #{alertMinutes},
+            수정일     = GETDATE()
+        WHERE 일정ID = #{scheduleId}
+          AND 삭제여부 = 'N'
+    </update>
+
+    <!-- 일정 삭제 (논리 삭제) -->
+    <update id="deleteSchedule" parameterType="schedule">
+        UPDATE J_참여자관리_상담일정
+        SET 삭제여부 = 'Y',
+            수정일   = GETDATE()
+        WHERE 일정ID = #{scheduleId}
+    </update>
+
+    <!-- 드래그 앤 드롭 일정 이동 -->
+    <update id="updateScheduleDrag" parameterType="schedule">
+        UPDATE J_참여자관리_상담일정
+        SET 일정날짜 = #{newDate},
+            시작시간 = #{newStartTime},
+            종료시간 = #{newEndTime},
+            수정일   = GETDATE()
+        WHERE 일정ID = #{scheduleId}
+          AND 삭제여부 = 'N'
+    </update>
+
+    <!-- 중복 일정 체크 -->
+    <select id="selectDuplicateCheck" parameterType="schedule" resultType="int">
+        SELECT COUNT(*)
+        FROM J_참여자관리_상담일정
+        WHERE 삭제여부 = 'N'
+          AND 상담사ID = #{counselorId}
+          AND 일정날짜 = #{scheduleDate}
+          AND 시작시간 <![CDATA[<]]> #{endTime}
+          AND 종료시간 <![CDATA[>]]> #{startTime}
+          <if test="scheduleId != 0">
+          AND 일정ID <![CDATA[<>]]> #{scheduleId}
+          </if>
+    </select>
+
+    <!-- 참여자 검색 (TOP 10) -->
+    <select id="selectParticipantSearch" parameterType="schedule" resultType="schedule">
+        SELECT TOP 10
+            구직번호   AS participantJobNo,
+            참여자     AS participantName,
+            진행단계   AS participantStage
+        FROM 참여자관리
+        WHERE 담당자 = #{counselorId}
+          AND (참여자 LIKE '%' + #{keyword} + '%'
+               OR CAST(구직번호 AS VARCHAR) LIKE '%' + #{keyword} + '%')
+        ORDER BY 구직번호 DESC
+    </select>
+
+    <!-- 오늘 일정 조회 -->
+    <select id="selectTodaySchedule" parameterType="schedule" resultType="schedule">
+        SELECT
+            A.일정ID         AS scheduleId,
+            A.구직번호       AS participantJobNo,
+            CONVERT(VARCHAR(5), A.시작시간, 108)   AS startTime,
+            CONVERT(VARCHAR(5), A.종료시간, 108)   AS endTime,
+            A.일정유형       AS scheduleType,
+            A.메모           AS memo,
+            B.참여자         AS participantName
+        FROM J_참여자관리_상담일정 A
+        LEFT JOIN 참여자관리 B ON A.구직번호 = B.구직번호
+        WHERE A.삭제여부 = 'N'
+          AND A.상담사ID = #{counselorId}
+          AND A.일정날짜 = CONVERT(VARCHAR(10), GETDATE(), 23)
+        ORDER BY A.시작시간
+    </select>
+
+    <!-- 알림 대상 조회 (현재 시각 기준 알림분 전) -->
+    <select id="selectAlertTargets" resultType="schedule">
+        SELECT
+            A.일정ID         AS scheduleId,
+            A.상담사ID       AS counselorId,
+            A.구직번호       AS participantJobNo,
+            CONVERT(VARCHAR(10), A.일정날짜, 23)  AS scheduleDate,
+            CONVERT(VARCHAR(5), A.시작시간, 108)   AS startTime,
+            A.일정유형       AS scheduleType,
+            A.메모           AS memo,
+            A.알림분         AS alertMinutes,
+            B.참여자         AS participantName
+        FROM J_참여자관리_상담일정 A
+        LEFT JOIN 참여자관리 B ON A.구직번호 = B.구직번호
+        WHERE A.삭제여부 = 'N'
+          AND A.알림분 IS NOT NULL
+          AND A.알림분 <![CDATA[>]]> 0
+          AND A.일정날짜 = CONVERT(VARCHAR(10), GETDATE(), 23)
+          AND CONVERT(VARCHAR(5), DATEADD(MINUTE, -A.알림분, A.시작시간), 108)
+              = CONVERT(VARCHAR(5), GETDATE(), 108)
+    </select>
+
+</mapper>

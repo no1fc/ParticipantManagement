@@ -37,6 +37,7 @@
         <typeAlias type="com.jobmoa.app.CounselMain.biz.recommend.RecommendReferralDTO" alias="recommendReferral"/>
         <typeAlias type="com.jobmoa.app.CounselMain.biz.recommend.JobCandidateDTO"         alias="jobCandidate"/>
         <typeAlias type="com.jobmoa.app.CounselMain.biz.recommend.JobCategoryDTO"          alias="jobCategory"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.schedule.ScheduleDTO" alias="schedule" />
 
     </typeAliases>
 
@@ -56,5 +57,6 @@
         <mapper resource="mappings/Admin-mapping.xml"/>
         <mapper resource="mappings/Recruitment-mapping.xml"/>
         <mapper resource="mappings/ParticipantJobRecommend-mapping.xml"/>
+        <mapper resource="mappings/Schedule-mapping.xml"/>
     </mappers>
 </configuration>

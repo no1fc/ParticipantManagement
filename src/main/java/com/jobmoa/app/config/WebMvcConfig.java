@@ -30,6 +30,7 @@ import java.util.List;
     "com.jobmoa.app.CounselMain.view.mailSend",
     "com.jobmoa.app.CounselMain.view.mypage",
     "com.jobmoa.app.CounselMain.view.adminpage",
+    "com.jobmoa.app.CounselMain.view.schedule",
     "com.jobmoa.app.jobPlacement.view.jobPlacement",
     "com.jobmoa.app.jobPlacement.view.async",
     "com.jobmoa.app.jobPlacement.view.webSocket",

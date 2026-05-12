@@ -49,6 +49,7 @@ import java.util.Properties;
     "com.jobmoa.app.CounselMain.biz.redis",
     "com.jobmoa.app.CounselMain.biz.adminpage",
     "com.jobmoa.app.CounselMain.biz.recommend",
+    "com.jobmoa.app.CounselMain.biz.schedule",
     "com.jobmoa.app.jobPlacement.biz.jobPlacement",
     "com.jobmoa.app.recruitmentFormation.biz",
 })
