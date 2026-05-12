@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class ScheduleDTO {
     // 테이블 매핑
-    private int scheduleId;
+    private Integer scheduleId;
     private Integer participantJobNo;
     private String counselorId;
     private String scheduleDate;
