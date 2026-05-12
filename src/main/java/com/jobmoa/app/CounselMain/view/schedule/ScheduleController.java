@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class ScheduleController {
 
-    @GetMapping("/schedule.do")
+    @GetMapping("schedule.login")
     public String schedulePage(HttpSession session, Model model) {
-        log.info("GET /schedule.do");
+        log.info("GET /schedule.login");
         LoginBean login = (LoginBean) session.getAttribute("JOBMOA_LOGIN_DATA");
         if (login == null) {
             return "redirect:/login.do";
