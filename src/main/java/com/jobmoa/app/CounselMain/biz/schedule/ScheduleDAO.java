@@ -30,8 +30,8 @@ public class ScheduleDAO {
 
     public int insertSchedule(ScheduleDTO dto) {
         log.info("ScheduleDAO insertSchedule");
-        sqlSession.insert(ns + "insertSchedule", dto);
-        return dto.getScheduleId();
+        int result = sqlSession.insert(ns + "insertSchedule", dto);
+        return result;
     }
 
     public boolean updateSchedule(ScheduleDTO dto) {
