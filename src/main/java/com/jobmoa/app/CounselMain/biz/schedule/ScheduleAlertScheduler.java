@@ -35,7 +35,7 @@ public class ScheduleAlertScheduler {
                 notification.put("startTime", target.getStartTime());
 
                 webSocketService.sendObjectToUser(
-                        "/topic/notification",
+                        "/topic/schedule-alert",
                         notification,
                         target.getCounselorId()
                 );

@@ -53,6 +53,15 @@
                     handleGnbNotification(notification);
                 }
             );
+            // 상담 일정 알림
+            _stompClient.subscribe(
+                '/topic/schedule-alert/' + JOBMOA_USER_ID,
+                function(msg) {
+                    var notification = JSON.parse(msg.body);
+                    notification._notifType = 'schedule-alert';
+                    handleGnbNotification(notification);
+                }
+            );
         }, function() {
             _wsConnected = false;
             _stompClient = null;
@@ -66,7 +75,9 @@
     function handleGnbNotification(notification) {
         // 알림 데이터 구성
         var notifType;
-        if (notification._notifType === 'resume-request') {
+        if (notification._notifType === 'schedule-alert') {
+            notifType = 'warning';
+        } else if (notification._notifType === 'resume-request') {
             notifType = 'info';
         } else {
             notifType = notification.reused ? 'warning' : (notification.success ? 'success' : 'error');
@@ -100,6 +111,10 @@
     }
 
     function buildNotificationMessage(notification) {
+        // 상담 일정 알림
+        if (notification._notifType === 'schedule-alert') {
+            return notification.message || '상담 일정 알림이 있습니다.';
+        }
         // 이력서 요청 알림
         if (notification._notifType === 'resume-request') {
             return notification.message || '이력서 요청이 접수되었습니다.';

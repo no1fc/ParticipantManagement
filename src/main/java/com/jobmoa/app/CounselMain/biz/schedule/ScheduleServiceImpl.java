@@ -64,9 +64,6 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public boolean checkDuplicate(ScheduleDTO dto) {
-        if (dto.getEndTime() == null || dto.getEndTime().isEmpty()) {
-            return false;
-        }
         int count = scheduleDAO.selectDuplicateCheck(dto);
         return count > 0;
     }

@@ -96,9 +96,7 @@
                 <h5 class="modal-title" id="modalTitle">
                     <i class="bi bi-calendar-plus me-2"></i>상담 일정 등록
                 </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="editScheduleId">
@@ -211,7 +209,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
                 <button type="button" class="btn btn-primary" id="btnSave">
                     <i class="bi bi-check-lg me-1"></i>저장
                 </button>
@@ -228,9 +226,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"><i class="bi bi-calendar-check me-2"></i>일정 상세</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body schedule-detail">
                 <input type="hidden" id="detailScheduleId">
@@ -260,7 +256,7 @@
                         <div class="detail-value" id="detailMemo"></div>
                     </div>
                     <div class="detail-actions">
-                        <button class="btn btn-success btn-sm" id="btnCounselNote" disabled>
+                        <button class="btn btn-success btn-sm" id="btnCounselNote">
                             <i class="bi bi-journal-text me-1"></i>상담일지
                         </button>
                         <button class="btn btn-warning btn-sm" id="btnEdit">

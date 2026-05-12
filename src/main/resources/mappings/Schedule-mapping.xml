@@ -107,9 +107,19 @@
         WHERE 삭제여부 = 'N'
           AND 상담사ID = #{counselorId}
           AND 일정날짜 = #{scheduleDate}
-          AND 시작시간 <![CDATA[<]]> #{endTime}
-          AND 종료시간 <![CDATA[>]]> #{startTime}
-          <if test="scheduleId != 0">
+          <choose>
+              <when test="endTime != null and endTime != ''">
+                  AND 시작시간 <![CDATA[<]]> CAST(#{endTime} AS TIME)
+                  AND (종료시간 IS NULL OR 종료시간 <![CDATA[>]]> CAST(#{startTime} AS TIME))
+              </when>
+              <otherwise>
+                  AND (
+                      (시작시간 <![CDATA[<=]]> CAST(#{startTime} AS TIME) AND (종료시간 IS NULL OR 종료시간 <![CDATA[>]]> CAST(#{startTime} AS TIME)))
+                      OR 시작시간 = CAST(#{startTime} AS TIME)
+                  )
+              </otherwise>
+          </choose>
+          <if test="scheduleId != null and scheduleId != 0">
           AND 일정ID <![CDATA[<>]]> #{scheduleId}
           </if>
     </select>

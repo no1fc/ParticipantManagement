@@ -456,7 +456,16 @@ $(document).ready(function () {
     });
 
     // =============================================
-    // 12. 드래그 핸들러 (eventDrop / eventResize)
+    // 12. 상담일지 작성 버튼
+    // =============================================
+    $('#btnCounselNote').on('click', function () {
+        var scheduleId = $('#detailScheduleId').val();
+        if (!scheduleId) return;
+        Swal.fire('안내', '상담일지 연동 기능은 추후 업데이트 예정입니다.', 'info');
+    });
+
+    // =============================================
+    // 13. 드래그 핸들러 (eventDrop / eventResize)
     // =============================================
     function handleDrag(info) {
         var event = info.event;
