@@ -61,7 +61,7 @@
             구직번호, 상담사ID, 일정날짜, 시작시간, 종료시간,
             일정유형, 메모, 알림분, 등록일, 삭제여부
         ) VALUES (
-            #{participantJobNo}, #{counselorId}, #{scheduleDate}, #{startTime}, #{endTime},
+            #{participantJobNo}, #{counselorId}, CAST(#{scheduleDate} AS DATE), CAST(#{startTime} AS TIME), CAST(#{endTime} AS TIME),
             #{scheduleType}, #{memo}, #{alertMinutes}, GETDATE(), 'N'
         )
     </insert>
@@ -70,9 +70,9 @@
     <update id="updateSchedule" parameterType="schedule">
         UPDATE J_참여자관리_상담일정
         SET 구직번호   = #{participantJobNo},
-            일정날짜   = #{scheduleDate},
-            시작시간   = #{startTime},
-            종료시간   = #{endTime},
+            일정날짜   = CAST(#{scheduleDate} AS DATE),
+            시작시간   = CAST(#{startTime} AS TIME),
+            종료시간   = CAST(#{endTime} AS TIME),
             일정유형   = #{scheduleType},
             메모       = #{memo},
             알림분     = #{alertMinutes},
@@ -92,9 +92,9 @@
     <!-- 드래그 앤 드롭 일정 이동 -->
     <update id="updateScheduleDrag" parameterType="schedule">
         UPDATE J_참여자관리_상담일정
-        SET 일정날짜 = #{newDate},
-            시작시간 = #{newStartTime},
-            종료시간 = #{newEndTime},
+        SET 일정날짜 = CAST(#{newDate} AS DATE),
+            시작시간 = CAST(#{newStartTime} AS TIME),
+            종료시간 = CAST(#{newEndTime} AS TIME),
             수정일   = GETDATE()
         WHERE 일정ID = #{scheduleId}
           AND 삭제여부 = 'N'
