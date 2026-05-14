@@ -1,5 +1,5 @@
 /**
- * schedule_0.0.1.js - 상담 일정 관리
+ * schedule_0.0.2.js - 상담 일정 관리
  * FullCalendar 6.1.11 + jQuery + SweetAlert2
  */
 $(document).ready(function () {
@@ -7,27 +7,27 @@ $(document).ready(function () {
     // =============================================
     // 1. 상수 및 색상/배지 맵
     // =============================================
-    var COLOR_MAP = {
+    let COLOR_MAP = {
         '대면상담': '#007bff',
         '전화상담': '#28a745',
         '화상상담': '#ffc107',
         '기타': '#6c757d'
     };
 
-    var BADGE_CLASS_MAP = {
+    let BADGE_CLASS_MAP = {
         '대면상담': 'badge-face',
         '전화상담': 'badge-phone',
         '화상상담': 'badge-video',
         '기타': 'badge-etc'
     };
 
-    var searchTimer = null;
+    let searchTimer = null;
 
     // =============================================
     // 2. FullCalendar 초기화
     // =============================================
-    var calendarEl = document.getElementById('calendar');
-    var calendar = new FullCalendar.Calendar(calendarEl, {
+    let calendarEl = document.getElementById('calendar');
+    let calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: 'ko',
         headerToolbar: {
@@ -40,6 +40,9 @@ $(document).ready(function () {
         selectable: true,
         dayMaxEvents: 3,
         height: 'auto',
+        slotMinTime: '08:00:00',
+        slotMaxTime: '20:00:00',
+        allDaySlot: false,
 
         events: function (info, successCallback, failureCallback) {
             $.ajax({
@@ -51,7 +54,7 @@ $(document).ready(function () {
                 },
                 success: function (res) {
                     if (res.success && res.data) {
-                        var events = res.data.map(function (item) {
+                        let events = res.data.map(function (item) {
                             return {
                                 id: item.scheduleId,
                                 title: (item.participantName || '(미정)') + ' - ' + item.scheduleType,
@@ -107,7 +110,7 @@ $(document).ready(function () {
     // 3. 등록 버튼 클릭
     // =============================================
     $('#btnRegister').on('click', function () {
-        var today = new Date().toISOString().substring(0, 10);
+        let today = new Date().toISOString().substring(0, 10);
         openRegisterModal(today);
     });
 
@@ -138,8 +141,8 @@ $(document).ready(function () {
     // 5. 참여자 검색 (debounce 300ms)
     // =============================================
     $('#participantSearch').on('input', function () {
-        var keyword = $(this).val().trim();
-        var $dropdown = $('#participantDropdown');
+        let keyword = $(this).val().trim();
+        let $dropdown = $('#participantDropdown');
 
         if (searchTimer) {
             clearTimeout(searchTimer);
@@ -157,9 +160,9 @@ $(document).ready(function () {
                 data: { keyword: keyword },
                 success: function (res) {
                     if (res.success && res.data && res.data.length > 0) {
-                        var html = '';
-                        for (var i = 0; i < res.data.length; i++) {
-                            var p = res.data[i];
+                        let html = '';
+                        for (let i = 0; i < res.data.length; i++) {
+                            let p = res.data[i];
                             html += '<div class="item" data-jobno="' + p.participantJobNo + '" data-name="' + p.participantName + '">';
                             html += '<span class="name">' + p.participantName + '</span>';
                             html += '<span class="num">' + p.participantJobNo + ' | ' + (p.participantStage || '') + '</span>';
@@ -179,8 +182,8 @@ $(document).ready(function () {
 
     // 참여자 드롭다운 항목 클릭
     $(document).on('click', '#participantDropdown .item', function () {
-        var name = $(this).data('name');
-        var jobNo = $(this).data('jobno');
+        let name = $(this).data('name');
+        let jobNo = $(this).data('jobno');
         $('#participantSearch').val(name);
         $('#participantJobNo').val(jobNo);
         $('#participantDropdown').removeClass('show');
@@ -197,7 +200,7 @@ $(document).ready(function () {
     // 6. 알림 설정
     // =============================================
     $('#alertSelect').on('change', function () {
-        var val = $(this).val();
+        let val = $(this).val();
         if (val === 'custom') {
             $('.custom-alert-input').addClass('show');
             $('.custom-alert-unit').addClass('show');
@@ -219,21 +222,21 @@ $(document).ready(function () {
     // 8. 저장 (등록/수정)
     // =============================================
     $('#btnSave').on('click', function () {
-        var scheduleDate = $('#scheduleDate').val();
-        var startHour = $('#startHour').val();
-        var startMinute = $('#startMinute').val();
-        var endHour = $('#endHour').val();
-        var endMinute = $('#endMinute').val();
-        var participantJobNo = $('#participantJobNo').val();
-        var scheduleType = $('#scheduleType').val();
-        var memo = $('#scheduleMemo').val();
-        var editScheduleId = $('#editScheduleId').val();
+        let scheduleDate = $('#scheduleDate').val();
+        let startHour = $('#startHour').val();
+        let startMinute = $('#startMinute').val();
+        let endHour = $('#endHour').val();
+        let endMinute = $('#endMinute').val();
+        let participantJobNo = $('#participantJobNo').val();
+        let scheduleType = $('#scheduleType').val();
+        let memo = $('#scheduleMemo').val();
+        let editScheduleId = $('#editScheduleId').val();
 
         // 알림 값 계산
-        var alertMinutes = null;
-        var alertVal = $('#alertSelect').val();
+        let alertMinutes = null;
+        let alertVal = $('#alertSelect').val();
         if (alertVal === 'custom') {
-            var customVal = $('#customAlertMinutes').val();
+            let customVal = $('#customAlertMinutes').val();
             if (customVal) {
                 alertMinutes = parseInt(customVal, 10);
             }
@@ -251,10 +254,10 @@ $(document).ready(function () {
             return;
         }
 
-        var startTime = startHour + ':' + startMinute;
-        var endTime = (endHour && endMinute) ? endHour + ':' + endMinute : null;
+        let startTime = startHour + ':' + startMinute;
+        let endTime = (endHour && endMinute) ? endHour + ':' + endMinute : null;
 
-        var requestData = {
+        let requestData = {
             scheduleDate: scheduleDate,
             startTime: startTime,
             endTime: endTime,
@@ -264,7 +267,7 @@ $(document).ready(function () {
             alertMinutes: alertMinutes
         };
 
-        var url, method;
+        let url, method;
         if (editScheduleId) {
             requestData.scheduleId = parseInt(editScheduleId, 10);
             url = '/api/schedule/update';
@@ -288,8 +291,18 @@ $(document).ready(function () {
                     Swal.fire('오류', res.message || '저장에 실패했습니다.', 'error');
                 }
             },
-            error: function () {
-                Swal.fire('오류', '서버 통신 중 오류가 발생했습니다.', 'error');
+            error: function (errorResult) {
+                if(errorResult.status === 409) {
+                    Swal.fire('오류', errorResult.message, 'error');
+                }
+                else {
+                    if(errorResult.success === false) {
+                        Swal.fire('오류', errorResult.message, 'error');
+                    }
+                    else {
+                        Swal.fire('오류', '서버 통신 중 오류가 발생했습니다.', 'error');
+                    }
+                }
             }
         });
     });
@@ -303,8 +316,8 @@ $(document).ready(function () {
         $('#detailTime').text(formatTimeRange(props.startTime, props.endTime));
         $('#detailParticipant').text(props.participantName || '(미정)');
 
-        var type = props.scheduleType || '기타';
-        var badgeClass = BADGE_CLASS_MAP[type] || 'badge-etc';
+        let type = props.scheduleType || '기타';
+        let badgeClass = BADGE_CLASS_MAP[type] || 'badge-etc';
         $('#detailType').html('<span class="badge-schedule ' + badgeClass + '">' + type + '</span>');
 
         $('#detailAlert').text(formatAlertText(props.alertMinutes));
@@ -315,7 +328,7 @@ $(document).ready(function () {
 
     function formatTimeRange(startTime, endTime) {
         if (!startTime) return '-';
-        var result = startTime;
+        let result = startTime;
         if (endTime) {
             result += ' ~ ' + endTime;
         }
@@ -335,7 +348,7 @@ $(document).ready(function () {
     // 10. 수정 버튼 (상세 → 등록 모달 전환)
     // =============================================
     $('#btnEdit').on('click', function () {
-        var scheduleId = $('#detailScheduleId').val();
+        let scheduleId = $('#detailScheduleId').val();
         if (!scheduleId) return;
 
         $('#detailModal').modal('hide');
@@ -345,7 +358,7 @@ $(document).ready(function () {
             type: 'GET',
             success: function (res) {
                 if (res.success && res.data) {
-                    var data = res.data;
+                    let data = res.data;
 
                     $('#modalTitle').html('<i class="bi bi-pencil me-2"></i>상담 일정 수정');
                     $('#editScheduleId').val(data.scheduleId);
@@ -353,12 +366,12 @@ $(document).ready(function () {
 
                     // 시간 파싱
                     if (data.startTime) {
-                        var startParts = data.startTime.split(':');
+                        let startParts = data.startTime.split(':');
                         $('#startHour').val(startParts[0]);
                         $('#startMinute').val(startParts[1]);
                     }
                     if (data.endTime) {
-                        var endParts = data.endTime.split(':');
+                        let endParts = data.endTime.split(':');
                         $('#endHour').val(endParts[0]);
                         $('#endMinute').val(endParts[1]);
                     } else {
@@ -396,8 +409,8 @@ $(document).ready(function () {
             return;
         }
 
-        var presetValues = ['10', '30', '60'];
-        var alertStr = String(alertMinutes);
+        let presetValues = ['10', '30', '60'];
+        let alertStr = String(alertMinutes);
 
         if (alertMinutes === 0 || alertMinutes === null) {
             $('#alertSelect').val('');
@@ -421,7 +434,7 @@ $(document).ready(function () {
     // 11. 삭제 버튼
     // =============================================
     $('#btnDelete').on('click', function () {
-        var scheduleId = $('#detailScheduleId').val();
+        let scheduleId = $('#detailScheduleId').val();
         if (!scheduleId) return;
 
         Swal.fire({
@@ -459,7 +472,7 @@ $(document).ready(function () {
     // 12. 상담일지 작성 버튼
     // =============================================
     $('#btnCounselNote').on('click', function () {
-        var scheduleId = $('#detailScheduleId').val();
+        let scheduleId = $('#detailScheduleId').val();
         if (!scheduleId) return;
         Swal.fire('안내', '상담일지 연동 기능은 추후 업데이트 예정입니다.', 'info');
     });
@@ -468,14 +481,14 @@ $(document).ready(function () {
     // 13. 드래그 핸들러 (eventDrop / eventResize)
     // =============================================
     function handleDrag(info) {
-        var event = info.event;
-        var props = event.extendedProps;
-        var newStart = event.start;
-        var newEnd = event.end;
+        let event = info.event;
+        let props = event.extendedProps;
+        let newStart = event.start;
+        let newEnd = event.end;
 
-        var newDate = newStart.toISOString().substring(0, 10);
-        var newStartTime = padTime(newStart.getHours()) + ':' + padTime(newStart.getMinutes());
-        var newEndTime = newEnd ? padTime(newEnd.getHours()) + ':' + padTime(newEnd.getMinutes()) : null;
+        let newDate = newStart.toISOString().substring(0, 10);
+        let newStartTime = padTime(newStart.getHours()) + ':' + padTime(newStart.getMinutes());
+        let newEndTime = newEnd ? padTime(newEnd.getHours()) + ':' + padTime(newEnd.getMinutes()) : null;
 
         Swal.fire({
             title: '일정을 변경하시겠습니까?',

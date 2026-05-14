@@ -1,6 +1,6 @@
 /**
  * 관리자 지점 일정 통합 조회 JS
- * @version 0.0.1
+ * @version 0.0.2
  */
 $(function () {
     'use strict';
@@ -8,22 +8,22 @@ $(function () {
     // ===========================
     // 상수 & 변수
     // ===========================
-    var COLOR_PALETTE = [
+    let COLOR_PALETTE = [
         '#0d6efd', '#198754', '#fd7e14', '#6f42c1',
         '#20c997', '#17a2b8', '#6610f2', '#ffc107',
         '#795548', '#607d8b', '#0b5394', '#2e7d32'
     ];
-    var BADGE_MAP = {
+    let BADGE_MAP = {
         '대면상담': 'badge-face',
         '전화상담': 'badge-phone',
         '화상상담': 'badge-video',
         '기타': 'badge-etc'
     };
 
-    var counselorList = [];
-    var counselorFilter = {};
-    var counselorColorMap = {};
-    var calendar;
+    let counselorList = [];
+    let counselorFilter = {};
+    let counselorColorMap = {};
+    let calendar;
 
     // ===========================
     // 초기화
@@ -53,12 +53,12 @@ $(function () {
     }
 
     function renderChips() {
-        var $container = $('#counselorChips');
+        let $container = $('#counselorChips');
         $container.empty();
 
         counselorList.forEach(function (c) {
-            var color = counselorColorMap[c.counselorId];
-            var $chip = $('<label class="counselor-chip active"></label>');
+            let color = counselorColorMap[c.counselorId];
+            let $chip = $('<label class="counselor-chip active"></label>');
             $chip.css({ background: color + '20', borderColor: color });
             $chip.html(
                 '<input type="checkbox" checked data-id="' + c.counselorId + '">' +
@@ -67,7 +67,7 @@ $(function () {
             );
 
             $chip.find('input').on('change', function () {
-                var checked = $(this).prop('checked');
+                let checked = $(this).prop('checked');
                 counselorFilter[c.counselorId] = checked;
                 $chip.removeClass('active inactive').addClass(checked ? 'active' : 'inactive');
                 calendar.refetchEvents();
@@ -79,12 +79,12 @@ $(function () {
 
     // 전체 선택/해제
     $('#btnSelectAll').on('click', function () {
-        var allChecked = true;
+        let allChecked = true;
         $.each(counselorFilter, function (key, val) {
             if (!val) { allChecked = false; return false; }
         });
 
-        var newState = !allChecked;
+        let newState = !allChecked;
         counselorList.forEach(function (c) {
             counselorFilter[c.counselorId] = newState;
         });
@@ -106,7 +106,7 @@ $(function () {
             type: 'GET',
             success: function (res) {
                 if (res.success && res.data) {
-                    var d = res.data;
+                    let d = res.data;
                     $('#statCounselorCount').text(d.counselorCount || 0);
                     $('#statWeeklyCount').text(d.weeklyCount || 0);
                     $('#statTodayCount').text(d.todayCount || 0);
@@ -120,7 +120,7 @@ $(function () {
     // FullCalendar 초기화
     // ===========================
     function initCalendar() {
-        var calendarEl = document.getElementById('calendar');
+        let calendarEl = document.getElementById('calendar');
         calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             locale: 'ko',
@@ -132,6 +132,9 @@ $(function () {
             navLinks: true,
             dayMaxEvents: 4,
             height: 'auto',
+            slotMinTime: '08:00:00',
+            slotMaxTime: '20:00:00',
+            allDaySlot: false,
 
             events: function (info, successCallback, failureCallback) {
                 $.ajax({
@@ -146,12 +149,12 @@ $(function () {
                             failureCallback();
                             return;
                         }
-                        var events = [];
+                        let events = [];
                         res.data.forEach(function (item) {
                             // 필터 적용
                             if (!counselorFilter[item.counselorId]) return;
 
-                            var color = counselorColorMap[item.counselorId] || '#6c757d';
+                            let color = counselorColorMap[item.counselorId] || '#6c757d';
                             events.push({
                                 id: item.scheduleId,
                                 title: (item.participantName || '(미정)') + ' - ' + item.scheduleType,
@@ -196,28 +199,28 @@ $(function () {
     // ===========================
     // 상세 팝업
     // ===========================
-    var $popup = $('#detailPopup');
+    let $popup = $('#detailPopup');
 
     function showDetailPopup(event, jsEvent) {
-        var props = event.extendedProps;
+        let props = event.extendedProps;
         $('#popupTitle').text(props.participantName || '(미정)');
         $('#popupCounselor').text(props.counselorName || '-');
         $('#popupDate').text(props.scheduleDate || '-');
 
-        var timeText = props.startTime || '';
+        let timeText = props.startTime || '';
         if (props.endTime) {
             timeText += ' ~ ' + props.endTime;
         }
         $('#popupTime').text(timeText);
         $('#popupParticipant').text(props.participantName || '(미정)');
 
-        var badgeClass = BADGE_MAP[props.scheduleType] || 'badge-etc';
+        let badgeClass = BADGE_MAP[props.scheduleType] || 'badge-etc';
         $('#popupType').html('<span class="badge-schedule ' + badgeClass + '">' + (props.scheduleType || '-') + '</span>');
         $('#popupMemo').text(props.memo || '-');
 
         // 팝업 위치
-        var x = jsEvent.clientX + 10;
-        var y = jsEvent.clientY + 10;
+        let x = jsEvent.clientX + 10;
+        let y = jsEvent.clientY + 10;
         if (x + 330 > window.innerWidth) x = window.innerWidth - 340;
         if (y + 250 > window.innerHeight) y = window.innerHeight - 260;
         $popup.css({ left: x + 'px', top: y + 'px' });

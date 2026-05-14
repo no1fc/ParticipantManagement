@@ -32,12 +32,6 @@ public class ScheduleController {
             return "redirect:/login.do";
         }
 
-        Boolean isManager = (Boolean) session.getAttribute("IS_MANAGER");
-        Boolean isBranchManager = (Boolean) session.getAttribute("IS_BRANCH_MANAGER");
-        if (!Boolean.TRUE.equals(isManager) && !Boolean.TRUE.equals(isBranchManager)) {
-            return "redirect:/schedule.login";
-        }
-
         model.addAttribute("counselorId", login.getMemberUserID());
         model.addAttribute("counselorName", login.getMemberUserName());
         model.addAttribute("branch", login.getMemberBranch());

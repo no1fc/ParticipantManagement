@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.jobmoa.app</groupId>
     <artifactId>JobmoaProject</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
+    <version>1.5.0-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>JobmoaProject</name>
     <description>JobmoaProject</description>
@@ -281,6 +281,15 @@
                 </configuration>
             </plugin>
         </plugins>
+        <!-- TODO 배포전 확인해서 설정 변경 진행
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>.env</exclude>
+                </excludes>
+            </resource>
+        </resources>-->
     </build>
 
 </project>

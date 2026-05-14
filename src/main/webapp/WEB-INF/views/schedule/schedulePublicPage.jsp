@@ -22,7 +22,7 @@
     <!--end::FullCalendar CSS-->
 
     <!--begin::Schedule Public CSS-->
-    <link rel="stylesheet" href="/css/scheduleCss/schedulePublic_0.0.2.css" />
+    <link rel="stylesheet" href="/css/scheduleCss/schedulePublic_0.0.3.css" />
     <!--end::Schedule Public CSS-->
 
     <!-- jQuery -->
@@ -125,7 +125,17 @@
         <div class="day-detail-panel" id="dayDetailPanel">
             <div class="day-detail-header">
                 <h5><i class="bi bi-clock me-2"></i><span id="dayDetailTitle"></span></h5>
-                <button class="btn btn-sm" id="closeDayDetail"><i class="bi bi-x-lg"></i></button>
+                <div class="day-detail-actions">
+                    <select class="form-select form-select-sm" id="displayIntervalSelect" style="width:auto;" title="시간표 간격">
+                        <option value="10">10분 간격</option>
+                        <option value="30">30분 간격</option>
+                        <option value="60" selected>1시간 간격</option>
+                    </select>
+                    <button class="btn btn-sm btn-outline-primary" id="refreshDayDetail" title="새로고침">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                    <button class="btn btn-sm" id="closeDayDetail"><i class="bi bi-x-lg"></i></button>
+                </div>
             </div>
             <div class="table-scroll">
                 <table class="time-table" id="timeTable">
@@ -151,7 +161,7 @@
 <!--end::FullCalendar JS-->
 
 <!--begin::Schedule Public JS-->
-<script src="/js/schedulePublic_0.0.2.js"></script>
+<script src="/js/schedulePublic_0.0.3.js"></script>
 <!--end::Schedule Public JS-->
 
 </body>

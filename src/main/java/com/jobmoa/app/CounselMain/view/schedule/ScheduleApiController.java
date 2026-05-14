@@ -98,7 +98,7 @@ public class ScheduleApiController {
 
         if (inserted == -1) {
             result.put("success", false);
-            result.put("message", "해당 시간에 이미 일정이 존재합니다.");
+            result.put("message", "해당 일자에 이미 등록된 상담이 있습니다.");
             return ResponseEntity.status(409).body(result);
         }
 
@@ -134,11 +134,14 @@ public class ScheduleApiController {
             return ResponseEntity.status(403).body(result);
         }
 
+        // 중복체크용 counselorId 설정
+        dto.setCounselorId(existing.getCounselorId());
+
         int updated = scheduleService.updateSchedule(dto);
 
         if (updated == -1) {
             result.put("success", false);
-            result.put("message", "해당 시간에 이미 일정이 존재합니다.");
+            result.put("message", "해당 일자에 이미 등록된 상담이 있습니다.");
             return ResponseEntity.status(409).body(result);
         }
 
@@ -217,11 +220,14 @@ public class ScheduleApiController {
             return ResponseEntity.status(403).body(result);
         }
 
+        // 중복체크용 counselorId 설정
+        dto.setCounselorId(existing.getCounselorId());
+
         int updated = scheduleService.updateScheduleDrag(dto);
 
         if (updated == -1) {
             result.put("success", false);
-            result.put("message", "해당 시간에 이미 일정이 존재합니다.");
+            result.put("message", "해당 일자에 이미 등록된 상담이 있습니다.");
             return ResponseEntity.status(409).body(result);
         }
 
@@ -274,13 +280,6 @@ public class ScheduleApiController {
         LoginBean login = getLogin(session);
         if (login == null) return unauthorized();
 
-        if (!isManagerOrBranchManager(session)) {
-            Map<String, Object> result = new HashMap<>();
-            result.put("success", false);
-            result.put("message", "관리자 권한이 필요합니다.");
-            return ResponseEntity.status(403).body(result);
-        }
-
         dto.setBranch(login.getMemberBranch());
         List<ScheduleDTO> list = scheduleService.getBranchScheduleList(dto);
 
@@ -295,13 +294,6 @@ public class ScheduleApiController {
         log.info("GET /api/schedule/stats");
         LoginBean login = getLogin(session);
         if (login == null) return unauthorized();
-
-        if (!isManagerOrBranchManager(session)) {
-            Map<String, Object> result = new HashMap<>();
-            result.put("success", false);
-            result.put("message", "관리자 권한이 필요합니다.");
-            return ResponseEntity.status(403).body(result);
-        }
 
         ScheduleDTO dto = new ScheduleDTO();
         dto.setBranch(login.getMemberBranch());
@@ -318,13 +310,6 @@ public class ScheduleApiController {
         log.info("GET /api/schedule/counselors");
         LoginBean login = getLogin(session);
         if (login == null) return unauthorized();
-
-        if (!isManagerOrBranchManager(session)) {
-            Map<String, Object> result = new HashMap<>();
-            result.put("success", false);
-            result.put("message", "관리자 권한이 필요합니다.");
-            return ResponseEntity.status(403).body(result);
-        }
 
         ScheduleDTO dto = new ScheduleDTO();
         dto.setBranch(login.getMemberBranch());

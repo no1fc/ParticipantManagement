@@ -15,18 +15,6 @@
         </foreach>
     </insert>
 
-    <!-- 자격증 업데이트 용 쿼리 사용안하는 중 -->
-<!--    <update id="particcertifUpdate">
-        UPDATE
-            J_참여자관리_자격증
-        SET
-            자격증 = #{particcertifCertif}
-        WHERE
-            구직번호 = ${particcertifJobNo}
-          AND
-            자격증 = ${particcertifCertif}
-    </update>-->
-
     <!-- 자격증 삭제용 쿼리 외래키로 자동 삭제 -->
     <delete id="particcertifDelete">
         DELETE

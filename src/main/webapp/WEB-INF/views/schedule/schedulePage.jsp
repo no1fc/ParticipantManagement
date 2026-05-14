@@ -328,7 +328,7 @@
 <!--end::FullCalendar JS-->
 
 <!--begin::Schedule JS-->
-<script src="/js/schedule_0.0.1.js"></script>
+<script src="/js/schedule_0.0.2.js"></script>
 <!--end::Schedule JS-->
 
 </html>

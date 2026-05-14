@@ -23,7 +23,7 @@
         <!--begin::Start Navbar Links-->
         <ul class="navbar-nav">
             <li class="nav-item">
-                <a class="nav-link" data-lte-toggle="sidebar" href="" role="button">
+                <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button">
                     <i class="bi bi-list"></i>
                 </a>
             </li>
@@ -65,7 +65,7 @@
             <!--end::Notification Bell-->
             <!--begin::User Menu Dropdown-->
             <li class="nav-item dropdown user-menu">
-                <a href="" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
                     <span class="d-none d-md-inline">로그인 정보</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
@@ -194,13 +194,11 @@
                                 <small><p>상담 일정</p></small>
                             </a>
                         </li>
-                        <c:if test="${IS_BRANCH_MANAGER or IS_MANAGER}">
                         <li class="nav-item">
                             <a href="./scheduleManager.login" class="nav-link">
                                 <small><p>지점 일정 통합 조회</p></small>
                             </a>
                         </li>
-                        </c:if>
                     </ul>
                 </li>
                 <!--end::상담관리-->

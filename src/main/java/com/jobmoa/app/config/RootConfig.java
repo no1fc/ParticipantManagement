@@ -54,6 +54,7 @@ import java.util.Properties;
     "com.jobmoa.app.recruitmentFormation.biz",
 })
 @PropertySource(value = "classpath:.env", ignoreResourceNotFound = true)
+//@PropertySource(value = "file:C:/JobmoaIntelliJFolder/JobmoaProject/src/main/resources/.env", ignoreResourceNotFound = true)
 @EnableTransactionManagement(proxyTargetClass = true)
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 @EnableScheduling

@@ -22,9 +22,9 @@
         SET
             직업훈련 = #{education}
         WHERE
-            구직번호 = ${educationJobNo}
+            구직번호 = #{educationJobNo}
           AND
-            직업훈련 = ${education}
+            직업훈련 = #{education}
     </update>
 
     <!-- 교육내역 삭제용 쿼리 외래키로 자동삭제 -->
@@ -33,7 +33,7 @@
         FROM
             J_참여자관리_직업훈련
         WHERE
-            구직번호 = ${educationJobNo}
+            구직번호 = #{educationJobNo}
     </delete>
 
     <!-- 참여자 교육내역 찾기용 -->

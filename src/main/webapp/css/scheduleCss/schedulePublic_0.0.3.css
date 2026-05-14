@@ -160,6 +160,13 @@
     font-weight: 600;
 }
 
+/* Day Detail Actions (새로고침 + 간격 셀렉터 + 닫기) */
+.day-detail-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 /* Time Table */
 .time-table {
     width: 100%;

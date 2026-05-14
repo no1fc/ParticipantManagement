@@ -155,3 +155,26 @@ ViewResolver: prefix `/WEB-INF/` + suffix `.jsp`.
 - **JS/CSS versioning** — files named `{feature}_0.0.X.js` / `{feature}_0.0.X.css`; bump patch version on changes
 - **Frontend libs** — jQuery `$.ajax()` for AJAX, SweetAlert2 for alerts, ApexCharts for charts
 - **Custom JSP tags** — `gnb.tag`, `adminGnb.tag`, `footer.tag`, `pagination.tag` in `/WEB-INF/tags/`
+- **No `var` in JavaScript** — always use `let` or `const`; `var`는 사용 금지
+
+## Git Commit 메시지 형식
+
+커밋 메시지는 반드시 아래 형식을 따라 한국어로 작성한다. `$GIT_BRANCH_NAME`은 현재 브랜치명으로 치환한다.
+
+```
+[커밋타입][브랜치명]: 제목
+
+### 1. 주요 변경 사항 (코드 리뷰)
+- 변경된 코드에 대한 상세 설명을 코드 리뷰 형식으로 작성
+- 예: `A` 함수의 로직을 `B`로 변경하여 성능을 개선함
+
+### 2. 이번 업데이트 요약
+- 이번 커밋으로 변경된 내용의 핵심 요약
+
+### 3. 확인 체크리스트
+- [ ] 관련 기능 테스트 완료
+- [ ] 빌드 성공 확인
+```
+
+**커밋 타입:** feat, fix, refactor, docs, test, chore, perf, ci
+**예시:** `[feat][main]: 상담일정 관리자 통합 조회 기능 구현`

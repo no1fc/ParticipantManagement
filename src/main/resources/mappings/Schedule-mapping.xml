@@ -100,25 +100,14 @@
           AND 삭제여부 = 'N'
     </update>
 
-    <!-- 중복 일정 체크 -->
+    <!-- 중복 일정 체크 (상담 시작시간 기준) -->
     <select id="selectDuplicateCheck" parameterType="schedule" resultType="int">
         SELECT COUNT(*)
         FROM J_참여자관리_상담일정
         WHERE 삭제여부 = 'N'
           AND 상담사ID = #{counselorId}
           AND 일정날짜 = #{scheduleDate}
-          <choose>
-              <when test="endTime != null and endTime != ''">
-                  AND 시작시간 <![CDATA[<]]> CAST(#{endTime} AS TIME)
-                  AND (종료시간 IS NULL OR 종료시간 <![CDATA[>]]> CAST(#{startTime} AS TIME))
-              </when>
-              <otherwise>
-                  AND (
-                      (시작시간 <![CDATA[<=]]> CAST(#{startTime} AS TIME) AND (종료시간 IS NULL OR 종료시간 <![CDATA[>]]> CAST(#{startTime} AS TIME)))
-                      OR 시작시간 = CAST(#{startTime} AS TIME)
-                  )
-              </otherwise>
-          </choose>
+          AND 시작시간 = CAST(#{startTime} AS TIME)
           <if test="scheduleId != null and scheduleId != 0">
           AND 일정ID <![CDATA[<>]]> #{scheduleId}
           </if>

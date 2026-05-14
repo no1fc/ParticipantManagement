@@ -245,11 +245,11 @@ ORDER BY A.참여자
 | `/WEB-INF/views/schedule/scheduleManagerPage.jsp` | 관리자 통합 조회 | 2단계 |
 
 ### 7.2 JS/CSS
-| 파일 | 설명 | 단계 |
-|------|------|------|
-| `js/schedule_0.0.1.js` | 캘린더, CRUD AJAX, 모달 | 1단계 |
-| `css/scheduleCss/schedule_0.0.1.css` | 캘린더/모달 커스텀 스타일 | 1단계 |
-| `js/scheduleManager_0.0.1.js` | 관리자 필터링, 통계 | 2단계 |
+| 파일                                          | 설명 | 단계 |
+|---------------------------------------------|------|------|
+| `js/schedule_0.0.2.js`                      | 캘린더, CRUD AJAX, 모달 | 1단계 |
+| `css/scheduleCss/schedule_0.0.1.css`        | 캘린더/모달 커스텀 스타일 | 1단계 |
+| `js/scheduleManager_0.0.2.js`               | 관리자 필터링, 통계 | 2단계 |
 | `css/scheduleCss/scheduleManager_0.0.1.css` | 관리자 페이지 스타일 | 2단계 |
 
 ### 7.3 라이브러리
@@ -324,22 +324,22 @@ ORDER BY A.참여자
 ## 11. 파일 목록 요약
 
 ### 신규 생성 파일
-| 파일 | 설명 | 단계 |
-|------|------|------|
-| `CounselMain/biz/schedule/ScheduleDTO.java` | 일정 DTO | 1단계 |
-| `CounselMain/biz/schedule/ScheduleService.java` | 서비스 인터페이스 | 1단계 |
-| `CounselMain/biz/schedule/ScheduleServiceImpl.java` | 서비스 구현체 | 1단계 |
-| `CounselMain/biz/schedule/ScheduleDAO.java` | DAO | 1단계 |
-| `CounselMain/biz/schedule/ScheduleAlertScheduler.java` | WebSocket 알림 스케줄러 | 1단계 |
-| `CounselMain/view/schedule/ScheduleController.java` | 페이지 컨트롤러 | 1단계 |
-| `CounselMain/view/schedule/ScheduleApiController.java` | REST API 컨트롤러 | 1단계 |
-| `resources/mappings/Schedule-mapping.xml` | MyBatis 매퍼 | 1단계 |
-| `webapp/WEB-INF/views/schedule/schedulePage.jsp` | 상담사 일정 JSP | 1단계 |
-| `webapp/js/schedule_0.0.1.js` | 상담사 일정 JS | 1단계 |
-| `webapp/css/scheduleCss/schedule_0.0.1.css` | 상담사 일정 CSS | 1단계 |
+| 파일                                                      | 설명 | 단계 |
+|---------------------------------------------------------|------|------|
+| `CounselMain/biz/schedule/ScheduleDTO.java`             | 일정 DTO | 1단계 |
+| `CounselMain/biz/schedule/ScheduleService.java`         | 서비스 인터페이스 | 1단계 |
+| `CounselMain/biz/schedule/ScheduleServiceImpl.java`     | 서비스 구현체 | 1단계 |
+| `CounselMain/biz/schedule/ScheduleDAO.java`             | DAO | 1단계 |
+| `CounselMain/biz/schedule/ScheduleAlertScheduler.java`  | WebSocket 알림 스케줄러 | 1단계 |
+| `CounselMain/view/schedule/ScheduleController.java`     | 페이지 컨트롤러 | 1단계 |
+| `CounselMain/view/schedule/ScheduleApiController.java`  | REST API 컨트롤러 | 1단계 |
+| `resources/mappings/Schedule-mapping.xml`               | MyBatis 매퍼 | 1단계 |
+| `webapp/WEB-INF/views/schedule/schedulePage.jsp`        | 상담사 일정 JSP | 1단계 |
+| `webapp/js/schedule_0.0.2.js`                           | 상담사 일정 JS | 1단계 |
+| `webapp/css/scheduleCss/schedule_0.0.1.css`             | 상담사 일정 CSS | 1단계 |
 | `webapp/WEB-INF/views/schedule/scheduleManagerPage.jsp` | 관리자 통합 조회 JSP | 2단계 |
-| `webapp/js/scheduleManager_0.0.1.js` | 관리자 페이지 JS | 2단계 |
-| `webapp/css/scheduleCss/scheduleManager_0.0.1.css` | 관리자 페이지 CSS | 2단계 |
+| `webapp/js/scheduleManager_0.0.2.js`                    | 관리자 페이지 JS | 2단계 |
+| `webapp/css/scheduleCss/scheduleManager_0.0.1.css`      | 관리자 페이지 CSS | 2단계 |
 
 ### 수정 파일
 | 파일 | 변경 내용 | 단계 |
@@ -460,7 +460,7 @@ ORDER BY A.참여자
 - [ ] Java: ScheduleAlertScheduler (WebSocket 알림)
 - [ ] MyBatis: Schedule-mapping.xml (CRUD + 참여자 검색 + 중복체크 + 드래그 + 금일조회 + 알림대상)
 - [ ] JSP: schedulePage.jsp (FullCalendar + 등록/수정 모달 + 상세 모달)
-- [ ] JS: schedule_0.0.1.js (캘린더, AJAX CRUD, 참여자 자동완성, 드래그 앤 드롭, 알림 설정)
+- [ ] JS: schedule_0.0.2.js (캘린더, AJAX CRUD, 참여자 자동완성, 드래그 앤 드롭, 알림 설정)
 - [ ] CSS: schedule_0.0.1.css (캘린더/모달 스타일)
 - [ ] GNB: gnb.tag에 "상담 일정" 메뉴 추가
 - [ ] 대시보드: 금일 J_참여자관리_상담일정 위젯 (건수 카드 + 타임라인)
@@ -471,7 +471,7 @@ ORDER BY A.참여자
 - [ ] Java: 관리자 페이지 매핑 + 통계/지점 조회 API 추가
 - [ ] MyBatis: 지점별 조회, 통계 집계 쿼리 추가
 - [ ] JSP: scheduleManagerPage.jsp (통계 카드 + 상담사 필터 + 캘린더)
-- [ ] JS: scheduleManager_0.0.1.js (필터링, 통계, 상세 팝업, 드래그 수정)
+- [ ] JS: scheduleManager_0.0.2.js (필터링, 통계, 상세 팝업, 드래그 수정)
 - [ ] CSS: scheduleManager_0.0.1.css
 - [ ] GNB: adminGnb.tag에 "지점 일정 통합 조회" 메뉴 추가
 - [ ] 관리자 권한으로 수정/삭제/드래그 기능

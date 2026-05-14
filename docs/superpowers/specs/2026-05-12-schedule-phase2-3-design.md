@@ -84,10 +84,10 @@ ORDER BY 조회순서
 
 ### 2.4 프론트엔드 구성
 
-| 파일 | 설명 |
-|------|------|
-| `views/schedule/scheduleManagerPage.jsp` | 통계 카드 + 상담사 필터 칩 + FullCalendar |
-| `js/scheduleManager_0.0.1.js` | 캘린더 초기화, 상담사 필터, 통계 로드, 이벤트 클릭 팝업 |
+| 파일                                          | 설명 |
+|---------------------------------------------|------|
+| `views/schedule/scheduleManagerPage.jsp`    | 통계 카드 + 상담사 필터 칩 + FullCalendar |
+| `js/scheduleManager_0.0.2.js`               | 캘린더 초기화, 상담사 필터, 통계 로드, 이벤트 클릭 팝업 |
 | `css/scheduleCss/scheduleManager_0.0.1.css` | 필터 칩, 통계 카드, 팝업 스타일 |
 
 ### 2.5 WebSocket 알림 (관리자 수정/삭제 시)
@@ -191,11 +191,11 @@ public String maskName(String name) {
 ## 4. 파일 목록 요약
 
 ### 2단계 신규 파일 (3개)
-| 파일 | 설명 |
-|------|------|
+| 파일                                                      | 설명 |
+|---------------------------------------------------------|------|
 | `webapp/WEB-INF/views/schedule/scheduleManagerPage.jsp` | 관리자 통합 조회 JSP |
-| `webapp/js/scheduleManager_0.0.1.js` | 관리자 JS |
-| `webapp/css/scheduleCss/scheduleManager_0.0.1.css` | 관리자 CSS |
+| `webapp/js/scheduleManager_0.0.2.js`                    | 관리자 JS |
+| `webapp/css/scheduleCss/scheduleManager_0.0.1.css`      | 관리자 CSS |
 
 ### 3단계 신규 파일 (5개)
 | 파일 | 설명 |
