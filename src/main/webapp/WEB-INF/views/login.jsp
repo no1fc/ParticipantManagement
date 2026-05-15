@@ -81,7 +81,7 @@
                 <div class="text-center">
                     <a href="#" class="text-decoration-none text-primary fw-bold"
                        data-bs-toggle="modal" data-bs-target="#changePasswordModal">
-                        비밀번호 찾기
+                        비밀번호 초기화
                     </a>
                     <br>
                     <br>
@@ -320,6 +320,7 @@
                         // 성공 시 사용자에게 알림 및 인증번호 입력 영역 표시
                         alert(data.responseText);
                         primaryKeyDiv.show();
+                        sendMailBtn.prop('disabled', true);
                     },
 
                     /**
@@ -381,18 +382,18 @@
                             contentType: 'application/json; charset=utf-8',
                             dataType: 'json',
                             success: function(clearData) {
-                                // 모달을 먼저 닫고 backdrop 제거 후 SweetAlert 표시
+                                // 모달 인스턴스를 완전히 파괴하고 잔여 backdrop 제거
                                 const modal = bootstrap.Modal.getInstance(changePasswordModal[0]);
-                                if (modal) modal.hide();
+                                if (modal) modal.dispose();
+                                changePasswordModal.removeClass('show').hide();
+                                $('.modal-backdrop').remove();
+                                $('body').removeClass('modal-open').css('overflow', '');
                                 resetForm();
-                                // backdrop 제거 대기 후 SweetAlert 표시
-                                changePasswordModal.one('hidden.bs.modal', function() {
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: '비밀번호 초기화 완료',
-                                        text: '아이디만 입력하여 로그인하면 새 비밀번호를 설정할 수 있습니다.',
-                                        confirmButtonText: '확인'
-                                    });
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '비밀번호 초기화 완료',
+                                    text: '아이디만 입력하여 로그인하면 새 비밀번호를 설정할 수 있습니다.',
+                                    confirmButtonText: '확인'
                                 });
                             },
                             error: function() {
