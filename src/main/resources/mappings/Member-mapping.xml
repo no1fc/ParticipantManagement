@@ -2,6 +2,13 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="MemberDAO">
+    <!-- 로그인 시도 시 사용자 상태 확인 (상태 무관 조회) -->
+    <select id="loginCheckStatus" resultType="member">
+        SELECT 아이디사용여부 useStatus
+        FROM J_참여자관리_로그인정보
+        WHERE 아이디=#{memberUserID}
+    </select>
+
     <!-- 로그인 확인용 쿼리 -->
     <select id="loginSelect" resultType="member">
         SELECT

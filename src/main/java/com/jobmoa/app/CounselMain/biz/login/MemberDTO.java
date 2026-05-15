@@ -32,6 +32,7 @@ public class MemberDTO {
     private String memberAssignedDate; //전담자 발령일
     private String memberContinuous; //근속구분
     private String memberEmail; //전담자 이메일
+    private String useStatus; //아이디사용여부
 
     private boolean memberPasswordChange; // 패스워드 변경 여부
 

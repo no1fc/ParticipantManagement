@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Slf4j
 @Controller
@@ -33,7 +34,8 @@ public class LoginController {
     }
 
     @GetMapping("/login.do")
-    public String loginController(HttpSession session) throws Exception {
+    public String loginController(HttpSession session, Model model,
+                                  @RequestParam(value = "setPassword", required = false) String setPassword) throws Exception {
         log.info("-----------------------------------");
         //Session에 저장되어 있는 Login DATA
         LoginBean loginBean = (LoginBean)session.getAttribute("JOBMOA_LOGIN_DATA");
@@ -43,6 +45,15 @@ public class LoginController {
         if (loginBean != null) {
             log.info("dashboard.login page 이동");
             page = "redirect:dashboard.login";
+        }
+
+        // 비밀번호 설정 모달 표시 여부
+        if ("true".equals(setPassword)) {
+            String userId = (String) session.getAttribute("SET_PASSWORD_USER_ID");
+            if (userId != null) {
+                model.addAttribute("setPasswordUserId", userId);
+                model.addAttribute("showSetPasswordModal", true);
+            }
         }
 
         log.info("login DATA : [{}]", loginBean);
@@ -61,51 +72,80 @@ public class LoginController {
         String message = "";
 
         String rawPassword = memberDTO.getMemberUserPW();
-        memberDTO.setMemberCondition("loginSelect");
-        memberDTO = memberService.selectOne(memberDTO);
-        log.info("loginDTO : [{}]",memberDTO);
+        String inputUserId = memberDTO.getMemberUserID();
 
-        // 사용자가 입력한 Data 가 Null 이 아니고
-        // 검색된 Data 가 Null 이 아니면 비밀번호 비교 후 Session 에 저장
-        if(memberDTO != null && memberDTO.getMemberUserID() != null){
-            String storedPassword = memberDTO.getMemberUserPW();
-            // BCrypt 해시($2a$로 시작)와 평문 비밀번호 동시 지원 (마이그레이션 과도기)
-            boolean passwordMatch = storedPassword.startsWith("$2a$")
-                    ? passwordEncoder.matches(rawPassword, storedPassword)
-                    : rawPassword.equals(storedPassword);
+        // 1) 아이디로 상태 확인 (상태 무관 조회)
+        MemberDTO statusCheck = new MemberDTO();
+        statusCheck.setMemberUserID(inputUserId);
+        statusCheck.setMemberCondition("loginCheckStatus");
+        MemberDTO statusResult = memberService.selectOne(statusCheck);
 
-            if(passwordMatch){
-                log.info("loginController login Success user ID : [{}]",memberDTO.getMemberUserID());
+        if (statusResult == null) {
+            // 아이디 자체가 없음
+            message = "아이디 또는 비밀번호를 확인해주세요.";
+        } else if ("승인대기".equals(statusResult.getUseStatus())) {
+            // 승인대기 상태
+            icon = "warning";
+            title = "승인대기";
+            message = "관리자 승인 후 로그인할 수 있습니다.";
+        } else if ("사용".equals(statusResult.getUseStatus())) {
+            // 활성 사용자 → 기존 loginSelect 실행
+            memberDTO.setMemberCondition("loginSelect");
+            memberDTO = memberService.selectOne(memberDTO);
+            log.info("loginDTO : [{}]", memberDTO);
 
-                String role = memberDTO.getMemberRole();
-                boolean isManager = memberDTO.isMemberISManager();
-                //로그인 정보를 Bean 객체에 담고
-                loginBean.setMemberUserID(memberDTO.getMemberUserID());
-                loginBean.setMemberUserName(memberDTO.getMemberUserName());
-                loginBean.setMemberBranch(memberDTO.getMemberBranch());
-                loginBean.setMemberRole(role);
-                loginBean.setMemberUniqueNumber(memberDTO.getMemberUniqueNumber());
-                boolean branchRole = memberRoleCheck.checkBranchRole(role);
-                boolean praRole = role.equals("PRA");
-                String permissionGroup = MemberRoleCheck.getPermissionGroup(role).name();
-                loginBean.setPermissionGroup(permissionGroup);
+            if (memberDTO != null && memberDTO.getMemberUserID() != null) {
+                String storedPassword = memberDTO.getMemberUserPW();
 
-                //Session에 저장해 사용
-                session.setAttribute("JOBMOA_LOGIN_DATA", loginBean);
-                session.setAttribute("IS_BRANCH_MANAGER", branchRole);
-                session.setAttribute("IS_MANAGER", isManager);
-                session.setAttribute("IS_PRA_MANAGER",praRole);
-                session.setAttribute("PERMISSION_GROUP", permissionGroup);
+                // 비밀번호가 없는 경우 (초기화됨) → 비밀번호 설정 유도
+                if (storedPassword == null || storedPassword.isEmpty()) {
+                    session.setAttribute("SET_PASSWORD_USER_ID", inputUserId);
+                    icon = "info";
+                    title = "비밀번호 설정 필요";
+                    message = "비밀번호가 설정되지 않았습니다. 새 비밀번호를 입력해주세요.";
+                    url = "login.do?setPassword=true";
+                } else {
+                    // BCrypt 해시($2a$로 시작)와 평문 비밀번호 동시 지원 (마이그레이션 과도기)
+                    boolean passwordMatch = storedPassword.startsWith("$2a$")
+                            ? passwordEncoder.matches(rawPassword, storedPassword)
+                            : rawPassword.equals(storedPassword);
 
-                //Session 시간 6시간 지정
-                session.setMaxInactiveInterval(21600);
-                log.info("Session MaxInactiveInterval : [{}]",session.getMaxInactiveInterval());
-                session.setAttribute("SESSION_TIME",System.currentTimeMillis());
+                    if (passwordMatch) {
+                        log.info("loginController login Success user ID : [{}]", memberDTO.getMemberUserID());
 
-                url = "dashboard.login";
-                icon = "success";
-                title = "로그인 성공";
+                        String role = memberDTO.getMemberRole();
+                        boolean isManager = memberDTO.isMemberISManager();
+                        loginBean.setMemberUserID(memberDTO.getMemberUserID());
+                        loginBean.setMemberUserName(memberDTO.getMemberUserName());
+                        loginBean.setMemberBranch(memberDTO.getMemberBranch());
+                        loginBean.setMemberRole(role);
+                        loginBean.setMemberUniqueNumber(memberDTO.getMemberUniqueNumber());
+                        boolean branchRole = memberRoleCheck.checkBranchRole(role);
+                        boolean praRole = role.equals("PRA");
+                        String permissionGroup = MemberRoleCheck.getPermissionGroup(role).name();
+                        loginBean.setPermissionGroup(permissionGroup);
+
+                        session.setAttribute("JOBMOA_LOGIN_DATA", loginBean);
+                        session.setAttribute("IS_BRANCH_MANAGER", branchRole);
+                        session.setAttribute("IS_MANAGER", isManager);
+                        session.setAttribute("IS_PRA_MANAGER", praRole);
+                        session.setAttribute("PERMISSION_GROUP", permissionGroup);
+
+                        session.setMaxInactiveInterval(21600);
+                        log.info("Session MaxInactiveInterval : [{}]", session.getMaxInactiveInterval());
+                        session.setAttribute("SESSION_TIME", System.currentTimeMillis());
+
+                        url = "dashboard.login";
+                        icon = "success";
+                        title = "로그인 성공";
+                    }
+                }
             }
+        } else {
+            // 정지/잠금/퇴사
+            icon = "warning";
+            title = "로그인 불가";
+            message = "계정이 비활성화 상태입니다. 관리자에게 문의하세요.";
         }
 
         //info.jsp 페이지로 넘어갈때 활용

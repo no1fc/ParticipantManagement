@@ -8,6 +8,7 @@
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" pageEncoding="UTF-8" %>
 <%@ taglib tagdir="/WEB-INF/tags" prefix="mytag" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -32,6 +33,9 @@
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <link rel="stylesheet" href="/css/participantCss/loginPage_0.0.1.css">
     <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
     <style>
@@ -138,6 +142,36 @@
         </div>
     </div>
 </div>
+
+<!-- 비밀번호 설정 Modal (비밀번호 없는 사용자용) -->
+<div class="modal fade login-modal" id="setPasswordModal" data-bs-backdrop="static" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">비밀번호 설정</h5>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">비밀번호가 설정되지 않았습니다. 새 비밀번호를 입력해주세요.</p>
+                <input type="hidden" id="setPasswordUserID" value="${setPasswordUserId}">
+                <div class="mb-3">
+                    <label for="newPassword" class="form-label">새 비밀번호</label>
+                    <input type="password" class="form-control" id="newPassword" placeholder="새 비밀번호를 입력해주세요">
+                    <i class="fas fa-eye-slash" id="toggle-new-password"></i>
+                </div>
+                <div class="mb-3">
+                    <label for="newPasswordConfirm" class="form-label">비밀번호 확인</label>
+                    <input type="password" class="form-control" id="newPasswordConfirm" placeholder="비밀번호를 다시 입력해주세요">
+                    <i class="fas fa-eye-slash" id="toggle-new-password-confirm"></i>
+                </div>
+                <small class="text-muted">5자 이상, 소문자/숫자/특수문자(#?!@$%^&*-) 포함</small>
+                <div id="setPasswordResult" class="mt-2"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="setPasswordBtn">비밀번호 설정</button>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 
 <script>
@@ -231,6 +265,9 @@
          * 포커스 시 부모 요소에 shadow-sm 클래스 추가
          * 블러 시 shadow-sm 클래스 제거
          */
+        // 비밀번호 복잡성 정규식 (공통)
+        const reg = /^(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{5,}$/;
+
         formControl.focus(function() {
             $(this).parent().addClass('shadow-sm');
         }).blur(function() {
@@ -334,11 +371,31 @@
                             return;
                         }
 
-                        // 인증 성공 시 UI 상태 업데이트
-                        alert(data.responseText);
-                        changePasswordBtn.prop('disabled', false);    // 비밀번호 변경 버튼 활성화
-                        checkAuthFlag = true;                         // 인증 완료 플래그 설정
-                        changePasswordDiv.show();                     // 비밀번호 변경 영역 표시
+                        // 인증 성공 시 비밀번호 초기화 (DB에서 삭제)
+                        $.ajax({
+                            url: 'clearPassword.api',
+                            type: 'POST',
+                            data: JSON.stringify({
+                                "memberUserID": changePasswordForm.find('#changeUserID').val()
+                            }),
+                            contentType: 'application/json; charset=utf-8',
+                            dataType: 'json',
+                            success: function(clearData) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '비밀번호 초기화 완료',
+                                    text: '아이디만 입력하여 로그인하면 새 비밀번호를 설정할 수 있습니다.',
+                                    confirmButtonText: '확인'
+                                }).then(function() {
+                                    const modal = bootstrap.Modal.getInstance(changePasswordModal[0]);
+                                    if (modal) modal.hide();
+                                    resetForm();
+                                });
+                            },
+                            error: function() {
+                                alert("비밀번호 초기화에 실패했습니다.");
+                            }
+                        });
                     },
 
                     /**
@@ -427,9 +484,6 @@
         function changePasswordREG(){
             let changePasswordVal = changePassword.val();          // 새 비밀번호 값
             let changePasswordCheckVal = changePasswordCheck.val(); // 비밀번호 확인 값
-
-            // 비밀번호 복잡성 정규식: 소문자, 숫자, 특수문자 포함 5자 이상
-            let reg = /^(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{5,}$/;
 
             // 1단계: 인증 완료 여부 확인
             if(!checkAuthFlag){
@@ -589,6 +643,101 @@
                     // alert("서버 오류가 발생했습니다. 다시 시도해주세요.");
                 })
         }
+        // ========================================
+        // 비밀번호 설정 모달 (비밀번호 없는 사용자용)
+        // ========================================
+
+        const setPasswordModal = $('#setPasswordModal');
+        const newPassword = $('#newPassword');
+        const newPasswordConfirm = $('#newPasswordConfirm');
+        const setPasswordResult = $('#setPasswordResult');
+        const setPasswordBtn = $('#setPasswordBtn');
+        const setPasswordUserID = $('#setPasswordUserID');
+
+        // 페이지 로드 시 비밀번호 설정 모달 자동 표시
+        <c:if test="${showSetPasswordModal}">
+        const setPasswordModalInstance = new bootstrap.Modal(setPasswordModal[0]);
+        setPasswordModalInstance.show();
+        </c:if>
+
+        // 비밀번호 설정 실시간 검증
+        newPasswordConfirm.on('input', function() {
+            validateNewPassword();
+        });
+        newPassword.on('input', function() {
+            if (newPasswordConfirm.val()) validateNewPassword();
+        });
+
+        function validateNewPassword() {
+            const pw = newPassword.val();
+            const pwConfirm = newPasswordConfirm.val();
+            setPasswordResult.empty();
+
+            if (pw.search(/\s/) !== -1) {
+                passwordCheckInnerSpan(setPasswordResult, "비밀번호는 공백 없이 입력해주세요.", "red");
+                return false;
+            }
+            if (false === reg.test(pw)) {
+                passwordCheckInnerSpan(setPasswordResult, "비밀번호는 5자 이상이어야 하며, 숫자/소문자/특수문자(#?!@$%^&*-)를 모두 포함해야 합니다.", "red");
+                return false;
+            }
+            if (pw !== pwConfirm) {
+                passwordCheckInnerSpan(setPasswordResult, "비밀번호가 일치하지 않습니다.", "red");
+                return false;
+            }
+            passwordCheckInnerSpan(setPasswordResult, "비밀번호가 일치합니다.", "green");
+            return true;
+        }
+
+        // 비밀번호 표시/숨김 토글
+        $('#toggle-new-password').on('click', function() {
+            togglePasswordShow($(this), newPassword);
+        });
+        $('#toggle-new-password-confirm').on('click', function() {
+            togglePasswordShow($(this), newPasswordConfirm);
+        });
+
+        // 비밀번호 설정 버튼
+        setPasswordBtn.on('click', function() {
+            if (!validateNewPassword()) return;
+
+            const userId = setPasswordUserID.val();
+            const pw = newPassword.val();
+
+            fetch('changePW.api', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    "memberUserID": userId,
+                    "memberUserPW": pw,
+                    "memberUserChangePW": pw
+                })
+            })
+            .then(async function(response) {
+                const responseData = await response.text();
+                let message;
+                try { message = JSON.parse(responseData).message; }
+                catch (e) { message = responseData; }
+
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '비밀번호 설정 완료',
+                        text: '새 비밀번호로 로그인해주세요.',
+                        confirmButtonText: '확인'
+                    }).then(function() {
+                        const modal = bootstrap.Modal.getInstance(setPasswordModal[0]);
+                        if (modal) modal.hide();
+                        location.href = 'login.do';
+                    });
+                } else {
+                    Swal.fire({ icon: 'error', title: '오류', text: message });
+                }
+            })
+            .catch(function(error) {
+                console.log("비밀번호 설정 오류:", error);
+            });
+        });
     });
 </script>
 </html>

@@ -50,7 +50,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public boolean resetPassword(AdminDTO dto) {
-        dto.setPassword(passwordEncoder.encode("jobmoa100!"));
+        dto.setPassword("");
         return adminDAO.resetUserPassword(dto);
     }
 
