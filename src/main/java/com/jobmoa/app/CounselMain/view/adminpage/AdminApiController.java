@@ -200,10 +200,16 @@ public class AdminApiController {
         if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setBranchNo(branchNo);
+        int userCount = adminService.getBranchUserCount(dto);
         Map<String, Object> result = new HashMap<>();
         boolean success = adminService.removeBranch(dto);
+        String message = success ? "지점이 비활성화되었습니다." : "비활성화에 실패했습니다.";
+        if (success && userCount > 0) {
+            message += " (소속 사용자 " + userCount + "명은 유지됩니다.)";
+        }
         result.put("success", success);
-        result.put("message", success ? "지점�� 삭제되었습니다." : "삭제에 실패했습니다.");
+        result.put("message", message);
+        result.put("affectedUsers", userCount);
         return ResponseEntity.ok(result);
     }
 

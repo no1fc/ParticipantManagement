@@ -19,6 +19,7 @@ public interface AdminService {
     boolean addBranch(AdminDTO dto);
     boolean modifyBranch(AdminDTO dto);
     boolean removeBranch(AdminDTO dto);
+    int getBranchUserCount(AdminDTO dto);
 
     // 참여자 관리 (관리자)
     List<AdminDTO> getParticipantList(AdminDTO dto);

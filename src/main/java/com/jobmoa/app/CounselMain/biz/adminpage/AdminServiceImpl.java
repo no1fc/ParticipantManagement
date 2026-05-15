@@ -78,6 +78,11 @@ public class AdminServiceImpl implements AdminService {
         return adminDAO.deleteBranch(dto);
     }
 
+    @Override
+    public int getBranchUserCount(AdminDTO dto) {
+        return adminDAO.selectBranchUserCount(dto);
+    }
+
     // ===== 참여자 관리 =====
     @Override
     public List<AdminDTO> getParticipantList(AdminDTO dto) {

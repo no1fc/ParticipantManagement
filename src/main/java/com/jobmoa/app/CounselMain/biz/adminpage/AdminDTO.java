@@ -43,6 +43,7 @@ public class AdminDTO {
     private int type2;
     private String department;
     private int branchOrder;
+    private String branchUseStatus;
 
     // J_참여자관리 (참여자 - 관리자 조회용)
     private int jobNo;
