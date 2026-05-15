@@ -2,6 +2,7 @@ package com.jobmoa.app.CounselMain.biz.adminpage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -14,6 +15,9 @@ public class AdminServiceImpl implements AdminService {
 
     @Autowired
     private AdminDAO adminDAO;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     // ===== 사용자 관리 =====
     @Override
@@ -28,6 +32,9 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public boolean addUser(AdminDTO dto) {
+        if (dto.getPassword() != null && !dto.getPassword().startsWith("$2a$")) {
+            dto.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
         return adminDAO.insertUser(dto);
     }
 
@@ -43,7 +50,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public boolean resetPassword(AdminDTO dto) {
-        dto.setPassword("jobmoa100!");
+        dto.setPassword(passwordEncoder.encode("jobmoa100!"));
         return adminDAO.resetUserPassword(dto);
     }
 

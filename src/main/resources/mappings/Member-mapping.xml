@@ -15,7 +15,7 @@
             등록일 memberRegDate,
             고유번호 memberUniqueNumber
         FROM J_참여자관리_로그인정보
-        WHERE 아이디=#{memberUserID} AND 비밀번호=#{memberUserPW} AND 아이디사용여부 = '사용'
+        WHERE 아이디=#{memberUserID} AND 아이디사용여부 = '사용'
     </select>
 
     <!-- 지점 담담자 아이디 확인용 -->
@@ -68,8 +68,6 @@
             AND B.업무보고일 = CONVERT(CHAR(10), GETDATE(), 23)
         WHERE
             A.아이디=#{memberUserID}
-        AND
-            A.비밀번호=#{memberUserPW}
     </select>
 
     <select id="OneMemberDataSelectNotPasswordCheck" resultType="member">

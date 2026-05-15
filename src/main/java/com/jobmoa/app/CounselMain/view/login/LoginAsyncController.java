@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,13 +18,16 @@ public class LoginAsyncController {
     @Autowired
     MemberService memberService;
 
+    @Autowired
+    BCryptPasswordEncoder passwordEncoder;
+
     @PostMapping("changePW.api")
     public ResponseEntity<?> changePW(@RequestBody MemberDTO memberDTO){
         String memberUserID = memberDTO.getMemberUserID();
         String memberUserPW = memberDTO.getMemberUserPW();
         String memberUserChangePW = memberDTO.getMemberUserChangePW();
 
-        log.info("changePW.api changePW memberUserID,memberUserPW,memberUserChangePW : [{},{},{}]",memberUserID, memberUserPW, memberUserChangePW);
+        log.info("changePW.api changePW memberUserID : [{}]", memberUserID);
 
         if(memberUserID == null || memberUserPW == null || memberUserChangePW == null){
             return ResponseEntity.badRequest()
@@ -39,6 +43,8 @@ public class LoginAsyncController {
 
         }
 
+        // 비밀번호를 BCrypt 해싱 후 저장
+        memberDTO.setMemberUserPW(passwordEncoder.encode(memberUserPW));
         memberDTO.setMemberCondition("changePassword");
         if(!memberService.update(memberDTO)){
             log.error("changePW.api update fail memberDTO : [{}]", memberDTO);

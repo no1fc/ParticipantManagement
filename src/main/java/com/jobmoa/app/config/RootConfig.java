@@ -173,6 +173,15 @@ public class RootConfig {
     }
 
     /**
+     * BCryptPasswordEncoder Bean
+     * 비밀번호 해싱용 (spring-security-crypto 모듈)
+     */
+    @Bean
+    public org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder passwordEncoder() {
+        return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
+    }
+
+    /**
      * JdbcTemplate Bean
      * JDBC 작업을 위한 템플릿
      */

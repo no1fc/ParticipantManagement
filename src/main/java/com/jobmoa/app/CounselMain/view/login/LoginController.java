@@ -8,6 +8,7 @@ import com.jobmoa.app.CounselMain.view.function.MemberRoleCheck;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,9 @@ public class LoginController {
 
     @Autowired
     private MemberService memberService;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
     private InfoBean infoBean;
@@ -56,14 +60,21 @@ public class LoginController {
         String title = "로그인 실패";
         String message = "";
 
+        String rawPassword = memberDTO.getMemberUserPW();
         memberDTO.setMemberCondition("loginSelect");
         memberDTO = memberService.selectOne(memberDTO);
         log.info("loginDTO : [{}]",memberDTO);
 
         // 사용자가 입력한 Data 가 Null 이 아니고
-        // 검색된 Data 가 Null 이 아니면 Session 에 저장
-        if(memberDTO != null){
-            if(memberDTO.getMemberUserID() != null){
+        // 검색된 Data 가 Null 이 아니면 비밀번호 비교 후 Session 에 저장
+        if(memberDTO != null && memberDTO.getMemberUserID() != null){
+            String storedPassword = memberDTO.getMemberUserPW();
+            // BCrypt 해시($2a$로 시작)와 평문 비밀번호 동시 지원 (마이그레이션 과도기)
+            boolean passwordMatch = storedPassword.startsWith("$2a$")
+                    ? passwordEncoder.matches(rawPassword, storedPassword)
+                    : rawPassword.equals(storedPassword);
+
+            if(passwordMatch){
                 log.info("loginController login Success user ID : [{}]",memberDTO.getMemberUserID());
 
                 String role = memberDTO.getMemberRole();

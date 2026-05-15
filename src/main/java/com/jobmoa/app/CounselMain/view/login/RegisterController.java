@@ -4,6 +4,7 @@ import com.jobmoa.app.CounselMain.biz.login.MemberDTO;
 import com.jobmoa.app.CounselMain.biz.login.MemberService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +21,9 @@ public class RegisterController {
 
     @Autowired
     private MemberService memberService;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     @GetMapping("/register.do")
     public String registerPage(Model model) {
@@ -57,7 +61,8 @@ public class RegisterController {
             return result;
         }
 
-        // 회원가입 (승인대기 상태)
+        // 회원가입 (승인대기 상태, 비밀번호 해싱)
+        memberDTO.setMemberUserPW(passwordEncoder.encode(memberDTO.getMemberUserPW()));
         memberDTO.setMemberCondition("registerUser");
         boolean inserted = memberService.insert(memberDTO);
 
