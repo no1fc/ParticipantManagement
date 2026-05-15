@@ -69,7 +69,7 @@
                             <i class="fa fa-lock"></i>
                         </span>
                         <input type="password" class="form-control" id="memberUserPW" name="memberUserPW"
-                               placeholder="비밀번호를 입력해주세요" required>
+                               placeholder="비밀번호를 입력해주세요">
                         <span class="input-group-text">
                             <i class="fas fa-eye-slash" id="icon-password"></i>
                         </span>
@@ -381,15 +381,18 @@
                             contentType: 'application/json; charset=utf-8',
                             dataType: 'json',
                             success: function(clearData) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: '비밀번호 초기화 완료',
-                                    text: '아이디만 입력하여 로그인하면 새 비밀번호를 설정할 수 있습니다.',
-                                    confirmButtonText: '확인'
-                                }).then(function() {
-                                    const modal = bootstrap.Modal.getInstance(changePasswordModal[0]);
-                                    if (modal) modal.hide();
-                                    resetForm();
+                                // 모달을 먼저 닫고 backdrop 제거 후 SweetAlert 표시
+                                const modal = bootstrap.Modal.getInstance(changePasswordModal[0]);
+                                if (modal) modal.hide();
+                                resetForm();
+                                // backdrop 제거 대기 후 SweetAlert 표시
+                                changePasswordModal.one('hidden.bs.modal', function() {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: '비밀번호 초기화 완료',
+                                        text: '아이디만 입력하여 로그인하면 새 비밀번호를 설정할 수 있습니다.',
+                                        confirmButtonText: '확인'
+                                    });
                                 });
                             },
                             error: function() {
