@@ -58,5 +58,6 @@
         <mapper resource="mappings/Recruitment-mapping.xml"/>
         <mapper resource="mappings/ParticipantJobRecommend-mapping.xml"/>
         <mapper resource="mappings/Schedule-mapping.xml"/>
+        <mapper resource="mappings/Permission-mapping.xml"/>
     </mappers>
 </configuration>

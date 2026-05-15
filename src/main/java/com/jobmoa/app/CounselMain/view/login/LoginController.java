@@ -76,12 +76,15 @@ public class LoginController {
                 loginBean.setMemberUniqueNumber(memberDTO.getMemberUniqueNumber());
                 boolean branchRole = memberRoleCheck.checkBranchRole(role);
                 boolean praRole = role.equals("PRA");
+                String permissionGroup = MemberRoleCheck.getPermissionGroup(role).name();
+                loginBean.setPermissionGroup(permissionGroup);
 
                 //Session에 저장해 사용
                 session.setAttribute("JOBMOA_LOGIN_DATA", loginBean);
                 session.setAttribute("IS_BRANCH_MANAGER", branchRole);
                 session.setAttribute("IS_MANAGER", isManager);
                 session.setAttribute("IS_PRA_MANAGER",praRole);
+                session.setAttribute("PERMISSION_GROUP", permissionGroup);
 
                 //Session 시간 6시간 지정
                 session.setMaxInactiveInterval(21600);
