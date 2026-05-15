@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,47 +24,125 @@ public class AsyncMyPage {
     @Autowired
     private MemberServiceImpl memberService;
 
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
     @PostMapping(value = "/checkPassword.api", produces = "application/json;charset=UTF-8")
-    public ResponseEntity<?> checkPassword(@RequestBody MemberDTO memberDTO, HttpSession session){
+    public ResponseEntity<?> checkPassword(@RequestBody MemberDTO memberDTO, HttpSession session) {
         log.info("Start checkPassword.api");
 
-        LoginBean loginBean = (LoginBean)session.getAttribute("JOBMOA_LOGIN_DATA");
+        LoginBean loginBean = (LoginBean) session.getAttribute("JOBMOA_LOGIN_DATA");
         String userID = loginBean.getMemberUserID();
 
         try {
-            if(memberDTO == null || memberDTO.getMemberUserPW().trim().isEmpty()){
-                log.info("checkPassword.api memberUserPW is null or empty");
-                throw new NullPointerException("memberUserPW is null or empty");
-            }
-
+            // 비밀번호 없이 접근한 경우 (비밀번호 미설정 사용자) → 바로 데이터 반환
+            String inputPW = memberDTO.getMemberUserPW();
             memberDTO.setMemberUserID(userID);
-            memberDTO.setMemberCondition("OneMemberDataSelect");
+            memberDTO.setMemberCondition("OneMemberDataSelectNotPasswordCheck");
             MemberDTO checkMemberDTO = memberService.selectOne(memberDTO);
 
-            if(checkMemberDTO != null) {
-                Map<String, Object> response = getResponse(checkMemberDTO, "비밀번호 확인완료");
-                return ResponseEntity.ok()
-                        .header("Content-Type", "application/json;charset=UTF-8")
-                        .body(response);
-            } else {
-                Map<String, Object> response = createErrorResponse("비밀번호가 일치하지 않습니다.", "401");
+            if (checkMemberDTO == null) {
                 return ResponseEntity.status(401)
-                        .header("Content-Type", "application/json;charset=UTF-8")
-                        .body(response);
+                        .body(createErrorResponse("사용자 정보를 찾을 수 없습니다.", "401"));
             }
 
-        } catch (NullPointerException e){
-            log.error("checkPassword.api NullPointerException : [{}]",e.getMessage());
-            Map<String, Object> response = createErrorResponse(e.getMessage(), "400");
-            return ResponseEntity.badRequest()
-                    .header("Content-Type", "application/json;charset=UTF-8")
-                    .body(response);
-        } catch (Exception e){
-            log.error("checkPassword.api Exception : [{}]",e.getMessage());
-            Map<String, Object> response = createErrorResponse("서버 오류가 발생했습니다.", "500");
+            String storedPW = checkMemberDTO.getMemberUserPW();
+            boolean passwordEmpty = (storedPW == null || storedPW.isEmpty());
+
+            // 비밀번호가 없는 사용자는 비밀번호 확인 없이 통과
+            if (passwordEmpty) {
+                Map<String, Object> response = getResponse(checkMemberDTO, "비밀번호 확인완료");
+                return ResponseEntity.ok().body(response);
+            }
+
+            // 비밀번호가 있는 사용자는 비밀번호 확인 필요
+            if (inputPW == null || inputPW.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(createErrorResponse("비밀번호를 입력해주세요.", "400"));
+            }
+
+            // BCrypt/평문 동시 지원
+            boolean match = storedPW.startsWith("$2a$")
+                    ? passwordEncoder.matches(inputPW, storedPW)
+                    : inputPW.equals(storedPW);
+
+            if (match) {
+                Map<String, Object> response = getResponse(checkMemberDTO, "비밀번호 확인완료");
+                return ResponseEntity.ok().body(response);
+            } else {
+                return ResponseEntity.status(401)
+                        .body(createErrorResponse("비밀번호가 일치하지 않습니다.", "401"));
+            }
+
+        } catch (Exception e) {
+            log.error("checkPassword.api Exception : [{}]", e.getMessage());
             return ResponseEntity.status(500)
-                    .header("Content-Type", "application/json;charset=UTF-8")
-                    .body(response);
+                    .body(createErrorResponse("서버 오류가 발생했습니다.", "500"));
+        }
+    }
+
+    @PostMapping(value = "/updateContact.api", produces = "application/json;charset=UTF-8")
+    public ResponseEntity<?> updateContact(@RequestBody MemberDTO memberDTO, HttpSession session) {
+        log.info("Start updateContact.api");
+        try {
+            LoginBean loginBean = (LoginBean) session.getAttribute("JOBMOA_LOGIN_DATA");
+            memberDTO.setMemberUserID(loginBean.getMemberUserID());
+            memberDTO.setMemberCondition("updateContact");
+            boolean result = memberService.update(memberDTO);
+
+            if (result) {
+                return ResponseEntity.ok().body(Map.of("success", true, "message", "연락처가 수정되었습니다."));
+            }
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "수정에 실패했습니다."));
+        } catch (Exception e) {
+            log.error("updateContact.api Exception : [{}]", e.getMessage());
+            return ResponseEntity.status(500).body(Map.of("success", false, "message", "서버 오류가 발생했습니다."));
+        }
+    }
+
+    @PostMapping(value = "/updateDailyReport.api", produces = "application/json;charset=UTF-8")
+    public ResponseEntity<?> updateDailyReport(@RequestBody MemberDTO memberDTO, HttpSession session) {
+        log.info("Start updateDailyReport.api");
+        try {
+            LoginBean loginBean = (LoginBean) session.getAttribute("JOBMOA_LOGIN_DATA");
+            memberDTO.setMemberUserID(loginBean.getMemberUserID());
+            memberDTO.setMemberBranch(loginBean.getMemberBranch());
+            memberDTO.setMemberCondition("updateDailyReport");
+            boolean result = memberService.update(memberDTO);
+
+            if (result) {
+                return ResponseEntity.ok().body(Map.of("success", true, "message", "일일보고가 저장되었습니다."));
+            }
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "저장에 실패했습니다."));
+        } catch (Exception e) {
+            log.error("updateDailyReport.api Exception : [{}]", e.getMessage());
+            return ResponseEntity.status(500).body(Map.of("success", false, "message", "서버 오류가 발생했습니다."));
+        }
+    }
+
+    @PostMapping(value = "/changeMyPassword.api", produces = "application/json;charset=UTF-8")
+    public ResponseEntity<?> changeMyPassword(@RequestBody MemberDTO memberDTO, HttpSession session) {
+        log.info("Start changeMyPassword.api");
+        try {
+            LoginBean loginBean = (LoginBean) session.getAttribute("JOBMOA_LOGIN_DATA");
+            String newPW = memberDTO.getMemberUserChangePW();
+
+            if (newPW == null || newPW.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "새 비밀번호를 입력해주세요."));
+            }
+
+            memberDTO.setMemberUserID(loginBean.getMemberUserID());
+            memberDTO.setMemberUserPW(passwordEncoder.encode(newPW));
+            memberDTO.setMemberCondition("changePassword");
+            boolean result = memberService.update(memberDTO);
+
+            if (result) {
+                return ResponseEntity.ok().body(Map.of("success", true, "message", "비밀번호가 변경되었습니다."));
+            }
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "변경에 실패했습니다."));
+        } catch (Exception e) {
+            log.error("changeMyPassword.api Exception : [{}]", e.getMessage());
+            return ResponseEntity.status(500).body(Map.of("success", false, "message", "서버 오류가 발생했습니다."));
         }
     }
 
@@ -144,9 +223,9 @@ public class AsyncMyPage {
         memberData.put("memberPhoneNumber", createFieldMap("대표번호(내선)",
                 checkMemberDTO.getMemberPhoneNumber() != null ? checkMemberDTO.getMemberPhoneNumber() : "", "phone"));
 
-        // 변경비밀번호 (빈 값)
-        memberData.put("memberUserChangePW", createFieldMap("비밀번호 변경", "", "password"));
-        memberData.put("memberUserChangePWOK", createFieldMap("비밀번호 변경 확인", "", "password"));
+        // 이메일
+        memberData.put("memberEmail", createFieldMap("이메일",
+                checkMemberDTO.getMemberEmail() != null ? checkMemberDTO.getMemberEmail() : "", "email"));
 
         // 계정 등록일
         memberData.put("memberRegDate", createFieldMap("계정 등록일",

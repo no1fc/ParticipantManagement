@@ -1,0 +1,58 @@
+.mypage-header {
+    border-bottom: 1px solid #dee2e6;
+    height: 70px;
+}
+
+.myPage-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+/* 탭 스타일 */
+.nav-tabs .nav-link {
+    color: #6c757d;
+    font-weight: 600;
+    border: none;
+    padding: 12px 20px;
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--brand-primary, #4361ee);
+    border-bottom: 2px solid var(--brand-primary, #4361ee);
+    background: transparent;
+}
+
+.nav-tabs .nav-link:hover:not(.active) {
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+}
+
+/* 일일보고 테이블 */
+#tab-daily-report .table {
+    margin-bottom: 1rem;
+}
+
+#tab-daily-report .table input.report-input {
+    border: 1px solid #dee2e6;
+    max-width: 120px;
+    margin: 0 auto;
+}
+
+#tab-daily-report .table input.report-input:focus {
+    border-color: var(--brand-primary, #4361ee);
+    box-shadow: 0 0 0 0.15rem rgba(67, 97, 238, 0.15);
+}
+
+/* 읽기 전용 정보 */
+#tab-profile .form-label.text-muted {
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+
+#tab-profile p.fw-semibold {
+    font-size: 1rem;
+    margin-bottom: 0;
+}
