@@ -290,48 +290,30 @@
         sendMailBtn.click(function() {
             // HTML5 폼 유효성 검증
             if(changePasswordForm[0].checkValidity()) {
+                // 즉시 비활성화 (중복 클릭 방지)
+                sendMailBtn.prop('disabled', true).text('발송 중...');
                 $.ajax({
-                    url: 'pwChangeSendEmail.api',        // 이메일 발송 API 엔드포인트
-                    type: 'POST',                       // HTTP POST 메서드
-                    data: JSON.stringify({              // 요청 데이터를 JSON 문자열로 변환
+                    url: 'pwChangeSendEmail.api',
+                    type: 'POST',
+                    data: JSON.stringify({
                         "userId": changePasswordForm.find('#changeUserID').val(),
                     }),
-                    contentType: 'application/json; charset=utf-8',  // 요청 Content-Type 설정
-                    dataType: 'json',                   // 응답 데이터 타입 지정
-
-                    /**
-                     * 성공 콜백 함수
-                     * @param {Object} data - 서버 응답 데이터
-                     * @param {string} status - 요청 상태
-                     * @param {jqXHR} xhr - XMLHttpRequest 객체
-                     */
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
                     success: function(data, status, xhr) {
-                        console.log("이메일 발송 응답:", data);
-                        console.log("요청 상태:", status);
-                        console.log("성공 플래그:", data.flag);
-                        console.log("응답 메시지:", data.responseText);
-
-                        // 서버에서 실패 응답인 경우
                         if(!data.flag){
                             alert(data.responseText);
+                            sendMailBtn.prop('disabled', false).text('인증번호 발송');
                             return;
                         }
-
-                        // 성공 시 사용자에게 알림 및 인증번호 입력 영역 표시
                         alert(data.responseText);
                         primaryKeyDiv.show();
-                        sendMailBtn.prop('disabled', true);
+                        // 발송 성공 후 버튼 비활성화 유지
+                        sendMailBtn.text('발송 완료');
                     },
-
-                    /**
-                     * 오류 콜백 함수
-                     * @param {jqXHR} request - XMLHttpRequest 객체
-                     * @param {string} status - 오류 상태
-                     * @param {string} error - 오류 메시지
-                     */
                     error: function(request, status, error) {
-                        // 서버 오류 메시지를 사용자에게 표시
                         alert(request.responseText);
+                        sendMailBtn.prop('disabled', false).text('인증번호 발송');
                     }
                 })
             }
