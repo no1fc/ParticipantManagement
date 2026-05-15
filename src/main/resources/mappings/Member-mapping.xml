@@ -15,7 +15,7 @@
             등록일 memberRegDate,
             고유번호 memberUniqueNumber
         FROM J_참여자관리_로그인정보
-        WHERE 아이디=#{memberUserID} AND 비밀번호=#{memberUserPW} AND (아이디사용여부 NOT IN ('퇴사','정지','잠금') OR 아이디사용여부 IS NULL)
+        WHERE 아이디=#{memberUserID} AND 비밀번호=#{memberUserPW} AND 아이디사용여부 = '사용'
     </select>
 
     <!-- 지점 담담자 아이디 확인용 -->
@@ -154,6 +154,32 @@
             )
         END
     </update>
+
+    <!-- 활성 지점 목록 조회 (회원가입 폼용) -->
+    <select id="selectActiveBranchList" resultType="map">
+        SELECT 지점 AS branchName
+        FROM J_참여자관리_지점
+        WHERE 사용여부 = '사용'
+        ORDER BY 순서 ASC
+    </select>
+
+    <!-- 아이디 중복 체크 -->
+    <select id="checkUserIdDuplicate" parameterType="member" resultType="int">
+        SELECT COUNT(*)
+        FROM J_참여자관리_로그인정보
+        WHERE 아이디 = #{memberUserID}
+    </select>
+
+    <!-- 셀프 회원가입 (승인대기 상태로 등록) -->
+    <insert id="registerUser" parameterType="member">
+        INSERT INTO J_참여자관리_로그인정보 (
+            이름, 아이디, 비밀번호, 지점, 권한,
+            이메일, 전화번호, 아이디사용여부, 등록일
+        ) VALUES (
+            #{memberUserName}, #{memberUserID}, #{memberUserPW}, #{memberBranch}, '상담',
+            #{memberEmail}, #{memberPhoneNumber}, '승인대기', GETDATE()
+        )
+    </insert>
 
     <update id="memberOrderUpdate">
         <foreach collection="userIds" item="userId" index="index">

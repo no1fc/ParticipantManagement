@@ -11,6 +11,7 @@ public interface AdminService {
     boolean modifyUser(AdminDTO dto);
     boolean removeUser(AdminDTO dto);
     boolean resetPassword(AdminDTO dto);
+    boolean approveUser(AdminDTO dto);
 
     // 지점 관리
     List<AdminDTO> getBranchList(AdminDTO dto);

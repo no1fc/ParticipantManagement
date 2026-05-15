@@ -84,6 +84,11 @@
                     <a href="/jobPlacement/placementList" class="text-decoration-none text-primary fw-bold">
                         기업회원 알선 확인
                     </a>
+                    <br>
+                    <br>
+                    <a href="/register.do" class="text-decoration-none text-primary fw-bold">
+                        회원가입
+                    </a>
                 </div>
             </form>
         </div>

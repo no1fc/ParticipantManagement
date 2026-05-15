@@ -35,6 +35,11 @@
     color: #495057;
 }
 
+.status-pending {
+    background-color: #ffc107;
+    color: #212529;
+}
+
 .table-modern {
     background: white;
     border-radius: var(--radius-md);

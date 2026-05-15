@@ -117,6 +117,21 @@ public class AdminApiController {
         return ResponseEntity.ok(result);
     }
 
+    @PutMapping("/users/{userNo}/approve")
+    public ResponseEntity<?> approveUser(@PathVariable int userNo, HttpSession session) {
+        log.info("PUT /admin/api/users/{}/approve", userNo);
+        ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
+        if (denied != null) return denied;
+        AdminDTO dto = new AdminDTO();
+        dto.setMemberNo(userNo);
+        dto.setUseStatus("사용");
+        Map<String, Object> result = new HashMap<>();
+        boolean success = adminService.approveUser(dto);
+        result.put("success", success);
+        result.put("message", success ? "사용자가 승인되었습니다." : "승인에 실패했습니다.");
+        return ResponseEntity.ok(result);
+    }
+
     @GetMapping("/users/next-no")
     public ResponseEntity<?> getNextMemberNo(HttpSession session) {
         log.info("GET /admin/api/users/next-no");

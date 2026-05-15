@@ -81,7 +81,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/jobPlacement/**", // 참여자 정보 페이지
                         "/Starbucks",
                         "/Starbucks/**",
-                        "/schedulePublic/**"   // 공개 일정 조회 (독립 인증)
+                        "/schedulePublic/**",  // 공개 일정 조회 (독립 인증)
+                        "/register.do",        // 셀프 회원가입
+                        "/register.api"        // 회원가입 API
                 );
     }
 

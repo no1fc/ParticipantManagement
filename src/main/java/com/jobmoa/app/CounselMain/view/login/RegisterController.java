@@ -1,0 +1,96 @@
+package com.jobmoa.app.CounselMain.view.login;
+
+import com.jobmoa.app.CounselMain.biz.login.MemberDTO;
+import com.jobmoa.app.CounselMain.biz.login.MemberService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Slf4j
+@Controller
+public class RegisterController {
+
+    @Autowired
+    private MemberService memberService;
+
+    @GetMapping("/register.do")
+    public String registerPage(Model model) {
+        log.info("-----------------------------------");
+        log.info("회원가입 페이지 접근");
+        List<Map<String, Object>> branchList = memberService.selectActiveBranchList();
+        model.addAttribute("branchList", branchList);
+        log.info("-----------------------------------");
+        return "views/register";
+    }
+
+    @PostMapping("/register.api")
+    @ResponseBody
+    public Map<String, Object> register(MemberDTO memberDTO) {
+        log.info("-----------------------------------");
+        log.info("회원가입 요청 - 아이디: [{}]", memberDTO.getMemberUserID());
+        Map<String, Object> result = new HashMap<>();
+
+        // 필수값 검증
+        if (memberDTO.getMemberUserID() == null || memberDTO.getMemberUserID().trim().isEmpty()
+                || memberDTO.getMemberUserPW() == null || memberDTO.getMemberUserPW().trim().isEmpty()
+                || memberDTO.getMemberUserName() == null || memberDTO.getMemberUserName().trim().isEmpty()
+                || memberDTO.getMemberBranch() == null || memberDTO.getMemberBranch().trim().isEmpty()) {
+            result.put("success", false);
+            result.put("message", "필수 항목을 모두 입력해주세요.");
+            return result;
+        }
+
+        // 아이디 중복 체크
+        memberDTO.setMemberCondition("checkUserIdDuplicate");
+        int count = memberService.selectCount(memberDTO);
+        if (count > 0) {
+            result.put("success", false);
+            result.put("message", "이미 사용 중인 아이디입니다.");
+            return result;
+        }
+
+        // 회원가입 (승인대기 상태)
+        memberDTO.setMemberCondition("registerUser");
+        boolean inserted = memberService.insert(memberDTO);
+
+        if (inserted) {
+            log.info("회원가입 성공 - 아이디: [{}], 승인대기 상태", memberDTO.getMemberUserID());
+            result.put("success", true);
+            result.put("message", "회원가입이 완료되었습니다. 관리자 승인 후 로그인할 수 있습니다.");
+        } else {
+            log.error("회원가입 실패 - 아이디: [{}]", memberDTO.getMemberUserID());
+            result.put("success", false);
+            result.put("message", "회원가입 처리 중 오류가 발생했습니다.");
+        }
+
+        log.info("-----------------------------------");
+        return result;
+    }
+
+    @GetMapping("/register.api")
+    @ResponseBody
+    public Map<String, Object> checkDuplicateId(MemberDTO memberDTO) {
+        log.info("아이디 중복 체크 - 아이디: [{}]", memberDTO.getMemberUserID());
+        Map<String, Object> result = new HashMap<>();
+
+        if (memberDTO.getMemberUserID() == null || memberDTO.getMemberUserID().trim().isEmpty()) {
+            result.put("available", false);
+            result.put("message", "아이디를 입력해주세요.");
+            return result;
+        }
+
+        memberDTO.setMemberCondition("checkUserIdDuplicate");
+        int count = memberService.selectCount(memberDTO);
+        result.put("available", count == 0);
+        result.put("message", count == 0 ? "사용 가능한 아이디입니다." : "이미 사용 중인 아이디입니다.");
+        return result;
+    }
+}

@@ -47,6 +47,11 @@ public class AdminDAO {
         return sqlSession.update(ns + "resetUserPassword", dto) > 0;
     }
 
+    public boolean approveUser(AdminDTO dto) {
+        log.info("AdminDAO approveUser pk={}", dto.getMemberNo());
+        return sqlSession.update(ns + "approveUser", dto) > 0;
+    }
+
     // ===== 지점 관리 (J_참여자관리_지점) =====
     public List<AdminDTO> selectBranchList(AdminDTO dto) {
         log.info("AdminDAO selectBranchList");

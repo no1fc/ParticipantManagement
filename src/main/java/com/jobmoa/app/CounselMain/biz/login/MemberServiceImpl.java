@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service("loginService")
 public class MemberServiceImpl implements MemberService {
@@ -24,6 +25,16 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public boolean insert(MemberDTO loginDTO) {
         return loginDAO.insert(loginDTO);
+    }
+
+    @Override
+    public int selectCount(MemberDTO loginDTO) {
+        return loginDAO.selectCount(loginDTO);
+    }
+
+    @Override
+    public List<Map<String, Object>> selectActiveBranchList() {
+        return loginDAO.selectActiveBranchList();
     }
 
     @Override

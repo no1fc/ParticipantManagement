@@ -106,6 +106,12 @@
         WHERE 전담자번호 = #{memberNo}
     </update>
 
+    <update id="approveUser">
+        UPDATE J_참여자관리_로그인정보
+        SET 아이디사용여부 = #{useStatus}
+        WHERE 전담자번호 = #{memberNo}
+    </update>
+
     <!-- ===== 지점 관리 (J_참여자관리_지점) ===== -->
     <select id="selectBranchList" resultType="admin">
         SELECT

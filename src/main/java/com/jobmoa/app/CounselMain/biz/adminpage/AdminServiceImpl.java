@@ -47,6 +47,11 @@ public class AdminServiceImpl implements AdminService {
         return adminDAO.resetUserPassword(dto);
     }
 
+    @Override
+    public boolean approveUser(AdminDTO dto) {
+        return adminDAO.approveUser(dto);
+    }
+
     // ===== 지점 관리 =====
     @Override
     public List<AdminDTO> getBranchList(AdminDTO dto) {

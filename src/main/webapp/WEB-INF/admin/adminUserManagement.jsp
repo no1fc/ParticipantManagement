@@ -308,8 +308,10 @@
                             <label class="form-label">아이디사용여부</label>
                             <select class="form-control" id="userStatus" name="아이디사용여부">
                                 <option value="사용">사용</option>
+                                <option value="정지">정지</option>
                                 <option value="잠금">잠금</option>
                                 <option value="퇴사">퇴사</option>
+                                <option value="승인대기">승인대기</option>
                             </select>
                         </div>
                         <div class="col-md-6">
