@@ -57,7 +57,7 @@
                     <div class="input-group">
                         <span class="input-group-text"><i class="fa fa-id-card"></i></span>
                         <input type="text" class="form-control" id="memberUserID" name="memberUserID"
-                               placeholder="아이디를 입력해주세요" required>
+                               placeholder="다우오피스 아이디를 입력해주세요" required>
                         <button type="button" class="btn btn-outline-primary" id="checkDuplicateBtn">중복확인</button>
                     </div>
                     <div id="idCheckResult" class="validation-message"></div>
@@ -111,7 +111,7 @@
                     <div class="input-group">
                         <span class="input-group-text"><i class="fa fa-envelope"></i></span>
                         <input type="email" class="form-control" id="memberEmail" name="memberEmail"
-                               placeholder="이메일을 입력해주세요">
+                               placeholder="다우오피스 이메일을 입력해주세요">
                     </div>
                 </div>
 
