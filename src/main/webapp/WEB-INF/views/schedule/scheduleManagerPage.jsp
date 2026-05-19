@@ -33,7 +33,7 @@
     <!--end::Third Party Plugin(Bootstrap Icons)-->
 
     <!--begin::Required Plugin(AdminLTE)-->
-    <link rel="stylesheet" href="/css/adminlte.css" />
+    <link rel="stylesheet" href="/css/adminlte.min.css" />
     <!--end::Required Plugin(AdminLTE)-->
 
     <!--begin::FullCalendar CSS-->
@@ -136,25 +136,25 @@
 </div>
 
 <!--begin::Third Party Plugin(OverlayScrollbars)-->
-<script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/browser/overlayscrollbars.browser.es6.min.js"
+<script defer src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/browser/overlayscrollbars.browser.es6.min.js"
         integrity="sha256-dghWARbRe2eLlIJ56wNB+b760ywulqK3DzZYEpsg2fQ="
         crossorigin="anonymous"></script>
 <!--end::Third Party Plugin(OverlayScrollbars)-->
 
 <!--begin::Required Plugin(popperjs for Bootstrap 5)-->
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+<script defer src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
         integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
         crossorigin="anonymous"></script>
 <!--end::Required Plugin(popperjs for Bootstrap 5)-->
 
 <!--begin::Required Plugin(Bootstrap 5)-->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
+<script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
         integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
         crossorigin="anonymous"></script>
 <!--end::Required Plugin(Bootstrap 5)-->
 
 <!--begin::Required Plugin(AdminLTE)-->
-<script src="/js/adminlte.js"></script>
+<script defer src="/js/adminlte.js"></script>
 <!--end::Required Plugin(AdminLTE)-->
 
 <!--begin::OverlayScrollbars Configure-->
@@ -181,15 +181,15 @@
 <!--end::OverlayScrollbars Configure-->
 
 <!--begin::FullCalendar JS-->
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 <!--end::FullCalendar JS-->
 
 <!--begin::SweetAlert2 JS-->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.all.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.all.min.js"></script>
 <!--end::SweetAlert2 JS-->
 
 <!--begin::Schedule Manager JS-->
-<script src="/js/scheduleManager_0.0.2.js"></script>
+<script defer src="/js/scheduleManager_0.0.2.js"></script>
 <!--end::Schedule Manager JS-->
 
 </body>

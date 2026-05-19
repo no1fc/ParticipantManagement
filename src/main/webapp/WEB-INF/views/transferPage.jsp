@@ -55,7 +55,7 @@
     />
     <!--end::Third Party Plugin(Bootstrap Icons)-->
     <!--begin::Required Plugin(AdminLTE)-->
-    <link rel="stylesheet" href="css/adminlte.css" />
+    <link rel="stylesheet" href="css/adminlte.min.css" />
     <!--end::Required Plugin(AdminLTE)-->
     <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css" />
     <!-- apexcharts -->
@@ -73,15 +73,15 @@
             crossorigin="anonymous"
     />
     <!-- mouse pointer 모양 bootstrap 5 -->
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
 
     <!-- sweetalert2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.js"></script>
-    <script src="/js/sweetAlert_0.0.1.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.js"></script>
+    <script defer src="/js/sweetAlert_0.0.1.js"></script>
 
     <!-- transferJS_0.0.1.js -->
-    <script src="/js/transferJS_0.0.1.js"></script>
+    <script defer src="/js/transferJS_0.0.1.js"></script>
 
     <style>
         .transfer-buttons {
@@ -326,25 +326,25 @@
 </body>
 <!--begin::Script-->
 <!--begin::Third Party Plugin(OverlayScrollbars)-->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/browser/overlayscrollbars.browser.es6.min.js"
         integrity="sha256-dghWARbRe2eLlIJ56wNB+b760ywulqK3DzZYEpsg2fQ="
         crossorigin="anonymous"
 ></script>
 <!--end::Third Party Plugin(OverlayScrollbars)--><!--begin::Required Plugin(popperjs for Bootstrap 5)-->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
         integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
         crossorigin="anonymous"
 ></script>
 <!--end::Required Plugin(popperjs for Bootstrap 5)--><!--begin::Required Plugin(Bootstrap 5)-->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
         integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
         crossorigin="anonymous"
 ></script>
 <!--end::Required Plugin(Bootstrap 5)--><!--begin::Required Plugin(AdminLTE)-->
-<script src="js/adminlte.js"></script>
+<script defer src="js/adminlte.js"></script>
 <!--begin::Script-->
 <!--begin::OverlayScrollbars Configure-->
 <script>
@@ -372,6 +372,7 @@
 <!-- OPTIONAL SCRIPTS -->
 <!-- sortablejs -->
 <script>
+document.addEventListener('DOMContentLoaded', function () {
     const connectedSortables = document.querySelectorAll('.connectedSortable');
     connectedSortables.forEach((connectedSortable) => {
         let sortable = new Sortable(connectedSortable, {
@@ -384,9 +385,10 @@
     cardHeaders.forEach((cardHeader) => {
         cardHeader.style.cursor = 'move';
     });
+});
 </script>
 <!-- apexcharts -->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"
         integrity="sha256-+vh8GkaU7C9/wbSLIcwq82tQ2wTf44aOHA8HlBMwRI8="
         crossorigin="anonymous"
@@ -397,200 +399,5 @@
 
     const memberBranch = '${JOBMOA_LOGIN_DATA.memberBranch}'
 
-    /*$(document).ready(function() {
-        let selectedParticipants = new Set();
-        let transferredParticipants = new Set();
-        const $sourceCounselor = $('#sourceCounselor');
-        const $targetCounselor = $('#targetCounselor');
-
-        // 상담사 선택 시 참여자 목록 로드
-        $sourceCounselor.change(function() {
-            const counselorId = $(this).val();
-            if (counselorId) {
-                loadParticipants(counselorId);
-                updateButtonStates();
-            }
-            else {
-                $('#participantList').empty();
-                $('#transferredList').empty();
-            }
-        });
-
-        // 상담사 선택 시 참여자 목록 로드
-        $targetCounselor.change(function() {
-            //const counselorId = $(this).val();
-            $('#transferredList').empty();
-        });
-
-        function loadParticipants(counselorId, pkArray) {
-
-            $.ajax({
-                url: 'transferGetAjax.login',
-                method: 'GET',
-                dataType: 'json', // 중요: 응답을 JSON으로 파싱
-                data: {
-                    participantUserid: counselorId,
-                    participantBranch: '${JOBMOA_LOGIN_DATA.memberBranch}',
-                    participantIDs: pkArray ? pkArray : ''
-                }
-            }).done(function(data) {
-                const list = $('#participantList');
-                list.empty();
-
-                // 여기서 data는 이미 배열(객체)이므로 JSON.parse 제거
-                data.forEach(function(participant) {
-                    const appendHTML =
-                        '<div class="list-group-item participant-item">' +
-                        '<input type="checkbox" class="form-check-input participant-check" id="'+participant.jobno+'" value="'+participant.jobno+'">' +
-                        '<label class="form-check-label ms-2 participant-label" for="'+participant.jobno+'">' +
-                        '<div class="d-flex justify-content-between align-items-center w-100">' +
-                        '<span class="participant-jobno">'+ participant.jobno +'</span>' +
-                        '<span class="participant-name">'+ participant.particName +'</span>' +
-                        '<div class="participant-info">' +
-                        '<span class="info-item">'+ participant.dob +'</span>' +
-                        '<span class="info-item">'+ participant.gender +'</span>' +
-                        '</div>' +
-                        '</div>' +
-                        '</label>' +
-                        '</div>';
-                    list.append(appendHTML);
-                });
-            }).fail(function(jqXHR, textStatus, errorThrown) {
-                console.error('AJAX 실패 상태:', textStatus);
-                console.error('HTTP 상태:', jqXHR.status);
-                console.error('오류 메시지:', errorThrown);
-                console.error('응답 텍스트:', jqXHR.responseText);
-            });
-        }
-
-        function loadTransferredParticipants(counselorId, pkArray) {
-            $.get('transferGetAjax.login', {
-                participantUserid: counselorId,
-                participantBranch: '${JOBMOA_LOGIN_DATA.memberBranch}',
-                participantIDs: pkArray ? pkArray : ''
-            })
-                .done(function(data) {
-                    const list = $('#transferredList');
-                    list.empty();
-                    JSON.parse(data).forEach(participant => {
-                        let appendHTML = '<div class="list-group-item participant-item">' +
-                            '<div class="d-flex justify-content-between align-items-center w-100">'+
-                            '<span class="participant-jobno">'+ participant.jobno +'</span>'+
-                            '<span class="participant-name">'+ participant.particName +'</span>'+
-                            '<div class="participant-info">'+
-                            '<span class="info-item">'+ participant.dob +'</span>'+
-                            '<span class="info-item">'+ participant.gender +'</span>'+
-                            '</div></div></label></div>';
-
-                        list.append(appendHTML);
-                    });
-                })
-                .fail(function(jqXHR, textStatus, errorThrown) {
-                    // 상세한 오류 정보 로깅
-                    console.error('AJAX 실패 상태:', textStatus);
-                    console.error('HTTP 상태:', jqXHR.status);
-                    console.error('오류 메시지:', errorThrown);
-                    console.error('응답 텍스트:', jqXHR.responseText);
-                });
-        }
-
-        // 전체 선택 체크박스 이벤트
-        const $selectAllSource = $('#selectAllSource');
-        $selectAllSource.change(function() {
-            changeAllParticipants();
-        });
-
-        //전체 선택 체크박스 이벤트
-        function changeAllParticipants() {
-            const isChecked = $selectAllSource.prop('checked');
-            $('.participant-check').prop('checked', isChecked);
-            updateSelectedParticipants();
-            updateButtonStates();
-        }
-
-        // 참여자 선택 시 이벤트
-        $(document).on('change', '.participant-check, #targetCounselor', function() {
-            updateSelectedParticipants();
-            updateButtonStates();
-        });
-
-        // 선택 이전 버튼 클릭
-        $('#transferSelected').click(function() {
-            alertConfirmWarning('선택한 참여자를 이전합니다.', '이전 후 복구는 불가능합니다.', '이전', '취소').then(function(result) {
-                if (result) {
-                    transferParticipants(Array.from(selectedParticipants));
-                }
-                else {
-                    $selectAllSource.prop('checked', false);
-                }
-            });
-        });
-
-        // 전체 이전 버튼 클릭
-        $('#transferAll').click(function() {
-
-            alertConfirmWarning('참여자 전체를 이전합니다.', '이전 후 복구는 불가능합니다.', '이전', '취소').then(function(result) {
-               if (result) {
-                   $selectAllSource.prop('checked', true);
-                   changeAllParticipants();
-                   console.log(Array.from(selectedParticipants));
-                   transferParticipants(Array.from(transferredParticipants));
-               }
-               else {
-                   $selectAllSource.prop('checked', false);
-               }
-            });
-        });
-
-        function updateSelectedParticipants() {
-            selectedParticipants.clear();
-            transferredParticipants.clear();
-            $('.participant-check:checked').each(function() {
-                selectedParticipants.add($(this).val());
-                transferredParticipants.add($(this).val());
-            });
-        }
-
-        function updateButtonStates() {
-            const sourceSelected = $sourceCounselor.val();
-            const targetSelected = $targetCounselor.val();
-            const hasSelectedParticipants = selectedParticipants.size > 0;
-            const hasSourceSelectedAndTargetSelected = sourceSelected !== '' && sourceSelected !== null && targetSelected !== '' && targetSelected !== null;
-
-            $('#transferSelected').prop('disabled',!hasSourceSelectedAndTargetSelected || !hasSelectedParticipants);
-            $('#transferAll').prop('disabled',!hasSourceSelectedAndTargetSelected);
-        }
-
-        function transferParticipants(participantIds) {
-            // 이전 API 호출 및 처리
-            $.ajax({
-                url: 'transferPostAjax.login',
-                method: 'POST',
-                dataType: 'json',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    sourceCounselorID: $sourceCounselor.val(),
-                    targetCounselorID: $targetCounselor.val(),
-                    participantBranch: '${JOBMOA_LOGIN_DATA.memberBranch}',
-                    participantIDs: participantIds
-                }),
-                success: function(response) {
-                    console.log("이관 성공 여부 : ["+response+"]");
-                    if (response) {
-                        alert('데이터 이전이 완료되었습니다.');
-                        loadParticipants($sourceCounselor.val());
-                        console.log(participantIds);
-                        loadTransferredParticipants($targetCounselor.val(),participantIds);
-                    }
-                    else{
-                        alert('데이터 이전에 실패했습니다.')
-                    }
-                },
-                error: function(xhr) {
-                    alert('데이터 이전 중 오류가 발생했습니다.');
-                }
-            });
-        }
-    });*/
 </script>
 </html>

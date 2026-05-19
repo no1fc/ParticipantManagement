@@ -123,8 +123,8 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/js/paginationJS_0.0.1.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script defer src="/js/paginationJS_0.0.1.js"></script>
 <script>
     $(document).ready(function () {
         let page = parseInt("${page}", 10) || 1;

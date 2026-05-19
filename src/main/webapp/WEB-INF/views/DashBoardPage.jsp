@@ -53,7 +53,7 @@
     />
     <!--end::Third Party Plugin(Bootstrap Icons)-->
     <!--begin::Required Plugin(AdminLTE)-->
-    <link rel="stylesheet" href="/css/adminlte.css" />
+    <link rel="stylesheet" href="/css/adminlte.min.css" />
     <!--end::Required Plugin(AdminLTE)-->
     <!-- apexcharts -->
     <link
@@ -71,24 +71,24 @@
     />
 
     <!-- mouse pointer 모양 bootstrap 5 -->
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
 
     <!-- chart.js script -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
-    <script src="/js/drawChartCenterTextPlugin_0.0.1.js"></script>
-    <script src="/js/dashBoardJS_0.0.1.js"></script>
+    <script defer src="/js/drawChartCenterTextPlugin_0.0.1.js"></script>
+    <script defer src="/js/dashBoardJS_0.0.1.js"></script>
 
     <!-- ApexChart로 변경 -->
-    <script src="/js/ApexChartMainDashBoardJS_0.0.1.js"></script>
+    <script defer src="/js/ApexChartMainDashBoardJS_0.0.1.js"></script>
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
 
     <!-- 랜덤 색상 지정 -->
     <%-- 현재 사용안하고 있음 --%>
-<%--    <script src="/js/randomColorGenerator_0.0.1.js"></script>--%>
+<%--    <script defer src="/js/randomColorGenerator_0.0.1.js"></script>--%>
 
     <!-- 진행바 스타일 적용 -->
     <link rel="stylesheet" href="/css/participantCss/dashboard_0.0.2.css">
@@ -321,7 +321,7 @@
 </body>
 <!--begin::Script-->
 <!--begin::Third Party Plugin(OverlayScrollbars)-->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/browser/overlayscrollbars.browser.es6.min.js"
         integrity="sha256-dghWARbRe2eLlIJ56wNB+b760ywulqK3DzZYEpsg2fQ="
         crossorigin="anonymous"
@@ -329,21 +329,21 @@
 <!--end::Third Party Plugin(OverlayScrollbars)-->
 
 <!--begin::Required Plugin(popperjs for Bootstrap 5)-->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
         integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
         crossorigin="anonymous"
 ></script>
 <!--end::Required Plugin(popperjs for Bootstrap 5)-->
 <!--begin::Required Plugin(Bootstrap 5)-->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
         integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
         crossorigin="anonymous"
 ></script>
 <!--end::Required Plugin(Bootstrap 5)-->
 <!--begin::Required Plugin(AdminLTE)-->
-<script src="js/adminlte.js"></script>
+<script defer src="js/adminlte.js"></script>
 <!--end::Required Plugin(AdminLTE)-->
 <!--begin::OverlayScrollbars Configure-->
 <script>
@@ -370,13 +370,14 @@
 
 <!-- OPTIONAL SCRIPTS -->
 <!-- sortablejs -->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"
         integrity="sha256-ipiJrswvAR4VAx/th+6zWsdeYmVae0iJuiR+6OqHJHQ="
         crossorigin="anonymous"
 ></script>
 <!-- sortablejs -->
 <script>
+document.addEventListener('DOMContentLoaded', function () {
     const connectedSortables = document.querySelectorAll('.connectedSortable');
     connectedSortables.forEach((connectedSortable) => {
         let sortable = new Sortable(connectedSortable, {
@@ -389,9 +390,10 @@
     cardHeaders.forEach((cardHeader) => {
         cardHeader.style.cursor = 'move';
     });
+});
 </script>
 <!-- apexcharts -->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"
         integrity="sha256-+vh8GkaU7C9/wbSLIcwq82tQ2wTf44aOHA8HlBMwRI8="
         crossorigin="anonymous"

@@ -54,7 +54,7 @@
     />
     <!--end::Third Party Plugin(Bootstrap Icons)-->
     <!--begin::Required Plugin(AdminLTE)-->
-    <link rel="stylesheet" href="/css/adminlte.css" />
+    <link rel="stylesheet" href="/css/adminlte.min.css" />
     <!--end::Required Plugin(AdminLTE)-->
     <!-- apexcharts -->
     <link
@@ -72,59 +72,59 @@
     />
     <!-- datepicker CSS JS -->
     <!-- mouse pointer 모양 bootstrap 5 -->
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
 
     <!-- Bootstrap Datepicker 로드 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/js/bootstrap-datepicker.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/locales/bootstrap-datepicker.ko.min.js" integrity="sha512-L4qpL1ZotXZLLe8Oo0ZyHrj/SweV7CieswUODAAPN/tnqN3PA1P+4qPu5vIryNor6HQ5o22NujIcAZIfyVXwbQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="/js/datepickerJS_0.0.1.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/js/bootstrap-datepicker.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/locales/bootstrap-datepicker.ko.min.js" integrity="sha512-L4qpL1ZotXZLLe8Oo0ZyHrj/SweV7CieswUODAAPN/tnqN3PA1P+4qPu5vIryNor6HQ5o22NujIcAZIfyVXwbQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script defer src="/js/datepickerJS_0.0.1.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/css/bootstrap-datepicker.min.css">
     <link rel="stylesheet" href="/css/participantCss/datepicker_0.0.1.css">
 
     <!-- recommend JS -->
-    <script src="/js/recommendJS_0.0.1.js"></script>
+    <script defer src="/js/recommendJS_0.0.1.js"></script>
     <link rel="stylesheet" href="/css/participantCss/recommend_0.0.2.css">
 
     <!-- educationDiv JS -->
-    <script src="/js/educationDiv_0.0.2.js"></script>
+    <script defer src="/js/educationDiv_0.0.2.js"></script>
 
     <!-- particcertifDiv JS -->
-    <script src="/js/particcertifDiv_0.0.2.js"></script>
+    <script defer src="/js/particcertifDiv_0.0.2.js"></script>
 
     <!-- participants_insert_update_CommonnessJS_0.1.1.js  -->
-    <script src="/js/participants_insert_update_CommonnessJS_0.1.1.js"></script>
+    <script defer src="/js/participants_insert_update_CommonnessJS_0.1.1.js"></script>
 
     <!-- selectOption JS -->
-    <script src="/js/selectOptionJS_0.0.1.js"></script>
+    <script defer src="/js/selectOptionJS_0.0.1.js"></script>
 
     <!-- InputLimits JS -->
-    <script src="/js/InputLimits_0.0.1.js"></script>
+    <script defer src="/js/InputLimits_0.0.1.js"></script>
 
     <!-- sweetalert2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.js"></script>
-    <script src="/js/sweetAlert_0.0.1.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.js"></script>
+    <script defer src="/js/sweetAlert_0.0.1.js"></script>
 
     <!-- kakao 주소 API 호출 JS API 문서 주소 https://postcode.map.daum.net/guide#usage -->
-    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script defer src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- 키워드 입력 JS 추가 -->
-    <script src="/js/participantKeyWordInputJS_0.1.2.js"></script>
+    <script defer src="/js/participantKeyWordInputJS_0.1.2.js"></script>
     <!-- 키워드 입력 CSS 추가 -->
     <link rel="stylesheet" href="/css/participantCss/keyWordInputCss_0.0.1.css">
 
     <!-- jobPlacementDefault JS -->
-    <script src="/js/jobCategorySelectRenderText_0.0.2.js"></script>
+    <script defer src="/js/jobCategorySelectRenderText_0.0.2.js"></script>
     <!-- 다중 희망직무 관리 JS -->
-    <script src="/js/jobWishListManager_0.0.1.js"></script>
+    <script defer src="/js/jobWishListManager_0.0.1.js"></script>
     <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
     <link rel="stylesheet" href="/css/participantCss/participantTable_0.0.1.css">
 
     <!-- sortablejs CDN -->
-    <script
+    <script defer
             src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"
             integrity="sha256-ipiJrswvAR4VAx/th+6zWsdeYmVae0iJuiR+6OqHJHQ="
             crossorigin="anonymous"
@@ -193,25 +193,25 @@
 </body>
 <!--begin::Script-->
 <!--begin::Third Party Plugin(OverlayScrollbars)-->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/browser/overlayscrollbars.browser.es6.min.js"
         integrity="sha256-dghWARbRe2eLlIJ56wNB+b760ywulqK3DzZYEpsg2fQ="
         crossorigin="anonymous"
 ></script>
 <!--end::Third Party Plugin(OverlayScrollbars)--><!--begin::Required Plugin(popperjs for Bootstrap 5)-->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
         integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
         crossorigin="anonymous"
 ></script>
 <!--end::Required Plugin(popperjs for Bootstrap 5)--><!--begin::Required Plugin(Bootstrap 5)-->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
         integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
         crossorigin="anonymous"
 ></script>
 <!--end::Required Plugin(Bootstrap 5)--><!--begin::Required Plugin(AdminLTE)-->
-<script src="js/adminlte.js"></script>
+<script defer src="js/adminlte.js"></script>
 <!--end::Required Plugin(AdminLTE)--><!--begin::OverlayScrollbars Configure-->
 <!--begin::Script-->
 <!--begin::OverlayScrollbars Configure-->
@@ -240,6 +240,7 @@
 <!-- OPTIONAL SCRIPTS -->
 <!-- sortablejs -->
 <script>
+document.addEventListener('DOMContentLoaded', function () {
     const connectedSortables = document.querySelectorAll('.connectedSortable');
     connectedSortables.forEach((connectedSortable) => {
         let sortable = new Sortable(connectedSortable, {
@@ -252,10 +253,11 @@
     cardHeaders.forEach((cardHeader) => {
         cardHeader.style.cursor = 'move';
     });
+});
 </script>
 
 <!-- apexcharts -->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"
         integrity="sha256-+vh8GkaU7C9/wbSLIcwq82tQ2wTf44aOHA8HlBMwRI8="
         crossorigin="anonymous"

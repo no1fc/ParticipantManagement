@@ -77,6 +77,6 @@ src/DocsServiceDesign/sql/*
 docs/sql/
 
 ### 개발 일정 관리 ###
-docs/개발일지.md
+docs/개발문서
 docs/배포정의서.md
 docs/인수인계서.md

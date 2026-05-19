@@ -1,7 +1,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ tag language="java" pageEncoding="UTF-8" %>
 
-<script src="/js/footerJS_0.0.1.js"></script>
+<script defer src="/js/footerJS_0.0.1.js"></script>
 <link href="/css/participantCss/footerCss_0.0.1.css" rel="stylesheet">
 
 <!--begin::Footer-->

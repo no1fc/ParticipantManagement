@@ -35,11 +35,11 @@
   <link href="/css/participantCss/resumeRequestList_0.0.2.css" rel="stylesheet">
 
   <!-- jQuery JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
   <!-- Custom JS -->
-  <script src="/js/resumeRequestListJS_0.0.1.js"></script>
+  <script defer src="/js/resumeRequestListJS_0.0.1.js"></script>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>

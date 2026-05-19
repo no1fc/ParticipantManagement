@@ -54,7 +54,7 @@
 <%--    />--%>
 <%--    <!--end::Third Party Plugin(Bootstrap Icons)-->--%>
 <%--    <!--begin::Required Plugin(AdminLTE)-->--%>
-<%--    <link rel="stylesheet" href="css/adminlte.css" />--%>
+<%--    <link rel="stylesheet" href="css/adminlte.min.css" />--%>
 <%--    <!--end::Required Plugin(AdminLTE)-->--%>
 <%--    <!-- apexcharts -->--%>
 <%--    <link--%>
@@ -71,7 +71,7 @@
 <%--            crossorigin="anonymous"--%>
 <%--    />--%>
 <%--    <!-- mouse pointer 모양 bootstrap 5 -->--%>
-<%--    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />--%>
+<%--    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">--%>
 
 <%--    <style>--%>
 <%--        #chart-data-container{--%>
@@ -179,7 +179,7 @@
 <%--        crossorigin="anonymous"--%>
 <%--></script>--%>
 <%--<!--end::Required Plugin(Bootstrap 5)--><!--begin::Required Plugin(AdminLTE)-->--%>
-<%--<script src="js/adminlte.js"></script>--%>
+<%--<script defer src="js/adminlte.js"></script>--%>
 <%--<!--begin::Script-->--%>
 <%--<!--begin::OverlayScrollbars Configure-->--%>
 <%--<script>--%>

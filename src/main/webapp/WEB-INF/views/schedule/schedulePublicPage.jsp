@@ -153,15 +153,15 @@
 </div>
 
 <!--begin::Bootstrap JS-->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 <!--end::Bootstrap JS-->
 
 <!--begin::FullCalendar JS-->
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 <!--end::FullCalendar JS-->
 
 <!--begin::Schedule Public JS-->
-<script src="/js/schedulePublic_0.0.3.js"></script>
+<script defer src="/js/schedulePublic_0.0.3.js"></script>
 <!--end::Schedule Public JS-->
 
 </body>

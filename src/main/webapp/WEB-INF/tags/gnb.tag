@@ -4,17 +4,17 @@
 <%@ attribute name="gnb_sub_header"%>
 <%@ attribute name="gnb_sub_menu_header"%>
 
-<script src="/js/gnb_0.0.1.js"></script>
+<script defer src="/js/gnb_0.0.1.js"></script>
 <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
 
 <!-- SockJS + STOMP (WebSocket 알림 - 모든 페이지 공통) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <script>var JOBMOA_USER_ID = '${JOBMOA_LOGIN_DATA.memberUserID}';</script>
 
 <!-- GNB 알림 -->
 <link rel="stylesheet" href="/css/participantCss/gnb-notification_0.0.1.css">
-<script src="/js/gnb-notification_0.0.1.js"></script>
+<script defer src="/js/gnb-notification_0.0.1.js"></script>
 
 <!--begin::Header-->
 <nav class="app-header navbar navbar-expand bg-body">
