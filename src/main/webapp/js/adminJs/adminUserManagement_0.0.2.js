@@ -57,9 +57,10 @@ function loadUsers(params) {
             userTable.clear();
             data.forEach(function(item) {
                 var adminIcon = item.isAdmin ? '<i class="bi bi-check-circle-fill text-success"></i>' : '<i class="bi bi-x-circle-fill text-muted"></i>';
-                var statusBadge = item.useStatus === '사용'
-                    ? '<span class="role-badge status-active">' + item.useStatus + '</span>'
-                    : '<span class="role-badge status-inactive">' + (item.useStatus || '잠금') + '</span>';
+                let statusClass = 'status-inactive';
+                if (item.useStatus === '사용') statusClass = 'status-active';
+                else if (item.useStatus === '승인대기') statusClass = 'status-pending';
+                const statusBadge = '<span class="role-badge ' + statusClass + '">' + (item.useStatus || '사용') + '</span>';
                 var roleBadge = item.isAdmin ? '<span class="role-badge role-admin">' + item.role + '</span>' : '<span class="role-badge role-counselor">' + (item.role || '상담') + '</span>';
                 userTable.row.add([
                     item.memberNo,

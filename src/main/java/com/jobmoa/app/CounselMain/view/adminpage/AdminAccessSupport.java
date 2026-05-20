@@ -23,6 +23,15 @@ public class AdminAccessSupport {
         return isManager(session) || isBranchManager(session);
     }
 
+    public static String getPermissionGroup(HttpSession session) {
+        Object group = session.getAttribute("PERMISSION_GROUP");
+        return group != null ? group.toString() : "NORMAL";
+    }
+
+    public static boolean isGlobalAdmin(HttpSession session) {
+        return "GLOBAL_ADMIN".equals(getPermissionGroup(session));
+    }
+
     public static void enforceBranchScope(HttpSession session, AdminDTO dto) {
         LoginBean login = getLoginBean(session);
         if (login == null) return;

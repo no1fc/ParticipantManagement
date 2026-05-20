@@ -56,7 +56,7 @@
     />
     <!--end::Third Party Plugin(Bootstrap Icons)-->
     <!--begin::Required Plugin(AdminLTE)-->
-    <link rel="stylesheet" href="/css/adminlte.css" />
+    <link rel="stylesheet" href="/css/adminlte.min.css" />
     <!--end::Required Plugin(AdminLTE)-->
     <!-- apexcharts -->
     <link
@@ -73,23 +73,23 @@
             crossorigin="anonymous"
     />
     <!-- mouse pointer 모양 bootstrap 5 -->
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <!--begin::Third Party Plugin(OverlayScrollbars)-->
-    <script
+    <script defer
             src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/browser/overlayscrollbars.browser.es6.min.js"
             integrity="sha256-dghWARbRe2eLlIJ56wNB+b760ywulqK3DzZYEpsg2fQ="
             crossorigin="anonymous"
     ></script>
     <!--end::Third Party Plugin(OverlayScrollbars)-->
     <!--begin::Required Plugin(popperjs for Bootstrap 5)-->
-    <script
+    <script defer
             src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
             integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
             crossorigin="anonymous"
     ></script>
     <!--end::Required Plugin(popperjs for Bootstrap 5)-->
     <!--begin::Required Plugin(Bootstrap 5)-->
-    <script
+    <script defer
             src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
             integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
             crossorigin="anonymous"
@@ -98,41 +98,41 @@
 
 
     <!-- sortablejs -->
-    <script
+    <script defer
             src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"
             integrity="sha256-ipiJrswvAR4VAx/th+6zWsdeYmVae0iJuiR+6OqHJHQ="
             crossorigin="anonymous"
     ></script>
     <!-- sortablejs -->
     <!-- apexcharts -->
-    <script
+    <script defer
             src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"
             integrity="sha256-+vh8GkaU7C9/wbSLIcwq82tQ2wTf44aOHA8HlBMwRI8="
             crossorigin="anonymous"
     ></script>
     <!--begin::Required Plugin(AdminLTE)-->
-    <script src="/js/adminlte.js"></script>
+    <script defer src="/js/adminlte.js"></script>
     <!--end::Required Plugin(AdminLTE)-->
 
     <!-- pagination JS 파일 -->
-    <script src="/js/paginationJS_0.0.1.js"></script>
+    <script defer src="/js/paginationJS_0.0.1.js"></script>
 
     <!-- selectOptionJS JS 파일 -->
-    <script src="/js/selectOptionJS_0.0.1.js"></script>
+    <script defer src="/js/selectOptionJS_0.0.1.js"></script>
 
     <!-- Excel 다운 버튼 CSS 추가 -->
     <link rel="stylesheet" href="/css/participantCss/dailyWorkReportCss_0.0.1.css">
 
     <!-- sweetalert2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.js"></script>
-    <script src="/js/sweetAlert_0.0.1.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.js"></script>
+    <script defer src="/js/sweetAlert_0.0.1.js"></script>
 
 
     <!-- 새로 분리한 JS 파일들 추가 -->
     <!-- 참여자조회 Js 코드들 -->
-    <script src="/js/participant_main_0.0.3.js"></script>
-    <script src="/js/participant_excel_download_0.0.1.js"></script>
+    <script defer src="/js/participant_main_0.0.3.js"></script>
+    <script defer src="/js/participant_excel_download_0.0.1.js"></script>
 
     <!-- 참여자 조회 기본 디자인 설정 -->
     <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
@@ -141,12 +141,12 @@
 
     <!-- 추천 채용정보 CSS & JS -->
     <link rel="stylesheet" href="/css/participantCss/recommend-modal_0.0.2.css">
-    <script src="/js/recommend-modal_0.0.3.js"></script>
+    <script defer src="/js/recommend-modal_0.0.3.js"></script>
 
     <!-- SockJS + STOMP + JOBMOA_USER_ID는 gnb.tag에서 공통 로드 -->
 
     <!-- Kakao JavaScript SDK (카카오톡 공유 기능) -->
-    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"
+    <script defer src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"
             integrity="sha384-DKYJZ8NLiK8MN4/C5P2dtSmLQ4KwPaoqAfyA/DfmEc1VDxu4yyC7wy6K1Hs90nka"
             crossorigin="anonymous"></script>
     <script>
@@ -351,6 +351,7 @@
 
 <!-- OPTIONAL SCRIPTS -->
 <script>
+document.addEventListener('DOMContentLoaded', function () {
     const connectedSortables = document.querySelectorAll('.connectedSortable');
     connectedSortables.forEach((connectedSortable) => {
         let sortable = new Sortable(connectedSortable, {
@@ -363,6 +364,7 @@
     cardHeaders.forEach((cardHeader) => {
         cardHeader.style.cursor = 'move';
     });
+});
 </script>
 
 <script>

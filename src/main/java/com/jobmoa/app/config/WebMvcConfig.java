@@ -8,11 +8,13 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.http.CacheControl;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 // @EnableWebMvc  // Spring Boot 사용 시 주석 처리 (자동 설정 사용)
@@ -81,7 +83,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/jobPlacement/**", // 참여자 정보 페이지
                         "/Starbucks",
                         "/Starbucks/**",
-                        "/schedulePublic/**"   // 공개 일정 조회 (독립 인증)
+                        "/schedulePublic/**",  // 공개 일정 조회 (독립 인증)
+                        "/register.do",        // 셀프 회원가입
+                        "/register.api"        // 회원가입 API
                 );
     }
 
@@ -101,8 +105,22 @@ public class WebMvcConfig implements WebMvcConfigurer {
      */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // 필요시 정적 리소스 추가
         registry.addResourceHandler("/resources/**")
                 .addResourceLocations("/resources/");
+
+        // 정적 리소스 캐시: 1일 + must-revalidate (ETag/Last-Modified로 재검증)
+        // 버전 없는 파일(adminlte.min.css, adminlte.js 등)도 안전하게 캐시됨
+        CacheControl resourceCache = CacheControl.maxAge(1, TimeUnit.DAYS)
+                .mustRevalidate();
+
+        registry.addResourceHandler("/css/**")
+                .addResourceLocations("/css/")
+                .setCacheControl(resourceCache);
+        registry.addResourceHandler("/js/**")
+                .addResourceLocations("/js/")
+                .setCacheControl(resourceCache);
+        registry.addResourceHandler("/img/**")
+                .addResourceLocations("/img/")
+                .setCacheControl(resourceCache);
     }
 }

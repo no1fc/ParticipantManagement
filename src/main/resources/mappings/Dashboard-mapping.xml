@@ -525,7 +525,7 @@
             A.인센티브 AS dashBoardIncentive
         FROM SUCCESSMONEY A
                  RIGHT JOIN J_참여자관리_로그인정보 B
-                            ON A.전담자_계정 = B.아이디 AND (아이디사용여부 NOT IN ('퇴사','정지','잠금') OR 아이디사용여부 IS NULL OR 아이디사용여부 = '')
+                            ON A.전담자_계정 = B.아이디 AND 아이디사용여부 = '사용'
         WHERE
             A.성공금 <![CDATA[<>]]> '' AND
             A.전담자_계정 = #{dashboardUserID} AND
@@ -661,7 +661,7 @@
                     END AS 근속기간구분,
                 CASE WHEN A.전담자_계정 = #{dashboardUserID} THEN 1 ELSE 0 END AS 본인여부
             FROM DynamicViewResult A
-                     INNER JOIN J_참여자관리_로그인정보 L ON A.전담자_계정 = L.아이디 AND (아이디사용여부 NOT IN ('퇴사','정지','잠금') OR 아이디사용여부 IS NULL OR 아이디사용여부 = '')
+                     INNER JOIN J_참여자관리_로그인정보 L ON A.전담자_계정 = L.아이디 AND 아이디사용여부 = '사용'
         ),
              통계_계산 AS (
                  SELECT
@@ -810,7 +810,7 @@
             A.전담자_계정,
             A.총점
         FROM DynamicViewResult A
-        INNER JOIN J_참여자관리_로그인정보 L ON A.전담자_계정 = L.아이디  AND (아이디사용여부 NOT IN ('퇴사','정지','잠금') OR 아이디사용여부 IS NULL OR 아이디사용여부 = '')
+        INNER JOIN J_참여자관리_로그인정보 L ON A.전담자_계정 = L.아이디 AND 아이디사용여부 = '사용'
         <choose>
             <!-- True 1년 미만 인원 포함 False 1년 미만 인원 미포함-->
             <when test="!dashboardFlagCondition">
@@ -885,7 +885,7 @@
             아이디
         FROM J_참여자관리_로그인정보
         WHERE
-            (아이디사용여부 NOT IN ('퇴사','정지','잠금') OR 아이디사용여부 IS NULL OR 아이디사용여부 = '')
+            아이디사용여부 = '사용'
             <!-- True 1년 미만 인원 포함 False 1년 미만 인원 미포함-->
             <if test="!dashboardFlagCondition">
                 AND 근속기간구분 <![CDATA[<>]]> '1년미만'
@@ -903,7 +903,7 @@
                 </when>
             </choose>
             RIGHT JOIN DynamicViewResult C ON A.아이디 = C.전담자_계정 AND C.취업률 <![CDATA[<>]]> 0
-            WHERE (아이디사용여부 NOT IN ('퇴사','정지','잠금') OR 아이디사용여부 IS NULL OR 아이디사용여부 = '')
+            WHERE 아이디사용여부 = '사용'
             GROUP BY C.지점
         )
         SELECT
@@ -986,7 +986,7 @@
             이름
         FROM J_참여자관리_로그인정보
         WHERE
-            (아이디사용여부 NOT IN ('퇴사','정지','잠금') OR 아이디사용여부 IS NULL OR 아이디사용여부 = '')
+            아이디사용여부 = '사용'
             <!-- True 1년 미만 인원 포함 False 1년 미만 인원 미포함-->
             <if test="!dashboardFlagCondition">
                 AND 근속기간구분 <![CDATA[<>]]> '1년미만'
@@ -1690,7 +1690,7 @@
                 J_참여자관리_로그인정보 B
             ON
                 DVR.전담자_계정 = B.아이디
-            WHERE B.아이디사용여부 NOT IN ('퇴사','중지','잠금')
+            WHERE B.아이디사용여부 = '사용'
             GROUP BY DVR.지점
         )
         SELECT

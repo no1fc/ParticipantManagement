@@ -34,7 +34,7 @@
     <!-- Custom Style CSS  -->
     <link href="/css/jobPlacementCss/jobPlacementDefault_0.0.1.css" rel="stylesheet">
 
-    <script src="/js/jobPlacementJs/locationSelect_0.0.1.js"></script>
+    <script defer src="/js/jobPlacementJs/locationSelect_0.0.1.js"></script>
 </head>
 <body>
 <!-- Skip Navigation for Accessibility -->
@@ -314,9 +314,9 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
 <script>
     // 참여자 작성 페이지 관리

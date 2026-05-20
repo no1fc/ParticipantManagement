@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,13 +18,16 @@ public class LoginAsyncController {
     @Autowired
     MemberService memberService;
 
+    @Autowired
+    BCryptPasswordEncoder passwordEncoder;
+
     @PostMapping("changePW.api")
     public ResponseEntity<?> changePW(@RequestBody MemberDTO memberDTO){
         String memberUserID = memberDTO.getMemberUserID();
         String memberUserPW = memberDTO.getMemberUserPW();
         String memberUserChangePW = memberDTO.getMemberUserChangePW();
 
-        log.info("changePW.api changePW memberUserID,memberUserPW,memberUserChangePW : [{},{},{}]",memberUserID, memberUserPW, memberUserChangePW);
+        log.info("changePW.api changePW memberUserID : [{}]", memberUserID);
 
         if(memberUserID == null || memberUserPW == null || memberUserChangePW == null){
             return ResponseEntity.badRequest()
@@ -39,6 +43,8 @@ public class LoginAsyncController {
 
         }
 
+        // 비밀번호를 BCrypt 해싱 후 저장
+        memberDTO.setMemberUserPW(passwordEncoder.encode(memberUserPW));
         memberDTO.setMemberCondition("changePassword");
         if(!memberService.update(memberDTO)){
             log.error("changePW.api update fail memberDTO : [{}]", memberDTO);
@@ -54,6 +60,31 @@ public class LoginAsyncController {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("{\"message\":\"비밀번호가 변경되었습니다.\"}");
 
+    }
+
+    @PostMapping("clearPassword.api")
+    public ResponseEntity<?> clearPassword(@RequestBody MemberDTO memberDTO) {
+        String memberUserID = memberDTO.getMemberUserID();
+        log.info("clearPassword.api memberUserID : [{}]", memberUserID);
+
+        if (memberUserID == null || memberUserID.trim().isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body("{\"message\":\"아이디가 비어있습니다.\"}");
+        }
+
+        memberDTO.setMemberUserPW("");
+        memberDTO.setMemberCondition("changePassword");
+        if (!memberService.update(memberDTO)) {
+            return ResponseEntity.badRequest()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body("{\"message\":\"비밀번호 초기화에 실패했습니다.\"}");
+        }
+
+        log.info("clearPassword.api success for user : [{}]", memberUserID);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"message\":\"비밀번호가 초기화되었습니다. 아이디만 입력하여 로그인해주세요.\"}");
     }
 
 }

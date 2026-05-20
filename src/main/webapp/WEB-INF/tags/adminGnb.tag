@@ -4,7 +4,7 @@
 <%@ attribute name="gnb_sub_header"%>
 <%@ attribute name="gnb_sub_menu_header"%>
 
-<script src="/js/gnb_0.0.1.js"></script>
+<script defer src="/js/gnb_0.0.1.js"></script>
 <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
 
 <!--begin::Header-->

@@ -11,6 +11,7 @@ public class LoginBean {
     private String memberUserName;
     private String memberRole;
     private String memberUniqueNumber;
+    private String permissionGroup;
 
 
     public String memberUserID(){

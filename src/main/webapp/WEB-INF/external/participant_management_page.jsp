@@ -159,7 +159,7 @@
     </style>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="/js/paginationJS_0.0.1.js"></script>
+    <script defer src="/js/paginationJS_0.0.1.js"></script>
 
     <link
             rel="stylesheet"

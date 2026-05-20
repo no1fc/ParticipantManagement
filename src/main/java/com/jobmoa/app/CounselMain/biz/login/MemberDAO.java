@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Repository
@@ -34,7 +35,17 @@ public class MemberDAO {
 
 
     public boolean insert(MemberDTO memberDTO) {
-        return false;
+        log.info("MemberCondition insert: [{}]", memberDTO.getMemberCondition());
+        return sqlSession.insert(ns + memberDTO.getMemberCondition(), memberDTO) > 0;
+    }
+
+    public int selectCount(MemberDTO memberDTO) {
+        log.info("MemberCondition selectCount: [{}]", memberDTO.getMemberCondition());
+        return sqlSession.selectOne(ns + memberDTO.getMemberCondition(), memberDTO);
+    }
+
+    public List<Map<String, Object>> selectActiveBranchList() {
+        return sqlSession.selectList(ns + "selectActiveBranchList");
     }
 
     public boolean update(MemberDTO memberDTO) {

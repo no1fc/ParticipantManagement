@@ -203,7 +203,7 @@
             (SELECT COUNT(DISTINCT 아이디)
              FROM J_참여자관리_로그인정보
              WHERE 지점 = #{branch}
-               AND (아이디사용여부 NOT IN ('퇴사','정지','잠금') OR 아이디사용여부 IS NULL OR 아이디사용여부 = '')
+               AND 아이디사용여부 = '사용'
             ) AS counselorCount,
             (SELECT COUNT(*)
              FROM J_참여자관리_상담일정 A
@@ -234,7 +234,7 @@
             이름     AS counselorName
         FROM J_참여자관리_로그인정보
         WHERE 지점 = #{branch}
-          AND (아이디사용여부 NOT IN ('퇴사','정지','잠금') OR 아이디사용여부 IS NULL OR 아이디사용여부 = '')
+          AND 아이디사용여부 = '사용'
         ORDER BY 조회순서 ASC
     </select>
 
@@ -246,7 +246,7 @@
         FROM J_참여자관리_로그인정보
         WHERE 고유번호 = #{uniqueNumber}
           AND 지점 = #{branch}
-          AND (아이디사용여부 NOT IN ('퇴사','정지','잠금') OR 아이디사용여부 IS NULL OR 아이디사용여부 = '')
+          AND 아이디사용여부 = '사용'
     </select>
 
 </mapper>

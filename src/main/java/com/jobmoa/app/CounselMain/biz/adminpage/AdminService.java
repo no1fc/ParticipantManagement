@@ -11,6 +11,7 @@ public interface AdminService {
     boolean modifyUser(AdminDTO dto);
     boolean removeUser(AdminDTO dto);
     boolean resetPassword(AdminDTO dto);
+    boolean approveUser(AdminDTO dto);
 
     // 지점 관리
     List<AdminDTO> getBranchList(AdminDTO dto);
@@ -18,6 +19,7 @@ public interface AdminService {
     boolean addBranch(AdminDTO dto);
     boolean modifyBranch(AdminDTO dto);
     boolean removeBranch(AdminDTO dto);
+    int getBranchUserCount(AdminDTO dto);
 
     // 참여자 관리 (관리자)
     List<AdminDTO> getParticipantList(AdminDTO dto);

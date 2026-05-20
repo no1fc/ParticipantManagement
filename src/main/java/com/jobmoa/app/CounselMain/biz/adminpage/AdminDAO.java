@@ -47,6 +47,11 @@ public class AdminDAO {
         return sqlSession.update(ns + "resetUserPassword", dto) > 0;
     }
 
+    public boolean approveUser(AdminDTO dto) {
+        log.info("AdminDAO approveUser pk={}", dto.getMemberNo());
+        return sqlSession.update(ns + "approveUser", dto) > 0;
+    }
+
     // ===== 지점 관리 (J_참여자관리_지점) =====
     public List<AdminDTO> selectBranchList(AdminDTO dto) {
         log.info("AdminDAO selectBranchList");
@@ -68,9 +73,14 @@ public class AdminDAO {
         return sqlSession.update(ns + "updateBranch", dto) > 0;
     }
 
+    public int selectBranchUserCount(AdminDTO dto) {
+        log.info("AdminDAO selectBranchUserCount pk={}", dto.getBranchNo());
+        return sqlSession.selectOne(ns + "selectBranchUserCount", dto);
+    }
+
     public boolean deleteBranch(AdminDTO dto) {
-        log.info("AdminDAO deleteBranch pk={}", dto.getBranchNo());
-        return sqlSession.delete(ns + "deleteBranch", dto) > 0;
+        log.info("AdminDAO deleteBranch (soft) pk={}", dto.getBranchNo());
+        return sqlSession.update(ns + "deleteBranch", dto) > 0;
     }
 
     // ===== 참여자 관리 (J_참여자관리) =====

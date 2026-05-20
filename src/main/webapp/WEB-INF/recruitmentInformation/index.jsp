@@ -306,8 +306,8 @@
 
 <div class="toast-wrap" id="toastWrap"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/js/recruitmentInformationJS/index_0.0.1.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script defer src="/js/recruitmentInformationJS/index_0.0.1.js"></script>
 
 <%-- 서버에서 pre-fetch한 초기 채용공고 데이터 (JSON) --%>
 <script id="initialJobData" type="application/json">${initialResultJson}</script>

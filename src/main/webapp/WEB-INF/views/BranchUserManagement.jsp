@@ -55,13 +55,13 @@
   />
   <!--end::Third Party Plugin(Bootstrap Icons)-->
   <!--begin::Required Plugin(AdminLTE)-->
-  <link rel="stylesheet" href="/css/adminlte.css" />
+  <link rel="stylesheet" href="/css/adminlte.min.css" />
   <!--end::Required Plugin(AdminLTE)-->
   <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css" />
   <link rel="stylesheet" href="/css/participantCss/branchUserManagement_0.0.2.css" />
 
   <!-- Custom sweetAlert_0.0.1.js -->
-  <script src="/js/sweetAlert_0.0.1.js"></script>
+  <script defer src="/js/sweetAlert_0.0.1.js"></script>
 
   <!-- apexcharts -->
   <link
@@ -78,9 +78,9 @@
           crossorigin="anonymous"
   />
   <!-- mouse pointer 모양 bootstrap 5 -->
-  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
   <!-- SweetAlert2 라이브러리 추가 -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 
@@ -243,25 +243,25 @@
 </body>
 <!--begin::Script-->
 <!--begin::Third Party Plugin(OverlayScrollbars)-->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/browser/overlayscrollbars.browser.es6.min.js"
         integrity="sha256-dghWARbRe2eLlIJ56wNB+b760ywulqK3DzZYEpsg2fQ="
         crossorigin="anonymous"
 ></script>
 <!--end::Third Party Plugin(OverlayScrollbars)--><!--begin::Required Plugin(popperjs for Bootstrap 5)-->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
         integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
         crossorigin="anonymous"
 ></script>
 <!--end::Required Plugin(popperjs for Bootstrap 5)--><!--begin::Required Plugin(Bootstrap 5)-->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
         integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
         crossorigin="anonymous"
 ></script>
 <!--end::Required Plugin(Bootstrap 5)--><!--begin::Required Plugin(AdminLTE)-->
-<script src="js/adminlte.js"></script>
+<script defer src="js/adminlte.js"></script>
 <!--begin::Script-->
 <!--begin::OverlayScrollbars Configure-->
 <script>
@@ -288,8 +288,9 @@
 
 <!-- OPTIONAL SCRIPTS -->
 <!-- sortablejs -->
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
+document.addEventListener('DOMContentLoaded', function () {
   const connectedSortables = document.querySelectorAll('.connectedSortable');
   connectedSortables.forEach((connectedSortable) => {
     let sortable = new Sortable(connectedSortable, {
@@ -302,9 +303,10 @@
   cardHeaders.forEach((cardHeader) => {
     cardHeader.style.cursor = 'move';
   });
+});
 </script>
 <!-- apexcharts -->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"
         integrity="sha256-+vh8GkaU7C9/wbSLIcwq82tQ2wTf44aOHA8HlBMwRI8="
         crossorigin="anonymous"

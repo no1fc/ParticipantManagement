@@ -55,7 +55,7 @@
     />
     <!--end::Third Party Plugin(Bootstrap Icons)-->
     <!--begin::Required Plugin(AdminLTE)-->
-    <link rel="stylesheet" href="/css/adminlte.css" />
+    <link rel="stylesheet" href="/css/adminlte.min.css" />
     <!--end::Required Plugin(AdminLTE)-->
     <!-- apexcharts -->
     <link
@@ -72,11 +72,13 @@
             crossorigin="anonymous"
     />
     <!-- mouse pointer 모양 bootstrap 5 -->
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
 
     <!-- myPage JS -->
-    <script src="/js/myPageJS_0.0.1.js"></script>
-    <link rel="stylesheet" href="/css/participantCss/myPage_0.0.2.css">
+    <!-- SweetAlert2 -->
+    <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script defer src="/js/myPageJS_0.0.2.js"></script>
+    <link rel="stylesheet" href="/css/participantCss/myPage_0.0.3.css">
     <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
@@ -95,37 +97,174 @@
             <div class="container-fluid">
             <!-- 필요 본문 내용은 이쪽에 만들어 주시면 됩니다. -->
                 <div class="row">
-                    <div class="col-md-8 offset-md-2">
-                        <div class="card-modern">
+                    <div class="col-md-10 offset-md-1">
+                        <!-- 비밀번호 확인 카드 (초기 상태) -->
+                        <div id="password-verify-section" class="card-modern mb-4">
                             <div class="p-4 border-bottom">
-                                <div class="d-flex align-items-center mypage-header">
-                                    <h3 class="fw-bold m-0">계정 정보 확인</h3>
-                                    <div id="changeAccount" class="btn btn-primary ms-auto shadow-sm">수정</div>
-                                </div>
+                                <h3 class="fw-bold m-0">계정 정보 확인</h3>
                             </div>
                             <div class="p-4">
-                                <div class="myPage-summary mb-4">
-                                    <span class="badge bg-light text-dark border me-2 p-2">계정 정보</span>
-                                    <span class="badge bg-warning text-dark border me-2 p-2">보안 확인 필요</span>
+                                <div class="myPage-summary mb-3">
+                                    <span class="badge bg-warning text-dark border p-2">보안 확인 필요</span>
                                 </div>
-                                <div id="card-mypage-body" class="row align-items-center">
-                                    <!-- 비밀번호 확인을 위한 div card -->
-                                    <div class="col-md-12">
-                                        <div class="card-modern bg-light border">
-                                            <div class="p-3 border-bottom d-flex align-items-center">
-                                                <div class="fw-bold">비밀번호 확인</div>
-                                                <div id="checkPasswordBtn" class="btn btn-sm btn-outline-primary ms-auto">확인</div>
-                                            </div>
-                                            <div  class="p-4">
-                                                <label for="checkPassword" class="form-label">비밀번호</label>
-                                                <input type="password" id="checkPassword" class="form-control w-100">
-                                                <div class="checkDiv d-none mt-2" id="checkPasswordErrorDiv">
-                                                    <span class="text-danger small" id="checkPasswordError">잘못된 비밀번호 입력</span>
-                                                </div>
-                                            </div>
+                                <div class="card-modern bg-light border">
+                                    <div class="p-3 border-bottom d-flex align-items-center">
+                                        <div class="fw-bold">비밀번호 확인</div>
+                                        <div id="checkPasswordBtn" class="btn btn-sm btn-outline-primary ms-auto">확인</div>
+                                    </div>
+                                    <div class="p-4">
+                                        <label for="checkPassword" class="form-label">비밀번호</label>
+                                        <input type="password" id="checkPassword" class="form-control w-100">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 탭 콘텐츠 (비밀번호 확인 후 표시) -->
+                        <div id="mypage-tabs-section" style="display:none;">
+                            <!-- 탭 네비게이션 -->
+                            <ul class="nav nav-tabs mb-0" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-profile" type="button" role="tab">
+                                        <i class="bi bi-person-circle me-1"></i> 계정 정보
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-daily-report" type="button" role="tab">
+                                        <i class="bi bi-clipboard-data me-1"></i> 일일보고
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-security" type="button" role="tab">
+                                        <i class="bi bi-shield-lock me-1"></i> 보안 설정
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content card-modern" style="border-top-left-radius:0; border-top-right-radius:0;">
+                                <!-- 탭 1: 계정 정보 (이메일, 전화번호, 읽기전용 정보) -->
+                                <div class="tab-pane fade show active p-4" id="tab-profile" role="tabpanel">
+                                    <h5 class="fw-bold mb-3">기본 정보</h5>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label text-muted">이름</label>
+                                            <p id="profileName" class="fw-semibold">-</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-muted">아이디</label>
+                                            <p id="profileId" class="fw-semibold">-</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label text-muted">지점</label>
+                                            <p id="profileBranch" class="fw-semibold">-</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-muted">고유번호</label>
+                                            <p id="profileUniqueNo" class="fw-semibold">-</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label text-muted">등록일</label>
+                                            <p id="profileRegDate" class="fw-semibold">-</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label text-muted">입사일</label>
+                                            <p id="profileJoinDate" class="fw-semibold">-</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label text-muted">근속구분</label>
+                                            <p id="profileContinuous" class="fw-semibold">-</p>
                                         </div>
                                     </div>
 
+                                    <hr>
+                                    <h5 class="fw-bold mb-3">연락처 수정</h5>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="contactPhone" class="form-label">전화번호 (내선)</label>
+                                            <input type="text" class="form-control" id="contactPhone" placeholder="02-0000-0000(000)">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="contactEmail" class="form-label">이메일</label>
+                                            <input type="email" class="form-control" id="contactEmail" placeholder="example@daou.co.kr">
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <button type="button" class="btn btn-primary" id="saveContactBtn">
+                                            <i class="bi bi-check-lg me-1"></i> 연락처 저장
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- 탭 2: 일일보고 -->
+                                <div class="tab-pane fade p-4" id="tab-daily-report" role="tabpanel">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <h5 class="fw-bold m-0">일일업무보고</h5>
+                                        <span id="reportUpdateDate" class="badge bg-light text-muted border ms-2">-</span>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered text-center align-middle">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th></th>
+                                                    <th>일반 취업</th>
+                                                    <th>알선 취업</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td class="fw-bold table-light">금일</td>
+                                                    <td><input type="number" class="form-control text-center report-input" id="todayEmployment" value="0"></td>
+                                                    <td><input type="number" class="form-control text-center report-input" id="todayPlacement" value="0"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-bold table-light">금주</td>
+                                                    <td><input type="number" class="form-control text-center report-input" id="weekEmployment" value="0"></td>
+                                                    <td><input type="number" class="form-control text-center report-input" id="weekPlacement" value="0"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-bold table-light">금월</td>
+                                                    <td><input type="number" class="form-control text-center report-input" id="monthEmployment" value="0"></td>
+                                                    <td><input type="number" class="form-control text-center report-input" id="monthPlacement" value="0"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-bold table-light">금년</td>
+                                                    <td><input type="number" class="form-control text-center report-input" id="yearEmployment" value="0"></td>
+                                                    <td><input type="number" class="form-control text-center report-input" id="yearPlacement" value="0"></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="text-end">
+                                        <button type="button" class="btn btn-primary" id="saveDailyReportBtn">
+                                            <i class="bi bi-check-lg me-1"></i> 일일보고 저장
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- 탭 3: 보안 설정 (비밀번호 변경) -->
+                                <div class="tab-pane fade p-4" id="tab-security" role="tabpanel">
+                                    <h5 class="fw-bold mb-3">비밀번호 변경</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="newPW" class="form-label">새 비밀번호</label>
+                                                <input type="password" class="form-control" id="newPW" placeholder="새 비밀번호 입력">
+                                                <small class="text-muted">영문 대소문자, 특수문자(!@#$%^&*), 숫자 포함 6자 이상</small>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="newPWConfirm" class="form-label">새 비밀번호 확인</label>
+                                                <input type="password" class="form-control" id="newPWConfirm" placeholder="비밀번호 확인">
+                                                <div id="pwValidationResult" class="mt-1"></div>
+                                            </div>
+                                            <button type="button" class="btn btn-primary" id="changePasswordBtn">
+                                                <i class="bi bi-shield-check me-1"></i> 비밀번호 변경
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -149,25 +288,25 @@
 </body>
 <!--begin::Script-->
 <!--begin::Third Party Plugin(OverlayScrollbars)-->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/browser/overlayscrollbars.browser.es6.min.js"
         integrity="sha256-dghWARbRe2eLlIJ56wNB+b760ywulqK3DzZYEpsg2fQ="
         crossorigin="anonymous"
 ></script>
 <!--end::Third Party Plugin(OverlayScrollbars)--><!--begin::Required Plugin(popperjs for Bootstrap 5)-->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
         integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
         crossorigin="anonymous"
 ></script>
 <!--end::Required Plugin(popperjs for Bootstrap 5)--><!--begin::Required Plugin(Bootstrap 5)-->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
         integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
         crossorigin="anonymous"
 ></script>
 <!--end::Required Plugin(Bootstrap 5)--><!--begin::Required Plugin(AdminLTE)-->
-<script src="js/adminlte.js"></script>
+<script defer src="js/adminlte.js"></script>
 <!--begin::Script-->
 <!--begin::OverlayScrollbars Configure-->
 <script>
@@ -195,6 +334,7 @@
 <!-- OPTIONAL SCRIPTS -->
 <!-- sortablejs -->
 <script>
+document.addEventListener('DOMContentLoaded', function () {
     const connectedSortables = document.querySelectorAll('.connectedSortable');
     connectedSortables.forEach((connectedSortable) => {
         let sortable = new Sortable(connectedSortable, {
@@ -207,9 +347,10 @@
     cardHeaders.forEach((cardHeader) => {
         cardHeader.style.cursor = 'move';
     });
+});
 </script>
 <!-- apexcharts -->
-<script
+<script defer
         src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"
         integrity="sha256-+vh8GkaU7C9/wbSLIcwq82tQ2wTf44aOHA8HlBMwRI8="
         crossorigin="anonymous"
