@@ -3,6 +3,8 @@ package com.jobmoa.app.CounselMain.biz.bean;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 
 @Getter
 @Setter
@@ -10,9 +12,14 @@ public class SearchBean {
     private String search;
     private int page;
     private String endDateOption;
+    private List<String> endDateOptionList;
     private String searchOption;
     private int pageRows;
     private String searchType;
+    private List<String> searchTypeList;
+    private List<String> participantPartTypeList;
+    private String wishJobSearch;
+    private List<String> wishJobSearchList;
     private String column;
     private String order;
     private String participantRegDate;
@@ -33,6 +40,7 @@ public class SearchBean {
         this.participantRegDate = (this.participantRegDate == null || this.participantRegDate.isEmpty())?"All":this.participantRegDate;
         this.participantInItCons = (this.participantInItCons == null || this.participantInItCons.isEmpty())?"All":this.participantInItCons;
         this.participantPartType = (this.participantPartType == null || this.participantPartType.isEmpty())?"":this.participantPartType;
+        this.wishJobSearch = (this.wishJobSearch == null || this.wishJobSearch.isEmpty())?"":this.wishJobSearch;
 
         String returnValue ="page=" + pageString +
                 "&endDateOption=" + endDateOption +
@@ -44,7 +52,30 @@ public class SearchBean {
                 "&order=" + order +
                 "&participantRegDate=" + participantRegDate +
                 "&participantPartType=" + participantPartType +
-                "&participantInItCons=" + participantInItCons;
+                "&participantInItCons=" + participantInItCons +
+                "&wishJobSearch=" + wishJobSearch;
+
+        // 다중값 직렬화
+        if (this.searchTypeList != null && !this.searchTypeList.isEmpty()) {
+            for (String st : this.searchTypeList) {
+                returnValue += "&searchTypeList=" + st;
+            }
+        }
+        if (this.participantPartTypeList != null && !this.participantPartTypeList.isEmpty()) {
+            for (String pt : this.participantPartTypeList) {
+                returnValue += "&participantPartTypeList=" + pt;
+            }
+        }
+        if (this.endDateOptionList != null && !this.endDateOptionList.isEmpty()) {
+            for (String ed : this.endDateOptionList) {
+                returnValue += "&endDateOptionList=" + ed;
+            }
+        }
+        if (this.wishJobSearchList != null && !this.wishJobSearchList.isEmpty()) {
+            for (String wj : this.wishJobSearchList) {
+                returnValue += "&wishJobSearchList=" + wj;
+            }
+        }
 
         return returnValue;
     }

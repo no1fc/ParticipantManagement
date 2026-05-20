@@ -40,6 +40,12 @@
             </when>
         </choose>
         <choose>
+            <when test="participantPartTypeList != null and participantPartTypeList.size() > 0">
+                AND A.참여유형 IN
+                <foreach collection="participantPartTypeList" item="pt" open="(" separator="," close=")">
+                    #{pt}
+                </foreach>
+            </when>
             <when test="participantPartType == 1">
                 AND A.참여유형 = '1'
             </when>
@@ -48,6 +54,15 @@
             </when>
         </choose>
         <choose>
+            <when test="endDateOptionList != null and endDateOptionList.size() == 1 and endDateOptionList.contains('false')">
+                AND (A.마감 = 'false' OR A.마감 = '')
+            </when>
+            <when test="endDateOptionList != null and endDateOptionList.size() == 1 and endDateOptionList.contains('true')">
+                AND A.마감 = 'true'
+            </when>
+            <when test="endDateOptionList != null and endDateOptionList.size() > 1">
+                <!-- 둘 다 선택 = 전체 조회, 필터 없음 -->
+            </when>
             <when test="endDateOption == 'false'">
                 AND (A.마감 = 'false' OR A.마감 = '')
             </when>
@@ -56,29 +71,79 @@
             </when>
         </choose>
         <choose>
-            <when test="searchType != null and searchType == 'noInitial'">
-                AND A.초기상담일 = ''
+            <when test="searchTypeList != null and searchTypeList.size() > 0">
+                AND (
+                <trim prefixOverrides="OR">
+                    <if test="searchTypeList.contains('noInitial')">
+                        OR A.초기상담일 = ''
+                    </if>
+                    <if test="searchTypeList.contains('recent21')">
+                        OR (DATEDIFF(DAY, A.최근상담일, GETDATE()) <![CDATA[>=]]> 21
+                            AND A.최근상담일 <![CDATA[<>]]> '')
+                    </if>
+                    <if test="searchTypeList.contains('jobExpire')">
+                        OR (DATEDIFF(DAY, GETDATE(), A.구직만료일) <![CDATA[<=]]> 15
+                            AND A.구직만료일 <![CDATA[<>]]> '')
+                    </if>
+                    <if test="searchTypeList.contains('periodExpire')">
+                        OR (DATEDIFF(DAY, GETDATE(), A.기간만료일) <![CDATA[<=]]> 15
+                            AND A.기간만료일 <![CDATA[<>]]> ''
+                            AND A.최근상담일 <![CDATA[<>]]> '')
+                    </if>
+                    <if test="searchTypeList.contains('employment')">
+                        OR A.취창업일 <![CDATA[<>]]> ''
+                    </if>
+                    <if test="searchTypeList.contains('isIntesiveMediation')">
+                        OR A.집중알선여부 = 1
+                    </if>
+                </trim>
+                )
             </when>
-            <when test="searchType != null and searchType == 'recent21'">
-                AND DATEDIFF(DAY, A.최근상담일, GETDATE()) <![CDATA[>=]]> 21
-                AND A.최근상담일 <![CDATA[<>]]> ''
-            </when>
-            <when test="searchType != null and searchType == 'jobExpire'">
-                AND DATEDIFF(DAY, GETDATE(), A.구직만료일) <![CDATA[<=]]> 15
-                AND A.구직만료일 <![CDATA[<>]]> ''
-            </when>
-            <when test="searchType != null and searchType == 'periodExpire'">
-                AND DATEDIFF(DAY, GETDATE(), A.기간만료일) <![CDATA[<=]]> 15
-                AND A.기간만료일 <![CDATA[<>]]> ''
-                AND A.최근상담일 <![CDATA[<>]]> ''
-            </when>
-            <when test="searchType != null and searchType == 'employment'">
-                AND A.취창업일 <![CDATA[<>]]> ''
-            </when>
+            <otherwise>
+                <choose>
+                    <when test="searchType != null and searchType == 'noInitial'">
+                        AND A.초기상담일 = ''
+                    </when>
+                    <when test="searchType != null and searchType == 'recent21'">
+                        AND DATEDIFF(DAY, A.최근상담일, GETDATE()) <![CDATA[>=]]> 21
+                        AND A.최근상담일 <![CDATA[<>]]> ''
+                    </when>
+                    <when test="searchType != null and searchType == 'jobExpire'">
+                        AND DATEDIFF(DAY, GETDATE(), A.구직만료일) <![CDATA[<=]]> 15
+                        AND A.구직만료일 <![CDATA[<>]]> ''
+                    </when>
+                    <when test="searchType != null and searchType == 'periodExpire'">
+                        AND DATEDIFF(DAY, GETDATE(), A.기간만료일) <![CDATA[<=]]> 15
+                        AND A.기간만료일 <![CDATA[<>]]> ''
+                        AND A.최근상담일 <![CDATA[<>]]> ''
+                    </when>
+                    <when test="searchType != null and searchType == 'employment'">
+                        AND A.취창업일 <![CDATA[<>]]> ''
+                    </when>
+                    <when test="searchType != null and searchType == 'isIntesiveMediation'">
+                        AND A.집중알선여부 = 1
+                    </when>
+                </choose>
+            </otherwise>
         </choose>
         <choose>
-            <when test="searchType != null and searchType =='isIntesiveMediation'">
-                AND A.집중알선여부 = 1
+            <when test="wishJobSearchList != null and wishJobSearchList.size() > 0">
+                AND EXISTS (
+                    SELECT 1 FROM J_참여자관리_희망직무 W
+                    WHERE W.구직번호 = A.구직번호
+                    AND (
+                    <foreach collection="wishJobSearchList" item="wj" separator="OR">
+                        W.희망직무 LIKE '%' + #{wj} + '%'
+                    </foreach>
+                    )
+                )
+            </when>
+            <when test="wishJobSearch != null and wishJobSearch != ''">
+                AND EXISTS (
+                    SELECT 1 FROM J_참여자관리_희망직무 W
+                    WHERE W.구직번호 = A.구직번호
+                    AND W.희망직무 LIKE '%' + #{wishJobSearch} + '%'
+                )
             </when>
         </choose>
     </sql>
@@ -105,12 +170,6 @@
             </when>
             <when test="column == '간접고용서비스'">
                 A.간접고용서비스
-            </when>
-            <when test="column == '수당지급일'">
-                A.수당지급일
-            </when>
-            <when test="column == '구직만료일'">
-                A.구직만료일
             </when>
             <when test="column == '기간만료일'">
                 A.기간만료일
@@ -178,8 +237,7 @@
             IAP3개월여부 AS participantISIAP3Month,
             IAP5개월여부 AS participantISIAP5Month,
             간접고용서비스 AS participantEmploymentService,
-            수당지급일 AS participantAllowanceDate,
-            구직만료일 AS participantJobEX,
+            희망직무 AS participantJobWant,
             기간만료일 AS participantEXPDate,
             집중알선여부 AS participantISIntensiveMediation,
             마감 AS participantClose
@@ -218,12 +276,7 @@
                     A.IAP3개월여부,
                     A.IAP5개월여부,
                     A.간접고용서비스,
-                    CASE
-                        WHEN A.수당지급일 > '1900-01-01' AND 수당지급일 <![CDATA[<>]]> '' THEN A.수당지급일
-                    END AS 수당지급일,
-                    CASE
-                        WHEN A.구직만료일 > '1900-01-01' AND A.구직만료일 <![CDATA[<>]]> '' THEN A.구직만료일
-                    END AS  구직만료일,
+                    ISNULL(WISH1.희망직무, '') AS 희망직무,
                     CASE
                         WHEN A.기간만료일 > '1900-01-01' AND A.기간만료일 <![CDATA[<>]]> '' THEN A.기간만료일
                     END AS 기간만료일,
@@ -232,6 +285,12 @@
                  FROM J_참여자관리 A
                  JOIN J_참여자관리_로그인정보 B
                  ON A.전담자_계정 = B.아이디
+                 OUTER APPLY (
+                     SELECT TOP 1 W.희망직무
+                     FROM J_참여자관리_희망직무 W
+                     WHERE W.구직번호 = A.구직번호
+                     ORDER BY W.희망순위 ASC, W.PK ASC
+                 ) WISH1
                  WHERE
                  <include refid="participantAuthCondition"/> <!-- sql 조회 아이디 및 권한 관리 -->
                  <include refid="participantSearchCondition"/> <!-- sql 조회 검색어 관리 -->
