@@ -150,7 +150,9 @@
             integrity="sha384-DKYJZ8NLiK8MN4/C5P2dtSmLQ4KwPaoqAfyA/DfmEc1VDxu4yyC7wy6K1Hs90nka"
             crossorigin="anonymous"></script>
     <script>
-        Kakao.init('${kakaoJsKey}');
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof Kakao !== 'undefined' && !Kakao.isInitialized()) Kakao.init('${kakaoJsKey}');
+        });
     </script>
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
@@ -241,7 +243,7 @@
 
                                 <c:choose>
                                     <c:when test="${empty datas}">
-                                        <td class="text-center" colspan="15">
+                                        <td class="text-center" colspan="16">
                                             검색된 참여자가 없습니다.
                                         </td>
                                     </c:when>

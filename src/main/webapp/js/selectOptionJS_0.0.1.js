@@ -20,9 +20,9 @@ function changeSelect(selectID, changeSelectID, selectValue){
 
     function empTypeChange(changeSelectID){
         let option = [];
-        if(selectID.val() == "미고보"){
+        if(selectID.val() == "미고보/인력공급업"){
             option = [{text:"고보미가입취업자",value:"고보미가입취업자"},
-                {text: "파견",value: "파견"},
+                {text: "인력공급업",value: "인력공급업"},
                 {text: "프리랜서",value: "프리랜서"},
                 {text: "특수고용",value: "특수고용"}
             ]
@@ -30,7 +30,7 @@ function changeSelect(selectID, changeSelectID, selectValue){
         else if(selectID.val() == "고보일반"){
             option = [{text:"본인",value:"본인"},
                 {text: "알선",value: "알선"},
-                {text: "소개취업",value: "소개취업"}
+                {text: "외부 알선",value: "외부 알선"}
             ]
         }
         else if(selectID.val() == "등록창업" || selectID.val() == "미등록창업"){

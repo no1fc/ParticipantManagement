@@ -20,11 +20,11 @@
         <tbody>
             <%-- 행1: 초기상담일 / 진행단계 / 취업역량 --%>
             <tr>
-                <th><label for="counselInItCons">초기상담일</label></th>
+                <th><label for="counselLastCons">최근상담일</label></th>
                 <td>
                     <div class="input-group">
                         <i class="bi bi-calendar-date input-group-text"></i>
-                        <input type="text" class="form-control datepicker_on" id="counselInItCons" name="counselInItCons" placeholder="yyyy-mm-dd" aria-label="초기상담일" value="${not empty counsel ? counsel.counselInItCons:""}" autocomplete="off">
+                        <input type="text" class="form-control datepicker_on" id="counselLastCons" name="counselLastCons" placeholder="yyyy-mm-dd" aria-label="최근상담일" value="${not empty counsel ? counsel.counselLastCons:""}" autocomplete="off">
                     </div>
                 </td>
                 <th><label for="counselProgress">진행단계</label></th>
@@ -32,7 +32,7 @@
                     <select class="form-select" aria-label="Default select example" id="counselProgress" name="counselProgress">
                         <option selected value="IAP 전">IAP 전</option>
                         <option value="IAP 후">IAP 후</option>
-                        <option value="미고보">미고보</option>
+                        <option value="미고보/인력공급업">미고보/인력공급업</option>
                         <option value="고보일반">고보일반</option>
                         <option value="등록창업">등록창업</option>
                         <option value="미등록창업">미등록창업</option>
@@ -57,11 +57,11 @@
             </tr>
             <%-- 행2: 최근상담일 / 구직만료일 / 기간만료(예정)일 --%>
             <tr>
-                <th><label for="counselLastCons">최근상담일</label></th>
+                <th><label for="counselInItCons">초기상담일</label></th>
                 <td>
                     <div class="input-group">
                         <i class="bi bi-calendar-date input-group-text"></i>
-                        <input type="text" class="form-control datepicker_on" id="counselLastCons" name="counselLastCons" placeholder="yyyy-mm-dd" aria-label="최근상담일" value="${not empty counsel ? counsel.counselLastCons:""}" autocomplete="off">
+                        <input type="text" class="form-control datepicker_on" id="counselInItCons" name="counselInItCons" placeholder="yyyy-mm-dd" aria-label="초기상담일" value="${not empty counsel ? counsel.counselInItCons:""}" autocomplete="off">
                     </div>
                 </td>
                 <th><label for="counselJobEX">구직만료일</label></th>
@@ -154,7 +154,6 @@
                     <span class="wish-job-count" id="wishJobCount">1</span>
                 </th>
                 <td colspan="5">
-                    <%-- 폼 검증/제출 호환용 hidden input (1순위 동기화 대상) --%>
                     <input type="hidden" id="jobCategoryLarge" name="jobCategoryLarge"
                            data-selected="${not empty counsel ? counsel.jobCategoryLarge:''}"
                            value="${not empty counsel ? counsel.jobCategoryLarge:''}">

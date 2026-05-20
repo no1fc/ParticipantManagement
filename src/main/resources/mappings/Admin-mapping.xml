@@ -639,7 +639,7 @@
             /* 회계연도 내 종료자/취업자 집계 */
             SELECT
                 SUM(CASE
-                    WHEN 진행단계 IN ('미고보','고보일반','등록창업','미등록창업','미취업사후관리','미취업사후종료','중단')
+                    WHEN 진행단계 IN ('미고보/인력공급업','고보일반','등록창업','미등록창업','미취업사후관리','미취업사후종료','중단')
                          AND NULLIF(CASE WHEN 취창업일 <![CDATA[>]]> '1900-01-01' THEN 취창업일
                                          WHEN 기간만료일 <![CDATA[>]]> '1900-01-01' THEN 기간만료일
                                     END, '1900-01-01') BETWEEN F.start_date AND F.end_date
@@ -647,7 +647,7 @@
                          AND 지점 IN ('인천','성남','서부','남부','부천','수원','의정부','인천남부','동대문','광명','안양','북부','천호','관악')
                     THEN 1 ELSE 0 END) AS fiscal_completed,
                 SUM(CASE
-                    WHEN 진행단계 IN ('미고보','고보일반','등록창업','미등록창업','미취업사후관리','미취업사후종료','중단')
+                    WHEN 진행단계 IN ('미고보/인력공급업','고보일반','등록창업','미등록창업','미취업사후관리','미취업사후종료','중단')
                          AND NULLIF(CASE WHEN 취창업일 <![CDATA[>]]> '1900-01-01' THEN 취창업일
                                          WHEN 기간만료일 <![CDATA[>]]> '1900-01-01' THEN 기간만료일
                                     END, '1900-01-01') BETWEEN F.start_date AND F.end_date
@@ -655,7 +655,7 @@
                          AND 지점 IN ('인천','성남','서부','남부','부천','수원','의정부','인천남부','동대문','광명','안양','북부','천호','관악')
                          AND 취창업일 <![CDATA[>=]]> F.start_date
                          AND (진행단계 IN ('등록창업','고보일반', '미취업사후종료', '중단')
-                            OR (진행단계 = '미고보' AND 취업유형 IN ('프리랜서', '특수고용') AND 임금 > 70))
+                            OR (진행단계 = '미고보/인력공급업' AND 취업유형 IN ('프리랜서', '특수고용') AND 임금 > 70))
                          AND (취업인센티브_구분 NOT LIKE '%파견%' OR 취업인센티브_구분 IS NULL)
                     THEN 1 ELSE 0 END) AS fiscal_employed
             FROM J_참여자관리
@@ -681,7 +681,7 @@
         /*
          * 회계연도(11월~10월) 기준 지점별 취업/알선 성과 집계
          * 취업_F 판정: 종료_F AND 취창업일 >= start AND 진행단계 취업 계열 AND 파견 아님
-         * 알선_F 판정: 취업_F AND 취업유형='알선'
+         * 알선_F 판정: 취업_F AND 취업유형 IN ('알선','외부 알선')
          * 대상_F: 평가 대상 지점 AND 실제종료일 within fiscal year
          */
         WITH fiscal_dates AS (
@@ -708,7 +708,7 @@
         ),
         통합_참여자_분석 AS (
             SELECT P.*,
-                CASE WHEN (진행단계 IN ('미고보','고보일반','등록창업','미등록창업','미취업사후관리','미취업사후종료','중단')
+                CASE WHEN (진행단계 IN ('미고보/인력공급업','고보일반','등록창업','미등록창업','미취업사후관리','미취업사후종료','중단')
                            AND 실제종료일 BETWEEN F.start_date AND F.end_date
                            AND 기간만료일 <![CDATA[>=]]> F.start_date)
                      THEN 1 ELSE 0 END AS 종료_F,
@@ -716,7 +716,7 @@
                           AND 진행단계 IN ('등록창업','고보일반','미취업사후종료','중단')
                           AND (취업인센티브_구분 NOT LIKE '%파견%' OR 취업인센티브_구분 IS NULL)
                      THEN 1 ELSE 0 END AS 취업_F,
-                CASE WHEN 취업유형 = '알선' THEN 1 ELSE 0 END AS 알선_F,
+                CASE WHEN 취업유형 IN ('알선', '외부 알선') THEN 1 ELSE 0 END AS 알선_F,
                 CASE WHEN 지점 IN ('인천','성남','서부','남부','부천','수원','의정부','인천남부','동대문','광명','안양','북부','천호','관악')
                           AND 실제종료일 BETWEEN F.start_date AND F.end_date
                      THEN 1 ELSE 0 END AS 대상_F
@@ -1049,7 +1049,7 @@
         ),
         scored AS (
             SELECT B.지점, B.전담자_계정,
-                CASE WHEN B.진행단계 IN ('미고보','고보일반','등록창업','미등록창업','미취업사후관리','미취업사후종료','중단')
+                CASE WHEN B.진행단계 IN ('미고보/인력공급업','고보일반','등록창업','미등록창업','미취업사후관리','미취업사후종료','중단')
                           AND B.실제종료일 BETWEEN F.start_date AND F.end_date
                           AND B.기간만료일 <![CDATA[>=]]> F.start_date
                      THEN 1 ELSE 0 END AS 종료_F,
@@ -1057,7 +1057,7 @@
                           AND B.진행단계 IN ('등록창업','고보일반','미취업사후종료','중단')
                           AND (B.취업인센티브_구분 NOT LIKE '%파견%' OR B.취업인센티브_구분 IS NULL)
                      THEN 1 ELSE 0 END AS 취업_F,
-                CASE WHEN B.취업유형 = '알선' THEN 1 ELSE 0 END AS 알선_F
+                CASE WHEN B.취업유형 IN ('알선', '외부 알선') THEN 1 ELSE 0 END AS 알선_F
             FROM base B
             CROSS JOIN fiscal_dates F
         )

@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const form = $("#newParticipantsForm");
             let progressVal = $("#counselProgress").val();
             let counselEXPDate = $("#counselEXPDate").val();
-            if ((progressVal == "미고보" || progressVal == "고보일반" || progressVal == "등록창업" || progressVal == "미등록창업" ||
+            if ((progressVal == "미고보/인력공급업" || progressVal == "고보일반" || progressVal == "등록창업" || progressVal == "미등록창업" ||
                 progressVal == "미취업사후종료" || progressVal == "이관" || progressVal == "중단") && counselEXPDate == ""){
                 alertDefaultInfo("현재 선택한 진행단계의 "+progressVal+"은/는 기간만료일은 필수로 입력되어야 합니다.");
                 return;

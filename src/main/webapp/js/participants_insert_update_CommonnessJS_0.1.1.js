@@ -170,7 +170,7 @@ $(document).ready(function () {
 
         // 유효성 검사 상수 및 유틸 함수 도입
         const PROGRESS_REQUIRING_EXP_DATE = new Set([
-            '미고보',
+            '미고보/인력공급업',
             '고보일반',
             '등록창업',
             '미등록창업',
@@ -525,6 +525,32 @@ $(document).ready(function () {
         JobPlacementDetail(hiddenDiv);
     })
     //알선 상세 정보 입력 function 끝
+
+    // 최근상담일 경과일 기준 th 레이블 배경색 설정 시작
+    const counselLastConsTh = counselLastCons.closest('tr').find('th').first();
+    function applyCounselLastConsColor() {
+        const val = counselLastCons.val();
+        if (!val) {
+            counselLastConsTh.css('background-color', 'lightsalmon');
+            return;
+        }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const lastDate = new Date(val);
+        lastDate.setHours(0, 0, 0, 0);
+        const diffDays = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+
+        if (diffDays > 21) {
+            counselLastConsTh.css('background-color', 'rgba(255,58,58,0.55)');
+        } else if (diffDays > 15) {
+            counselLastConsTh.css('background-color', 'rgba(255,249,0,0.51)');
+        } else {
+            counselLastConsTh.css('background-color', 'rgba(0,255,0,0.51)');
+        }
+    }
+    applyCounselLastConsColor();
+    counselLastCons.on('change', applyCounselLastConsColor);
+    // 최근상담일 경과일 기준 배경색 설정 끝
 
 })
 
