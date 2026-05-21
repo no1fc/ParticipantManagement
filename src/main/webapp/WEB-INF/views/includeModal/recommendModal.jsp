@@ -170,7 +170,7 @@
           <th>업종</th>
           <th>추천점수</th>
           <th>추천사유</th>
-          <th>공고링크</th>
+          <th>복사</th>
           <th>공유</th>
         </tr>
         </thead>
@@ -183,3 +183,161 @@
 
 <!-- AI 추천 완료 토스트 알림 컨테이너 (모달 외부) -->
 <div id="recommendToastContainer" class="recommend-toast-container"></div>
+
+<!-- 상담일지 복사 서브모달 -->
+<div id="copyLogModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10001;" onclick="closeCopyLogModal()">
+  <div class="copy-log-container" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:700px; max-height:85vh; overflow-y:auto; background:#fff; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,0.3);" onclick="event.stopPropagation()">
+
+    <!-- 헤더 -->
+    <div class="copy-log-header d-flex justify-content-between align-items-center px-4 py-3" style="border-bottom:1px solid #dee2e6;">
+      <h5 class="mb-0 font-weight-bold"><i class="fas fa-copy mr-2"></i>상담일지 복사</h5>
+      <button type="button" class="close" onclick="closeCopyLogModal()" aria-label="닫기">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+
+    <!-- 항목 선택 영역 -->
+    <div class="copy-column-section px-4 py-3">
+      <label class="font-weight-bold mb-2 d-block">기본 항목</label>
+      <div class="row">
+        <div class="col-4 form-check form-check-inline ml-2 mb-2">
+          <input class="form-check-input copy-column-check" type="checkbox" id="copy_companyNm" data-key="companyNm" onchange="updateCopyPreview()" checked>
+          <label class="form-check-label" for="copy_companyNm">기업명</label>
+        </div>
+        <div class="col-4 form-check form-check-inline ml-2 mb-2">
+          <input class="form-check-input copy-column-check" type="checkbox" id="copy_recrutTitle" data-key="recrutTitle" onchange="updateCopyPreview()" checked>
+          <label class="form-check-label" for="copy_recrutTitle">채용공고</label>
+        </div>
+        <div class="col-4 form-check form-check-inline ml-2 mb-2">
+          <input class="form-check-input copy-column-check" type="checkbox" id="copy_indTpNm" data-key="indTpNm" onchange="updateCopyPreview()" checked>
+          <label class="form-check-label" for="copy_indTpNm">업종</label>
+        </div>
+        <div class="col-4 form-check form-check-inline ml-2 mb-2">
+          <input class="form-check-input copy-column-check" type="checkbox" id="copy_jobsNm" data-key="jobsNm" onchange="updateCopyPreview()" checked>
+          <label class="form-check-label" for="copy_jobsNm">직무</label>
+        </div>
+        <div class="col-4 form-check form-check-inline ml-2 mb-2">
+          <input class="form-check-input copy-column-check" type="checkbox" id="copy_qualification" data-key="qualification" onchange="updateCopyPreview()" checked>
+          <label class="form-check-label" for="copy_qualification">지원자격</label>
+        </div>
+        <div class="col-4 form-check form-check-inline ml-2 mb-2">
+          <input class="form-check-input copy-column-check" type="checkbox" id="copy_salDesc" data-key="salDesc" onchange="updateCopyPreview()" checked>
+          <label class="form-check-label" for="copy_salDesc">급여</label>
+        </div>
+        <div class="col-4 form-check form-check-inline ml-2 mb-2">
+          <input class="form-check-input copy-column-check" type="checkbox" id="copy_empTpNm" data-key="empTpNm" onchange="updateCopyPreview()" checked>
+          <label class="form-check-label" for="copy_empTpNm">고용형태</label>
+        </div>
+        <div class="col-4 form-check form-check-inline ml-2 mb-2">
+          <input class="form-check-input copy-column-check" type="checkbox" id="copy_regionNm" data-key="regionNm" onchange="updateCopyPreview()" checked>
+          <label class="form-check-label" for="copy_regionNm">근무지역</label>
+        </div>
+        <div class="col-4 form-check form-check-inline ml-2 mb-2">
+          <input class="form-check-input copy-column-check" type="checkbox" id="copy_recommendationReason" data-key="recommendationReason" onchange="updateCopyPreview()" checked>
+          <label class="form-check-label" for="copy_recommendationReason">추천사유</label>
+        </div>
+        <div class="col-4 form-check form-check-inline ml-2 mb-2">
+          <input class="form-check-input copy-column-check" type="checkbox" id="copy_wantedInfoUrl" data-key="wantedInfoUrl" onchange="updateCopyPreview()" checked>
+          <label class="form-check-label" for="copy_wantedInfoUrl">공고URL</label>
+        </div>
+        <div class="col-4 form-check form-check-inline ml-2 mb-2">
+          <input class="form-check-input copy-column-check" type="checkbox" id="copy_infoSvc" data-key="infoSvc" onchange="updateCopyPreview()" checked>
+          <label class="form-check-label" for="copy_infoSvc">정보제공처</label>
+        </div>
+      </div>
+
+      <!-- 더보기 토글 -->
+      <button type="button" class="btn btn-sm btn-outline-secondary mt-2 mb-2" onclick="toggleMoreCopyColumns()">
+        더보기 <i class="fas fa-chevron-down ml-1"></i>
+      </button>
+
+      <!-- 추가 항목 (기본 숨김) -->
+      <div class="copy-column-more" style="display:none;">
+        <label class="font-weight-bold mb-2 d-block mt-2">추가 항목</label>
+        <div class="row">
+          <div class="col-4 form-check form-check-inline ml-2 mb-2">
+            <input class="form-check-input copy-column-check" type="checkbox" id="copy_reperNm" data-key="reperNm" onchange="updateCopyPreview()">
+            <label class="form-check-label" for="copy_reperNm">대표자명</label>
+          </div>
+          <div class="col-4 form-check form-check-inline ml-2 mb-2">
+            <input class="form-check-input copy-column-check" type="checkbox" id="copy_busiSize" data-key="busiSize" onchange="updateCopyPreview()">
+            <label class="form-check-label" for="copy_busiSize">회사규모</label>
+          </div>
+          <div class="col-4 form-check form-check-inline ml-2 mb-2">
+            <input class="form-check-input copy-column-check" type="checkbox" id="copy_totPsncnt" data-key="totPsncnt" onchange="updateCopyPreview()">
+            <label class="form-check-label" for="copy_totPsncnt">근로자수</label>
+          </div>
+          <div class="col-4 form-check form-check-inline ml-2 mb-2">
+            <input class="form-check-input copy-column-check" type="checkbox" id="copy_capitalAmt" data-key="capitalAmt" onchange="updateCopyPreview()">
+            <label class="form-check-label" for="copy_capitalAmt">자본금</label>
+          </div>
+          <div class="col-4 form-check form-check-inline ml-2 mb-2">
+            <input class="form-check-input copy-column-check" type="checkbox" id="copy_yrSalesAmt" data-key="yrSalesAmt" onchange="updateCopyPreview()">
+            <label class="form-check-label" for="copy_yrSalesAmt">연매출</label>
+          </div>
+          <div class="col-4 form-check form-check-inline ml-2 mb-2">
+            <input class="form-check-input copy-column-check" type="checkbox" id="copy_busiCont" data-key="busiCont" onchange="updateCopyPreview()">
+            <label class="form-check-label" for="copy_busiCont">사업내용</label>
+          </div>
+          <div class="col-4 form-check form-check-inline ml-2 mb-2">
+            <input class="form-check-input copy-column-check" type="checkbox" id="copy_homePg" data-key="homePg" onchange="updateCopyPreview()">
+            <label class="form-check-label" for="copy_homePg">홈페이지</label>
+          </div>
+          <div class="col-4 form-check form-check-inline ml-2 mb-2">
+            <input class="form-check-input copy-column-check" type="checkbox" id="copy_recrutPeri" data-key="recrutPeri" onchange="updateCopyPreview()">
+            <label class="form-check-label" for="copy_recrutPeri">채용기간</label>
+          </div>
+          <div class="col-4 form-check form-check-inline ml-2 mb-2">
+            <input class="form-check-input copy-column-check" type="checkbox" id="copy_recruitCnt" data-key="recruitCnt" onchange="updateCopyPreview()">
+            <label class="form-check-label" for="copy_recruitCnt">모집인원</label>
+          </div>
+          <div class="col-4 form-check form-check-inline ml-2 mb-2">
+            <input class="form-check-input copy-column-check" type="checkbox" id="copy_jobCont" data-key="jobCont" onchange="updateCopyPreview()">
+            <label class="form-check-label" for="copy_jobCont">직무내용</label>
+          </div>
+          <div class="col-4 form-check form-check-inline ml-2 mb-2">
+            <input class="form-check-input copy-column-check" type="checkbox" id="copy_workTimeCont" data-key="workTimeCont" onchange="updateCopyPreview()">
+            <label class="form-check-label" for="copy_workTimeCont">근무시간</label>
+          </div>
+          <div class="col-4 form-check form-check-inline ml-2 mb-2">
+            <input class="form-check-input copy-column-check" type="checkbox" id="copy_fourIns" data-key="fourIns" onchange="updateCopyPreview()">
+            <label class="form-check-label" for="copy_fourIns">4대보험</label>
+          </div>
+          <div class="col-4 form-check form-check-inline ml-2 mb-2">
+            <input class="form-check-input copy-column-check" type="checkbox" id="copy_retirePay" data-key="retirePay" onchange="updateCopyPreview()">
+            <label class="form-check-label" for="copy_retirePay">퇴직금</label>
+          </div>
+          <div class="col-4 form-check form-check-inline ml-2 mb-2">
+            <input class="form-check-input copy-column-check" type="checkbox" id="copy_welfareDesc" data-key="welfareDesc" onchange="updateCopyPreview()">
+            <label class="form-check-label" for="copy_welfareDesc">복리후생</label>
+          </div>
+          <div class="col-4 form-check form-check-inline ml-2 mb-2">
+            <input class="form-check-input copy-column-check" type="checkbox" id="copy_career" data-key="career" onchange="updateCopyPreview()">
+            <label class="form-check-label" for="copy_career">경력</label>
+          </div>
+          <div class="col-4 form-check form-check-inline ml-2 mb-2">
+            <input class="form-check-input copy-column-check" type="checkbox" id="copy_education" data-key="education" onchange="updateCopyPreview()">
+            <label class="form-check-label" for="copy_education">학력</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 미리보기 영역 -->
+    <div class="copy-preview-section px-4 py-3" style="border-top:1px solid #dee2e6;">
+      <label class="font-weight-bold mb-2 d-block">미리보기</label>
+      <textarea id="copyPreviewText" class="form-control" rows="10" readonly placeholder="항목을 선택하면 미리보기가 표시됩니다."></textarea>
+    </div>
+
+    <!-- 액션 버튼 -->
+    <div class="copy-log-actions px-4 py-3 d-flex justify-content-end" style="border-top:1px solid #dee2e6;">
+      <button type="button" class="btn btn-primary mr-2" onclick="executeCopyLog()">
+        <i class="fas fa-copy mr-1"></i>복사하기
+      </button>
+      <button type="button" class="btn btn-secondary" onclick="closeCopyLogModal()">
+        닫기
+      </button>
+    </div>
+
+  </div>
+</div>

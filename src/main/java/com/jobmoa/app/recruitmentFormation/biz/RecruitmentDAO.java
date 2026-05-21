@@ -50,10 +50,17 @@ public class RecruitmentDAO {
     }
 
     /**
-     * syncDtm 이전에 갱신되지 않은 공고 삭제 (마감된 공고 처리)
+     * API에서 사라진 공고를 비활성화 (soft delete: is_active=0, deactivated_at=GETDATE())
      */
-    public int deleteOldPostings(String syncDtm) {
-        return sqlSession.delete(NS + "deleteOldPostings", syncDtm);
+    public int deactivateOldPostings(String syncDtm) {
+        return sqlSession.update(NS + "deactivateOldPostings", syncDtm);
+    }
+
+    /**
+     * 비활성화 후 6개월 이상 경과한 공고만 삭제 (hard delete)
+     */
+    public int deleteOldPostings() {
+        return sqlSession.delete(NS + "deleteOldPostings");
     }
 
     // ── 상세정보 수집 (스케줄러 Phase 2) ──────────────────────────────

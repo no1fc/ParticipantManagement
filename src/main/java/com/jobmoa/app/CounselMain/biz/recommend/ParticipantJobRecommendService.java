@@ -23,4 +23,7 @@ public interface ParticipantJobRecommendService {
     // AI 추천 저장 처리 (Gemini 호출 + DB 저장 전체 흐름)
     ProcessRecommendResultDTO processAndSaveRecommend(int jobSeekerNo);
     ProcessRecommendResultDTO processAndSaveRecommend(int jobSeekerNo, boolean forceRefresh);
+
+    // 상담일지 복사용 — 공고 상세 단건 조회
+    JobPostingCopyDTO getJobPostingDetail(String wantedAuthNo);
 }

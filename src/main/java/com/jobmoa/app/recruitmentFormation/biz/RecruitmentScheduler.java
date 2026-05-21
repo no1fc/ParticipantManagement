@@ -96,12 +96,15 @@ public class RecruitmentScheduler {
                 return;
             }
 
-            // 3) 현재 동기화에서 갱신되지 않은 공고 삭제
-            //    (syncDtm < 현재 syncDtm = API에서 사라진 마감 공고)
-            int deleted = recruitmentDAO.deleteOldPostings(syncDtm);
-            log.info("[Scheduler] 마감 공고 삭제: {}건", deleted);
+            // 3) API에서 사라진 공고 비활성화 (soft delete: is_active=0)
+            int deactivated = recruitmentDAO.deactivateOldPostings(syncDtm);
+            log.info("[Scheduler] 마감 공고 비활성화: {}건", deactivated);
 
-            // 4) 신규 공고(detail_fetched=0)만 상세 API 호출 후 DB 업데이트
+            // 4) 비활성화 후 6개월 이상 경과한 공고 삭제 (hard delete)
+            int deleted = recruitmentDAO.deleteOldPostings();
+            log.info("[Scheduler] 6개월 경과 공고 삭제: {}건", deleted);
+
+            // 5) 신규 공고(detail_fetched=0, is_active=1)만 상세 API 호출 후 DB 업데이트
             recruitmentService.fetchDetailForNewPostings();
 
             log.info("[Scheduler] 채용공고 동기화 완료 — syncDtm={}", syncDtm);

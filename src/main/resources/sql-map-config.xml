@@ -38,6 +38,7 @@
         <typeAlias type="com.jobmoa.app.CounselMain.biz.recommend.JobCandidateDTO"         alias="jobCandidate"/>
         <typeAlias type="com.jobmoa.app.CounselMain.biz.recommend.JobCategoryDTO"          alias="jobCategory"/>
         <typeAlias type="com.jobmoa.app.CounselMain.biz.schedule.ScheduleDTO" alias="schedule" />
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.recommend.JobPostingCopyDTO" alias="jobPostingCopy"/>
 
     </typeAliases>
 
