@@ -113,7 +113,7 @@
   - [x] 리스트 테이블 컬럼 목록: `삭제`, `연번`, (참여자명, 진행단계 등 — 추가 확인 필요)
     - 테이블은 `participantMain.jsp` 내에 직접 정의됨
   - [x] 연동 JS 파일 경로:
-    - `/js/participant_main_0.0.3.js` (참여자 조회 메인 JS)
+    - `/js/participant_main_0.0.4.js` (참여자 조회 메인 JS)
     - `/js/participant_excel_download_0.0.1.js` (엑셀 다운)
     - `/js/paginationJS_0.0.1.js` (페이지네이션)
     - `/js/selectOptionJS_0.0.1.js` (셀렉트 옵션)
@@ -263,7 +263,7 @@
 | `src/main/java/.../biz/common/PointCutConfig.java` | pointcut 표현식 `biz.*` → `biz..*` 변경 (recommend 하위 패키지 Transaction 적용) |
 | `src/main/webapp/WEB-INF/tags/pariticipantSearchForm.tag` | 집중알선여부 셀렉트박스 검색 필터 추가 |
 | `src/main/webapp/WEB-INF/views/participantMain.jsp` | 리스트 테이블에 추천 버튼 컬럼 및 모달 마크업 추가 |
-| `src/main/webapp/js/participant_main_0.0.3.js` | 모달 열기/닫기/AJAX 연동 JS 추가 |
+| `src/main/webapp/js/participant_main_0.0.4.js` | 모달 열기/닫기/AJAX 연동 JS 추가 |
 | `src/main/resources/sql-map-config.xml` | 신규 추천 Bean typeAlias 등록, 신규 mapper XML 등록 |
 | `src/main/resources/application.properties` | Gemini API Key 설정 추가 |
 | `pom.xml` | `google-genai` SDK 의존성 추가 |

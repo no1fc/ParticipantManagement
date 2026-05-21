@@ -293,11 +293,11 @@
             SELECT
                 A.지점,
                 A.전담자_계정,
-                ISNULL(SUM(A.종료_F * A.대상_F), 0) 종료자수,
-                ISNULL(SUM(A.종료_F * A.취업_F * A.대상_F), 0) 취업자수,
-                ISNULL(SUM(A.종료_F * A.알선_F * A.취업_F * A.대상_F), 0) 알선취업자수,
-                ISNULL(SUM(A.종료_F * A.조기_F * A.취업_F * A.대상_F), 0) 조기취업자수,
-                ISNULL(SUM(A.종료_F * A.나은일자리_F * A.취업_F * A.대상_F), 0) 나은일자리수,
+                ISNULL(SUM(A.종료_F * A.대상_F * A.가중치), 0) 종료자수,
+                ISNULL(SUM(A.종료_F * A.취업_F * A.대상_F * A.가중치), 0) 취업자수,
+                ISNULL(SUM(A.종료_F * A.알선_F * A.취업_F * A.대상_F * A.가중치), 0) 알선취업자수,
+                ISNULL(SUM(A.종료_F * A.조기_F * A.취업_F * A.대상_F * A.가중치), 0) 조기취업자수,
+                ISNULL(SUM(A.종료_F * A.나은일자리_F * A.취업_F * A.대상_F * A.가중치), 0) 나은일자리수,
                 ISNULL(SUM(A.종료_F * A.서비스미제공 * A.대상_F), 0) 서비스미제공,
                 ISNULL(SUM(A.종료_F * A.미해당 * A.대상_F), 0) 미해당,
                 ISNULL(SUM(A.종료_F * A.해당 * A.대상_F), 0) 해당,
@@ -886,7 +886,7 @@
         FROM J_참여자관리_로그인정보
         WHERE
             아이디사용여부 = '사용'
-            <!-- True 1년 미만 인원 포함 False 1년 미만 인원 미포함-->
+            <!-- True 1년 미만 인원 미포함 False 1년 미만 인원 포함-->
             <if test="!dashboardFlagCondition">
                 AND 근속기간구분 <![CDATA[<>]]> '1년미만'
             </if>
@@ -897,7 +897,7 @@
                 COUNT(A.아이디) 상담사총인원
             FROM J_참여자관리_로그인정보 A
             <choose>
-                <!-- True 1년 미만 인원 포함 False 1년 미만 인원 미포함-->
+                <!-- True 1년 미만 인원 미포함 False 1년 미만 인원 포함-->
                 <when test="!dashboardFlagCondition">
                     INNER JOIN 자격있는_전담자 Q ON A.아이디 = Q.아이디
                 </when>
@@ -987,7 +987,7 @@
         FROM J_참여자관리_로그인정보
         WHERE
             아이디사용여부 = '사용'
-            <!-- True 1년 미만 인원 포함 False 1년 미만 인원 미포함-->
+            <!-- True 1년 미만 인원 미포함 False 1년 미만 인원 포함-->
             <if test="!dashboardFlagCondition">
                 AND 근속기간구분 <![CDATA[<>]]> '1년미만'
             </if>
