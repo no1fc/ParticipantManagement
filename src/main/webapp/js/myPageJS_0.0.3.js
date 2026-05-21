@@ -6,7 +6,7 @@
  * - 일일보고: 취업 실적 입력/저장
  * - 보안 설정: 비밀번호 변경
  *
- * @version 0.0.2
+ * @version 0.0.3
  */
 $(document).ready(function () {
 
@@ -38,6 +38,12 @@ $(document).ready(function () {
             throw new Error('서버 오류가 발생했습니다.');
         })
         .then(function (result) {
+            // 비밀번호 미설정 사용자 → 설정 화면 표시
+            if (result.status === 'PASSWORD_REQUIRED') {
+                $passwordVerifySection.hide();
+                $('#password-setup-section').show();
+                return;
+            }
             // 비밀번호 확인 섹션 숨기고 탭 표시
             $passwordVerifySection.hide();
             $mypageTabsSection.show();
@@ -308,6 +314,50 @@ $(document).ready(function () {
                     Swal.fire({ icon: 'error', title: '오류', text: '서버 연결 오류가 발생했습니다.' });
                 }
             });
+        });
+    });
+
+    // ========================================
+    // 비밀번호 초기 설정 (미설정 사용자)
+    // ========================================
+
+    $('#setupPasswordBtn').on('click', function () {
+        const newPW = $('#setupNewPassword').val();
+        const confirmPW = $('#setupConfirmPassword').val();
+
+        if (!newPW || newPW.trim() === '') {
+            Swal.fire({ icon: 'warning', title: '입력 오류', text: '새 비밀번호를 입력해주세요.' });
+            return;
+        }
+        if (!passwordRegex.test(newPW)) {
+            Swal.fire({ icon: 'warning', title: '비밀번호 조건 불충족', text: '영문, 특수문자, 숫자를 포함하여 6자 이상 입력해주세요.' });
+            return;
+        }
+        if (newPW !== confirmPW) {
+            Swal.fire({ icon: 'warning', title: '불일치', text: '비밀번호가 일치하지 않습니다.' });
+            return;
+        }
+
+        fetch('/changeMyPassword.api', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ memberUserChangePW: newPW })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (result) {
+            if (result.success) {
+                Swal.fire({ icon: 'success', title: '설정 완료', text: '비밀번호가 설정되었습니다. 설정한 비밀번호로 확인해주세요.' })
+                    .then(function () {
+                        $('#password-setup-section').hide();
+                        $passwordVerifySection.show();
+                        $checkPassword.val('').focus();
+                    });
+            } else {
+                Swal.fire({ icon: 'error', title: '설정 실패', text: result.message || '비밀번호 설정에 실패했습니다.' });
+            }
+        })
+        .catch(function () {
+            Swal.fire({ icon: 'error', title: '오류', text: '서버 오류가 발생했습니다.' });
         });
     });
 });

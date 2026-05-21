@@ -35,27 +35,32 @@ public class AsyncMyPage {
         String userID = loginBean.getMemberUserID();
 
         try {
-            // 비밀번호 없이 접근한 경우 (비밀번호 미설정 사용자) → 바로 데이터 반환
             String inputPW = memberDTO.getMemberUserPW();
-            memberDTO.setMemberUserID(userID);
-            memberDTO.setMemberCondition("OneMemberDataSelectNotPasswordCheck");
-            MemberDTO checkMemberDTO = memberService.selectOne(memberDTO);
 
-            if (checkMemberDTO == null) {
+            // 1) 비밀번호 포함 조회 (loginSelect — 비밀번호 컬럼 포함)
+            MemberDTO loginDTO = new MemberDTO();
+            loginDTO.setMemberUserID(userID);
+            loginDTO.setMemberCondition("loginSelect");
+            MemberDTO pwCheckDTO = memberService.selectOne(loginDTO);
+
+            if (pwCheckDTO == null) {
                 return ResponseEntity.status(401)
                         .body(createErrorResponse("사용자 정보를 찾을 수 없습니다.", "401"));
             }
 
-            String storedPW = checkMemberDTO.getMemberUserPW();
+            String storedPW = pwCheckDTO.getMemberUserPW();
             boolean passwordEmpty = (storedPW == null || storedPW.isEmpty());
 
-            // 비밀번호가 없는 사용자는 비밀번호 확인 없이 통과
+            // 2) 비밀번호가 없는 사용자는 비밀번호 설정 유도
             if (passwordEmpty) {
-                Map<String, Object> response = getResponse(checkMemberDTO, "비밀번호 확인완료");
+                Map<String, Object> response = new HashMap<>();
+                response.put("status", "PASSWORD_REQUIRED");
+                response.put("message", "비밀번호가 설정되지 않았습니다. 비밀번호를 설정해주세요.");
+                response.put("result", "false");
                 return ResponseEntity.ok().body(response);
             }
 
-            // 비밀번호가 있는 사용자는 비밀번호 확인 필요
+            // 3) 비밀번호가 있는 사용자는 비밀번호 확인 필요
             if (inputPW == null || inputPW.trim().isEmpty()) {
                 return ResponseEntity.badRequest()
                         .body(createErrorResponse("비밀번호를 입력해주세요.", "400"));
@@ -66,13 +71,17 @@ public class AsyncMyPage {
                     ? passwordEncoder.matches(inputPW, storedPW)
                     : inputPW.equals(storedPW);
 
-            if (match) {
-                Map<String, Object> response = getResponse(checkMemberDTO, "비밀번호 확인완료");
-                return ResponseEntity.ok().body(response);
-            } else {
+            if (!match) {
                 return ResponseEntity.status(401)
                         .body(createErrorResponse("비밀번호가 일치하지 않습니다.", "401"));
             }
+
+            // 4) 인증 성공 → 마이페이지 데이터 조회 (비밀번호 미포함 쿼리)
+            memberDTO.setMemberUserID(userID);
+            memberDTO.setMemberCondition("OneMemberDataSelectNotPasswordCheck");
+            MemberDTO checkMemberDTO = memberService.selectOne(memberDTO);
+            Map<String, Object> response = getResponse(checkMemberDTO, "비밀번호 확인완료");
+            return ResponseEntity.ok().body(response);
 
         } catch (Exception e) {
             log.error("checkPassword.api Exception : [{}]", e.getMessage());

@@ -77,7 +77,7 @@
     <!-- myPage JS -->
     <!-- SweetAlert2 -->
     <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script defer src="/js/myPageJS_0.0.2.js"></script>
+    <script defer src="/js/myPageJS_0.0.3.js"></script>
     <link rel="stylesheet" href="/css/participantCss/myPage_0.0.3.css">
     <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
 </head>
@@ -115,6 +115,34 @@
                                     <div class="p-4">
                                         <label for="checkPassword" class="form-label">비밀번호</label>
                                         <input type="password" id="checkPassword" class="form-control w-100">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 비밀번호 초기 설정 (미설정 사용자) -->
+                        <div id="password-setup-section" class="card-modern mb-4" style="display:none;">
+                            <div class="p-4 border-bottom">
+                                <h3 class="fw-bold m-0">비밀번호 설정</h3>
+                            </div>
+                            <div class="p-4">
+                                <div class="myPage-summary mb-3">
+                                    <span class="badge bg-danger text-white border p-2">비밀번호 미설정</span>
+                                    <p class="mt-2 text-muted">계정 보안을 위해 비밀번호를 설정해주세요.</p>
+                                </div>
+                                <div class="card-modern bg-light border">
+                                    <div class="p-4">
+                                        <div class="mb-3">
+                                            <label for="setupNewPassword" class="form-label">새 비밀번호</label>
+                                            <input type="password" id="setupNewPassword" class="form-control w-100" placeholder="영문, 특수문자, 숫자 포함 6자 이상">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="setupConfirmPassword" class="form-label">비밀번호 확인</label>
+                                            <input type="password" id="setupConfirmPassword" class="form-control w-100" placeholder="비밀번호를 다시 입력해주세요">
+                                        </div>
+                                        <div class="d-flex justify-content-end">
+                                            <button type="button" id="setupPasswordBtn" class="btn btn-primary">비밀번호 설정</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
