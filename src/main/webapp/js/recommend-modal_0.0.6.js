@@ -539,25 +539,69 @@ function copyLink(element) {
     const url = element.getAttribute('data-url') || element.getAttribute('href');
 
     if(url) {
-        navigator.clipboard.writeText(url)
-            .then(function() {
-                Swal.fire({
-                    icon: 'success',
-                    title: '복사 완료',
-                    text: '채용공고 URL이 복사되었습니다.',
-                    timer: 1500,
-                    showConfirmButton: false,
-                    customClass: { container: 'swal-over-modal' }
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(url)
+                .then(function() {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '복사 완료',
+                        text: '채용공고 URL이 복사되었습니다.',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        customClass: { container: 'swal-over-modal' }
+                    });
+                })
+                .catch(function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '복사 실패',
+                        text: '클립보드 복사에 실패했습니다. 다시 시도해주세요.',
+                        customClass: { container: 'swal-over-modal' }
+                    });
                 });
-            })
-            .catch(function(err) {
+        }
+        else{
+            // 지원하지 않거나 HTTP 환경인 경우 우회 방법 적용
+            const textarea = document.createElement('textarea');
+            textarea.value = url;
+            // textarea를 화면 밖으로 이동
+            textarea.style.position = 'fixed';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+
+            try{
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '복사 완료',
+                        text: '채용공고 URL이 복사되었습니다.',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        customClass: { container: 'swal-over-modal' }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '복사 실패',
+                        text: '클립보드 복사에 실패했습니다. 다시 시도해주세요.',
+                        customClass: { container: 'swal-over-modal' }
+                    });
+                }
+            }
+            catch (err) {
                 Swal.fire({
                     icon: 'error',
                     title: '복사 실패',
-                    text: err.toString(),
+                    text: '클립보드 복사에 실패했습니다. 다시 시도해주세요.',
                     customClass: { container: 'swal-over-modal' }
                 });
-            });
+            }
+            finally{
+                document.body.removeChild(textarea);
+            }
+        }
     }
 }
 
@@ -583,25 +627,62 @@ function copyJobInfo(btn) {
         + '\n[공고 URL] ' + (url || '없음')
         + '\n[정보제공처] 고용24';
 
-    navigator.clipboard.writeText(text)
-        .then(function() {
-            Swal.fire({
-                icon: 'success',
-                title: '복사 완료',
-                text: '상담일지용 채용정보가 클립보드에 복사되었습니다.',
-                timer: 1500,
-                showConfirmButton: false,
-                customClass: { container: 'swal-over-modal' }
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+            .then(function() {
+                Swal.fire({
+                    icon: 'success',
+                    title: '복사 완료',
+                    text: '상담일지용 채용정보가 클립보드에 복사되었습니다.',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    customClass: { container: 'swal-over-modal' }
+                });
+            })
+            .catch(function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: '복사 실패',
+                    text: '클립보드 복사에 실패했습니다. 다시 시도해주세요.',
+                    customClass: { container: 'swal-over-modal' }
+                });
             });
-        })
-        .catch(function(err) {
+    }
+    else{
+        // 지원하지 않거나 HTTP 환경인 경우 우회 방법 적용
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        // textarea 화면밖으로 이동
+        textarea.style.position = 'fixed';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+
+        try{
+            const successful = document.execCommand('copy');
+            if (successful) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '복사 완료',
+                    text: '상담일지용 채용정보가 클립보드에 복사되었습니다.',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    customClass: { container: 'swal-over-modal' }
+                });
+            }
+        }
+        catch (err){
             Swal.fire({
                 icon: 'error',
                 title: '복사 실패',
-                text: err.toString(),
+                text: '클립보드 복사에 실패했습니다. 다시 시도해주세요.',
                 customClass: { container: 'swal-over-modal' }
             });
-        });
+        }
+        finally{
+            document.body.removeChild(textarea);
+        }
+    }
 }
 
 // 추천 사유 접기/펼치기 기능
@@ -922,7 +1003,7 @@ function closeCopyLogModal() {
     _copyLogReason = '';
 }
 
-function toggleMoreCopyColumns() {
+function toggleMoreCopyColumns(event) {
     const moreSection = document.querySelector('#copyLogModal .copy-column-more');
     const toggleBtn = event.currentTarget;
     if (!moreSection) return;
@@ -982,30 +1063,47 @@ function executeCopyLog() {
     const text = document.getElementById('copyPreviewText').value;
     if (!text || text === '데이터를 불러오는 중...') return;
 
-    navigator.clipboard.writeText(text)
-        .then(function() {
-            Swal.fire({
-                icon: 'success', title: '복사 완료',
-                text: '상담일지용 채용정보가 클립보드에 복사되었습니다.',
-                timer: 1500, showConfirmButton: false,
-                customClass: { container: 'swal-over-modal' }
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+            .then(function() {
+                Swal.fire({
+                    icon: 'success', title: '복사 완료',
+                    text: '상담일지용 채용정보가 클립보드에 복사되었습니다.',
+                    timer: 1500, showConfirmButton: false,
+                    customClass: { container: 'swal-over-modal' }
+                });
+            })
+            .catch(function() {
+                Swal.fire({
+                    icon: 'error', title: '복사 실패',
+                    text: '클립보드 복사에 실패했습니다. 다시 시도해주세요.',
+                    customClass: { container: 'swal-over-modal' }
+                });
             });
-        })
-        .catch(function(err) {
-            // fallback for non-HTTPS
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            ta.style.position = 'fixed';
-            ta.style.left = '-9999px';
-            document.body.appendChild(ta);
-            ta.select();
+    } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try {
             document.execCommand('copy');
-            document.body.removeChild(ta);
             Swal.fire({
                 icon: 'success', title: '복사 완료',
                 text: '상담일지용 채용정보가 클립보드에 복사되었습니다.',
                 timer: 1500, showConfirmButton: false,
                 customClass: { container: 'swal-over-modal' }
             });
-        });
+        } catch (err) {
+            Swal.fire({
+                icon: 'error', title: '복사 실패',
+                text: '클립보드 복사에 실패했습니다. 다시 시도해주세요.',
+                customClass: { container: 'swal-over-modal' }
+            });
+        } finally {
+            document.body.removeChild(ta);
+        }
+    }
 }
