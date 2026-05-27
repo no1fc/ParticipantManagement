@@ -4,10 +4,12 @@ import com.jobmoa.app.recruitmentFormation.biz.dto.RecruitmentDetailDTO;
 import com.jobmoa.app.recruitmentFormation.biz.dto.RecruitmentPostingDTO;
 import com.jobmoa.app.recruitmentFormation.biz.dto.RecruitmentResultDTO;
 import com.jobmoa.app.recruitmentFormation.biz.dto.RecruitmentSearchDTO;
+import com.jobmoa.app.recruitmentFormation.biz.dto.RecruitmentSyncResultDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -22,6 +24,7 @@ import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -33,7 +36,7 @@ import java.util.regex.Pattern;
  * <p><b>호출 흐름:</b>
  * <ul>
  *   <li>{@link #search} — JOB_POSTING DB 조회 (사용자 검색 / 초기 페이지, API 호출 없음)</li>
- *   <li>{@link #fetchAllForSync} — 고용24 API 호출 (스케줄러 전용)</li>
+ *   <li>{@link #syncPostingsByPage} — 고용24 API 페이지 단위 호출 및 DB 저장 (스케줄러 전용)</li>
  * </ul>
  *
  * <p>API URL: https://www.work24.go.kr/cm/openApi/call/wk/callOpenApiSvcInfo210L01.do
@@ -48,11 +51,20 @@ public class RecruitmentServiceImpl implements RecruitmentService {
     private static final String DETAIL_API_URL =
             "https://www.work24.go.kr/cm/openApi/call/wk/callOpenApiSvcInfo210D01.do";
 
+    /** 스케줄러 API 페이지 크기 */
+    private static final int SYNC_PAGE_SIZE = 100;
+
     /** 스케줄러 1회 동기화 최대 페이지 수 (100건 × 600페이지 = 최대 60,000건) */
     private static final int MAX_SYNC_PAGES = 600;
 
     /** 1회 스케줄 실행 시 상세 수집 최대 건수 */
-    private static final int MAX_DETAIL_PER_SYNC = 60000;
+    private static final int MAX_DETAIL_PER_SYNC = 500;
+
+    /** 고용24 API 연결 타임아웃 */
+    private static final Duration API_CONNECT_TIMEOUT = Duration.ofSeconds(10);
+
+    /** 고용24 API 응답 읽기 타임아웃 */
+    private static final Duration API_READ_TIMEOUT = Duration.ofSeconds(30);
 
     @Value("${work24.api.key}")
     private String apiKey;
@@ -60,7 +72,14 @@ public class RecruitmentServiceImpl implements RecruitmentService {
     @Autowired
     private RecruitmentDAO recruitmentDAO;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = createRestTemplate();
+
+    private static RestTemplate createRestTemplate() {
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(API_CONNECT_TIMEOUT);
+        requestFactory.setReadTimeout(API_READ_TIMEOUT);
+        return new RestTemplate(requestFactory);
+    }
 
     // ════════════════════════════════════════════════════════════
     //  사용자 검색 — DB 조회 (API 호출 없음)
@@ -136,6 +155,90 @@ public class RecruitmentServiceImpl implements RecruitmentService {
 
         log.info("fetchAllForSync 완료: 총 {}건 수집", all.size());
         return all;
+    }
+
+    @Override
+    public RecruitmentSyncResultDTO syncPostingsByPage(String syncDtm) {
+        RecruitmentSyncResultDTO result = new RecruitmentSyncResultDTO();
+        int maxPages = MAX_SYNC_PAGES;
+
+        for (int page = 1; page <= maxPages; page++) {
+            SyncPage syncPage;
+            try {
+                syncPage = fetchSyncPage(page);
+            } catch (Exception e) {
+                result.setAllPagesFetched(false);
+                result.setFailureMessage("page=" + page + ", message=" + e.getMessage());
+                log.warn("[Scheduler] 페이지 단위 수집 실패 page={}: {}", page, e.toString());
+                return result;
+            }
+
+            List<RecruitmentPostingDTO> postings = syncPage.postings();
+            if (page == 1) {
+                int total = syncPage.totalCount();
+                int expectedPages = total > 0 ? (int) Math.ceil((double) total / SYNC_PAGE_SIZE) : 0;
+                result.setTotalCount(total);
+                result.setExpectedPages(expectedPages);
+                maxPages = expectedPages > 0 ? Math.min(expectedPages, MAX_SYNC_PAGES) : MAX_SYNC_PAGES;
+                log.info("동기화 대상 총 {}건, 예상 {}페이지", total, expectedPages);
+            }
+
+            if (postings.isEmpty()) {
+                boolean noDataExpected = result.getExpectedPages() == 0;
+                result.setAllPagesFetched(noDataExpected);
+                if (!noDataExpected) {
+                    result.setFailureMessage("page=" + page + ", empty response before expected page count");
+                }
+                return result;
+            }
+
+            postings.forEach(p -> p.setSyncDtm(syncDtm));
+            try {
+                saveSyncPage(postings, syncDtm);
+            } catch (Exception e) {
+                result.setAllPagesFetched(false);
+                result.setFailureMessage("page=" + page + ", save failed: " + e.getMessage());
+                log.warn("[Scheduler] 페이지 저장 실패 page={}, count={}: {}", page, postings.size(), e.toString());
+                return result;
+            }
+
+            result.setCompletedPages(page);
+            result.setFetchedCount(result.getFetchedCount() + postings.size());
+            result.setSavedCount(result.getSavedCount() + postings.size());
+            log.info("[Scheduler] 페이지 저장 완료 page={}, count={}, savedTotal={}", page, postings.size(), result.getSavedCount());
+        }
+
+        boolean cappedByMaxPages = result.getTotalCount() > 0
+                && (int) Math.ceil((double) result.getTotalCount() / SYNC_PAGE_SIZE) > MAX_SYNC_PAGES;
+        boolean fetchedExpectedRows = result.getTotalCount() == 0
+                || result.getFetchedCount() >= result.getTotalCount();
+        result.setAllPagesFetched(!cappedByMaxPages
+                && result.getCompletedPages() == result.getExpectedPages()
+                && fetchedExpectedRows);
+        if (cappedByMaxPages) {
+            result.setFailureMessage("expected pages exceed MAX_SYNC_PAGES=" + MAX_SYNC_PAGES);
+        } else if (!fetchedExpectedRows) {
+            result.setFailureMessage("fetched count below API total: fetched="
+                    + result.getFetchedCount() + ", total=" + result.getTotalCount());
+        }
+        return result;
+    }
+
+    protected SyncPage fetchSyncPage(int page) {
+        URI uri = buildSyncUri(page);
+        log.debug("동기화 API 호출 page={}: {}", page, uri);
+
+        String xml = fetchXml(uri);
+        if (!isValidXml(xml)) {
+            throw new IllegalStateException("[API 응답 비정상] page=" + page
+                    + " | 응답 전체(최대 500자):\n" + xml.substring(0, Math.min(500, xml.length())));
+        }
+
+        return new SyncPage(parseXmlToPosting(xml), extractTotal(xml));
+    }
+
+    protected void saveSyncPage(List<RecruitmentPostingDTO> postings, String syncDtm) {
+        recruitmentDAO.upsertBatch(postings);
     }
 
     // ════════════════════════════════════════════════════════════
@@ -345,7 +448,7 @@ public class RecruitmentServiceImpl implements RecruitmentService {
                 .queryParam("callTp",     "L")
                 .queryParam("returnType", "XML")
                 .queryParam("startPage",  page)
-                .queryParam("display",    100)
+                .queryParam("display",    SYNC_PAGE_SIZE)
                 .encode()
                 .build()
                 .toUri();
@@ -514,5 +617,8 @@ public class RecruitmentServiceImpl implements RecruitmentService {
         if (val.isEmpty()) return null;
         try { return Integer.parseInt(val); }
         catch (NumberFormatException e) { return null; }
+    }
+
+    protected record SyncPage(List<RecruitmentPostingDTO> postings, int totalCount) {
     }
 }

@@ -83,4 +83,9 @@ public class ParticipantJobRecommendDAO {
         log.debug("Fetching job info candidates for search condition: {}", searchCondition);
         return sqlSession.selectList(ns + "selectJobInfoCandidates", searchCondition);
     }
+
+    // 상담일지 복사용 — 공고 상세 단건 조회
+    public JobPostingCopyDTO selectJobPostingDetail(String wantedAuthNo) {
+        return sqlSession.selectOne(ns + "selectJobPostingDetail", wantedAuthNo);
+    }
 }

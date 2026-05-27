@@ -52,15 +52,13 @@ $(document).ready(function () {
     function renderFilterTags() {
         const $container = $('#filter-tags');
         const $form = $('#searchForm');
-        console.log('renderFilterTags');
-        console.log($container);
-        console.log($form);
         if ($container.length === 0 || $form.length === 0) {
             return;
         }
-        console.log('renderFilterTags end');
 
         const filters = [];
+        const urlParams = new URLSearchParams(window.location.search);
+
         const getParamText = (name) => {
             const value = getUrlParameter(name);
             if (value === '') {
@@ -74,18 +72,15 @@ $(document).ready(function () {
                 return { value, text };
             }
 
-            const $radio = $form.find('input[name="' + name + '"][value="' + value + '"]');
-            if ($radio.length > 0) {
-                const labelText = $radio.closest('.form-check').find('label').text().trim();
-                return { value, text: labelText || value };
-            }
-
             return { value, text: value };
         };
 
-        const endDate = getParamText('endDateOption');
-        if (endDate.value !== '') {
-            filters.push({ label: '상태', value: endDate.text });
+        // 진행여부 다중선택 (checkbox)
+        const endDateLabelMap = { 'false': '진행중', 'true': '마감' };
+        const endDateValues = urlParams.getAll('endDateOptionList');
+        if (endDateValues.length > 0 && endDateValues.length < 2) {
+            const labels = endDateValues.map(v => endDateLabelMap[v] || v);
+            filters.push({ label: '진행여부', value: labels.join(', ') });
         }
 
         const initCons = getParamText('participantInItCons');
@@ -93,9 +88,11 @@ $(document).ready(function () {
             filters.push({ label: '연도', value: initCons.text });
         }
 
-        const partType = getParamText('participantPartType');
-        if (partType.value !== '') {
-            filters.push({ label: '유형', value: partType.text });
+        // 유형 다중선택 (checkbox)
+        const partTypeValues = urlParams.getAll('participantPartTypeList');
+        if (partTypeValues.length > 0) {
+            const labels = partTypeValues.map(v => v + '유형');
+            filters.push({ label: '유형', value: labels.join(', ') });
         }
 
         const searchParam = getParamText('search');
@@ -103,9 +100,30 @@ $(document).ready(function () {
             filters.push({ label: '검색', value: searchParam.text });
         }
 
-        const searchTypeParam = getParamText('searchType');
-        if (searchTypeParam.value !== '') {
-            filters.push({ label: '옵션', value: searchTypeParam.text });
+        // 옵션 다중선택 (checkbox)
+        const searchTypeLabelMap = {
+            'noInitial': '초기상담 미실시자',
+            'recent21': '최근상담일 21일',
+            'jobExpire': '구직 만료 15일 도래자',
+            'periodExpire': '기간 만료 15일 예정자',
+            'employment': '취업자',
+            'isIntesiveMediation': '집중알선인원'
+        };
+        const searchTypeValues = urlParams.getAll('searchTypeList');
+        if (searchTypeValues.length > 0) {
+            const labels = searchTypeValues.map(v => searchTypeLabelMap[v] || v);
+            filters.push({ label: '옵션', value: labels.join(', ') });
+        }
+
+        // 희망직무 검색 (다중)
+        const wishJobValues = urlParams.getAll('wishJobSearchList');
+        if (wishJobValues.length > 0) {
+            filters.push({ label: '희망직무', value: wishJobValues.join(', ') });
+        } else {
+            const wishJob = getUrlParameter('wishJobSearch');
+            if (wishJob !== '') {
+                filters.push({ label: '희망직무', value: wishJob });
+            }
         }
 
         $container.empty();
@@ -294,7 +312,7 @@ $(document).ready(function () {
     //진행단계 옵션 생성 시작
     // 진행단계 옵션 목록
     const PROGRESS_OPTIONS = [
-        'IAP 전', 'IAP 후', '미고보', '고보일반', '등록창업',
+        'IAP 전', 'IAP 후', '미고보/인력공급업', '고보일반', '등록창업',
         '미등록창업', '미취업사후관리', '미취업사후종료',
         '유예', '취소', '이관', '중단'
     ];
@@ -829,4 +847,169 @@ $(document).ready(function () {
     window.deleteParam = deleteParam;
 
     renderFilterTags();
+
+    // ========== 희망직무 검색 모달 (다중 선택) ==========
+    (function initWishJobSearchModal() {
+        const OCC = window.OCC_DATA;
+        if (!OCC || !OCC.length) return;
+
+        const $modal = $('#wishJobSearchModal');
+        if (!$modal.length) return;
+
+        const $colLarge = $('#wjSearchColLarge');
+        const $colMid = $('#wjSearchColMid');
+        const $colSub = $('#wjSearchColSub');
+        const $columns = $('#wjSearchModalColumns');
+        const $searchInput = $('#wjSearchModalInput');
+        const $searchResults = $('#wjSearchModalResults');
+        const $confirmBtn = $('#wjSearchModalConfirm');
+        const $tagsContainer = $('#wishJobSearchTags');
+
+        let activeLargeIdx = -1;
+        let activeMidIdx = -1;
+        let selectedSub = null;
+
+        function esc(str) { return $('<div/>').text(str).html(); }
+
+        // 이미 추가된 직무인지 확인
+        function isAlreadyAdded(name) {
+            let found = false;
+            $tagsContainer.find('.wish-job-tag').each(function () {
+                if ($(this).data('value') === name) found = true;
+            });
+            return found;
+        }
+
+        // 태그 추가
+        function addTag(name) {
+            if (isAlreadyAdded(name)) return;
+            const $tag = $('<span class="badge bg-primary d-flex align-items-center gap-1 wish-job-tag" data-value="' + esc(name) + '">'
+                + esc(name)
+                + ' <i class="bi bi-x-lg" style="cursor:pointer; font-size:0.65rem;" onclick="removeWishJobTag(this)"></i>'
+                + '<input type="hidden" name="wishJobSearchList" value="' + esc(name) + '">'
+                + '</span>');
+            $tagsContainer.append($tag);
+        }
+
+        function renderLarge() {
+            let html = '';
+            OCC.forEach(function (cat, i) {
+                let cls = (i === activeLargeIdx) ? ' active' : '';
+                html += '<div class="wj-col-item' + cls + '" data-idx="' + i + '">'
+                    + '<i class="bi bi-chevron-right"></i> ' + esc(cat.name) + '</div>';
+            });
+            $colLarge.html(html);
+        }
+
+        function renderMid() {
+            if (activeLargeIdx < 0) {
+                $colMid.html('<div class="wj-col-placeholder">대분류를 선택하세요</div>');
+                return;
+            }
+            let mids = OCC[activeLargeIdx].subs || [];
+            let html = '';
+            mids.forEach(function (mid, i) {
+                let cls = (i === activeMidIdx) ? ' active' : '';
+                html += '<div class="wj-col-item' + cls + '" data-idx="' + i + '">'
+                    + '<i class="bi bi-chevron-right"></i> ' + esc(mid.name) + '</div>';
+            });
+            $colMid.html(html);
+        }
+
+        function renderSub() {
+            if (activeLargeIdx < 0 || activeMidIdx < 0) {
+                $colSub.html('<div class="wj-col-placeholder">중분류를 선택하세요</div>');
+                return;
+            }
+            let subs = (OCC[activeLargeIdx].subs[activeMidIdx] || {}).subs || [];
+            let html = '';
+            subs.forEach(function (sub) {
+                let isSel = selectedSub && String(selectedSub.code) === String(sub.code);
+                let cls = isSel ? ' selected' : '';
+                html += '<div class="wj-col-item' + cls + '" data-code="' + sub.code + '"'
+                    + ' data-name="' + esc(sub.name) + '">'
+                    + '<i class="bi ' + (isSel ? 'bi-check-circle-fill' : 'bi-circle') + '"></i> '
+                    + esc(sub.name) + '</div>';
+            });
+            if (!subs.length) html = '<div class="wj-col-placeholder">소분류가 없습니다</div>';
+            $colSub.html(html);
+        }
+
+        $colLarge.on('click', '.wj-col-item', function () {
+            activeLargeIdx = parseInt($(this).data('idx'));
+            activeMidIdx = -1;
+            renderLarge(); renderMid(); renderSub();
+        });
+
+        $colMid.on('click', '.wj-col-item', function () {
+            activeMidIdx = parseInt($(this).data('idx'));
+            renderMid(); renderSub();
+        });
+
+        $colSub.on('click', '.wj-col-item', function () {
+            selectedSub = { code: String($(this).data('code')), name: $(this).data('name') };
+            renderSub();
+            $confirmBtn.prop('disabled', false);
+        });
+
+        $searchInput.on('input', function () {
+            let kw = ($(this).val() || '').trim().toLowerCase();
+            if (!kw) { $searchResults.hide(); $columns.show(); return; }
+            $columns.hide(); $searchResults.show();
+
+            let results = [];
+            OCC.forEach(function (cat) {
+                (cat.subs || []).forEach(function (mid) {
+                    (mid.subs || []).forEach(function (sub) {
+                        if (sub.name.toLowerCase().indexOf(kw) >= 0 || mid.name.toLowerCase().indexOf(kw) >= 0) {
+                            results.push({ code: sub.code, name: sub.name, midName: mid.name, largeName: cat.name });
+                        }
+                    });
+                });
+            });
+
+            if (!results.length) {
+                $searchResults.html('<div class="wj-search-empty">검색 결과가 없습니다</div>');
+                return;
+            }
+            let html = '';
+            results.forEach(function (r) {
+                let isSel = selectedSub && selectedSub.code === r.code;
+                let cls = isSel ? ' selected' : '';
+                html += '<div class="wj-search-item' + cls + '" data-code="' + r.code + '"'
+                    + ' data-name="' + esc(r.name) + '">'
+                    + '<span class="wj-search-prefix">[' + esc(r.largeName.split('·')[0]) + '] '
+                    + esc(r.midName) + ' &gt; </span>'
+                    + '<span class="wj-search-name">' + esc(r.name) + '</span></div>';
+            });
+            $searchResults.html(html);
+        });
+
+        $searchResults.on('click', '.wj-search-item', function () {
+            selectedSub = { code: String($(this).data('code')), name: $(this).data('name') };
+            $searchResults.find('.wj-search-item').removeClass('selected');
+            $(this).addClass('selected');
+            $confirmBtn.prop('disabled', false);
+        });
+
+        $('#openWishJobSearchModal').on('click', function () {
+            activeLargeIdx = -1; activeMidIdx = -1; selectedSub = null;
+            $searchInput.val('');
+            $searchResults.hide(); $columns.show();
+            $confirmBtn.prop('disabled', true);
+            renderLarge(); renderMid(); renderSub();
+            new bootstrap.Modal($modal[0]).show();
+        });
+
+        $confirmBtn.on('click', function () {
+            if (!selectedSub) return;
+            addTag(selectedSub.name);
+            bootstrap.Modal.getInstance($modal[0]).hide();
+        });
+    })();
+
+    // 전역 함수: 희망직무 태그 삭제
+    window.removeWishJobTag = function (el) {
+        $(el).closest('.wish-job-tag').remove();
+    };
 });

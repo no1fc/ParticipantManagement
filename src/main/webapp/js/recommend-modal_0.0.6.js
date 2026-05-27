@@ -252,7 +252,13 @@ $(document).ready(function () {
  * ESC 키로 모달 닫기 함수
  */
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeRecommendModal();
+    if (e.key === 'Escape') {
+        if (document.getElementById('copyLogModal').style.display === 'flex') {
+            closeCopyLogModal();
+        } else {
+            closeRecommendModal();
+        }
+    }
 });
 
 
@@ -445,34 +451,58 @@ function bindRecommendList(list) {
     list.forEach(function(item, idx) {
         // bindRecommendList 내 수정 — DTO 필드명 기준 (recommendationReason)
         const reason = item.recommendationReason || '';
+        const escCompany  = (item.recommendedJobCompany || '-').replace(/"/g, '&quot;');
+        const escTitle    = (item.recommendedJobTitle || '-').replace(/"/g, '&quot;');
+        const escUrl      = (item.recommendedJobUrl || '').replace(/"/g, '&quot;');
+        const escIndustry = (item.recommendedJobIndustry || '-').replace(/"/g, '&quot;');
+        const escScore    = (item.recommendationScore != null ? item.recommendationScore : '-');
+        const escReason   = reason.replace(/"/g, '&quot;');
 
-        let row = '<tr' + (item.bestJobInfo? ' class="best-row"' : '') + '>' // 추천채용정보
+        const isActive = item.isActive !== false && item.isActive !== 0;
+
+        const rowClasses = [];
+        if (item.bestJobInfo) rowClasses.push('best-row');
+        if (!isActive) rowClasses.push('inactive-row');
+
+        let row = '<tr' + (rowClasses.length > 0 ? ' class="' + rowClasses.join(' ') + '"' : '')
+            + ' data-company="' + escCompany + '"'
+            + ' data-title="' + escTitle + '"'
+            + ' data-url="' + escUrl + '"'
+            + ' data-industry="' + escIndustry + '"'
+            + ' data-score="' + escScore + '"'
+            + ' data-reason="' + escReason + '"'
+            + ' data-is-active="' + (isActive ? '1' : '0') + '"'
+            + ' data-cert-no="' + (item.recommendedJobCertNo || '').replace(/"/g, '&quot;') + '"'
+            + '>'
             + '<td><input type="checkbox" class="recommend-check"'
-            +   ' data-company="' + ((item.recommendedJobCompany || '-').replace(/"/g, '&quot;')) + '"'
-            +   ' data-title="' + ((item.recommendedJobTitle || '-').replace(/"/g, '&quot;')) + '"'
-            +   ' data-url="' + (item.recommendedJobUrl || '') + '"'
+            +   ' data-company="' + escCompany + '"'
+            +   ' data-title="' + escTitle + '"'
+            +   ' data-url="' + escUrl + '"'
             + '></td>'
             + '<td>' + (idx + 1) + '</td>'
-            + '<td>' + (item.recommendedJobCompany || '-') + '</td>' // 추천채용정보 기업명
+            + '<td>' + (item.recommendedJobCompany || '-') + '</td>'
             + '<td>'
-            + (item.recommendedJobUrl // 추천채용정보 URL
+            + (item.recommendedJobUrl
                 ? '<a href="' + item.recommendedJobUrl + '" target="_blank" rel="noopener noreferrer">'
-                + (item.recommendedJobTitle || '-') + '</a>' // 추천채용정보 제목
+                + (item.recommendedJobTitle || '-') + '</a>'
                 : (item.recommendedJobTitle || '-'))
             + '</td>'
-            + '<td>' + (item.recommendedJobIndustry || '-') + '</td>' // 추천채용정보 업종
+            + '<td>' + (item.recommendedJobIndustry || '-') + '</td>'
             + '<td>'
             +   '<div class="score-bar-wrap">'
             +       '<div class="score-bar" style="width:' + (item.recommendationScore || 0) + '%"></div>'
-            +       '<span class="score-text">' + (item.recommendationScore != null ? item.recommendationScore + '점' : '-') + '</span>'  // 추천채용정보 점수
+            +       '<span class="score-text">' + (item.recommendationScore != null ? item.recommendationScore + '점' : '-') + '</span>'
             +   '</div>'
             + '</td>'
             + '<td>'
-            +   createToggleReasonHTML(reason) // 채용정보 추천 사유
+            +   createToggleReasonHTML(reason)
             + '</td>'
-            + '<td>' + '<a href="' + item.recommendedJobUrl + '" onclick="copyLink(this); return false;">채용공고 링크 복사하기</a></td>' // 추천채용정보 URL 복사
+            + '<td style="white-space:nowrap">'
+            +   '<button type="button" class="btn-copy-sm" onclick="copyLink(this)" data-url="' + escUrl + '">링크</button>'
+            +   ' <button type="button" class="btn-copy-sm btn-copy-info" onclick="openCopyLogModal(this)">상담일지</button>'
+            + '</td>'
             + '<td><button type="button" class="btn-kakao-share-sm" '
-            +   'onclick="shareJobViaKakao('
+            +   'onclick="shareJobViaKakao(this,'
             +     "'" + (item.recommendedJobCompany || '-').replace(/'/g, "\\'") + "',"
             +     "'" + (item.recommendedJobTitle || '-').replace(/'/g, "\\'") + "',"
             +     "'" + (item.recommendedJobUrl || '') + "'"
@@ -506,13 +536,152 @@ function bindBestRecommend(best) {
 
 // 복사 기능 navigator.clipboard.writeText() API
 function copyLink(element) {
-    // href 값 가져오기
-    const href = element.getAttribute('href');
+    const url = element.getAttribute('data-url') || element.getAttribute('href');
 
-    if(href) {
-        navigator.clipboard.writeText(href)
-            .then(() => alert('채용공고 URL이 복사되었습니다'))
-            .catch(err => console.error('복사 실패:', err));
+    if(url) {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(url)
+                .then(function() {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '복사 완료',
+                        text: '채용공고 URL이 복사되었습니다.',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        customClass: { container: 'swal-over-modal' }
+                    });
+                })
+                .catch(function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '복사 실패',
+                        text: '클립보드 복사에 실패했습니다. 다시 시도해주세요.',
+                        customClass: { container: 'swal-over-modal' }
+                    });
+                });
+        }
+        else{
+            // 지원하지 않거나 HTTP 환경인 경우 우회 방법 적용
+            const textarea = document.createElement('textarea');
+            textarea.value = url;
+            // textarea를 화면 밖으로 이동
+            textarea.style.position = 'fixed';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+
+            try{
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '복사 완료',
+                        text: '채용공고 URL이 복사되었습니다.',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        customClass: { container: 'swal-over-modal' }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '복사 실패',
+                        text: '클립보드 복사에 실패했습니다. 다시 시도해주세요.',
+                        customClass: { container: 'swal-over-modal' }
+                    });
+                }
+            }
+            catch (err) {
+                Swal.fire({
+                    icon: 'error',
+                    title: '복사 실패',
+                    text: '클립보드 복사에 실패했습니다. 다시 시도해주세요.',
+                    customClass: { container: 'swal-over-modal' }
+                });
+            }
+            finally{
+                document.body.removeChild(textarea);
+            }
+        }
+    }
+}
+
+/**
+ * 상담일지용 종합 텍스트 복사 — 행의 data attribute에서 정보를 수집하여 포맷팅
+ */
+function copyJobInfo(btn) {
+    const row = btn.closest('tr');
+    if (!row) return;
+
+    const company  = row.getAttribute('data-company')  || '-';
+    const title    = row.getAttribute('data-title')    || '-';
+    const url      = row.getAttribute('data-url')      || '';
+    const industry = row.getAttribute('data-industry') || '-';
+    const score    = row.getAttribute('data-score')    || '-';
+    const reason   = row.getAttribute('data-reason')   || '-';
+
+    const text = '[기업명] ' + company
+        + '\n[채용공고] ' + title
+        + '\n[업종] ' + industry
+        + '\n[추천점수] ' + score + '점'
+        + '\n[추천사유] ' + reason
+        + '\n[공고 URL] ' + (url || '없음')
+        + '\n[정보제공처] 고용24';
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+            .then(function() {
+                Swal.fire({
+                    icon: 'success',
+                    title: '복사 완료',
+                    text: '상담일지용 채용정보가 클립보드에 복사되었습니다.',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    customClass: { container: 'swal-over-modal' }
+                });
+            })
+            .catch(function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: '복사 실패',
+                    text: '클립보드 복사에 실패했습니다. 다시 시도해주세요.',
+                    customClass: { container: 'swal-over-modal' }
+                });
+            });
+    }
+    else{
+        // 지원하지 않거나 HTTP 환경인 경우 우회 방법 적용
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        // textarea 화면밖으로 이동
+        textarea.style.position = 'fixed';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+
+        try{
+            const successful = document.execCommand('copy');
+            if (successful) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '복사 완료',
+                    text: '상담일지용 채용정보가 클립보드에 복사되었습니다.',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    customClass: { container: 'swal-over-modal' }
+                });
+            }
+        }
+        catch (err){
+            Swal.fire({
+                icon: 'error',
+                title: '복사 실패',
+                text: '클립보드 복사에 실패했습니다. 다시 시도해주세요.',
+                customClass: { container: 'swal-over-modal' }
+            });
+        }
+        finally{
+            document.body.removeChild(textarea);
+        }
     }
 }
 
@@ -679,8 +848,27 @@ function finishKakaoShareQueue() {
 /**
  * 각 행 카카오 공유 버튼 — 개별 채용공고 카카오톡 공유
  * bindRecommendList에서 data 속성으로 바인딩한 값 사용
+ * 마감(비활성) 공고인 경우 경고 후 공유 차단
  */
-function shareJobViaKakao(company, title, url) {
+function shareJobViaKakao(btn, company, title, url) {
+    const row = btn.closest('tr');
+    if (row && row.getAttribute('data-is-active') === '0') {
+        Swal.fire({
+            icon: 'warning',
+            title: '마감된 채용공고',
+            text: '이 공고는 현재 마감 또는 비활성 상태입니다. 참여자에게 공유하시겠습니까?',
+            showCancelButton: true,
+            confirmButtonText: '공유',
+            cancelButtonText: '취소',
+            customClass: { container: 'swal-over-modal' }
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                let infoName = document.getElementById('infoName').innerText || '참여자';
+                sendKakaoShare(infoName, company, title, url || 'https://www.work24.go.kr');
+            }
+        });
+        return;
+    }
     let infoName = document.getElementById('infoName').innerText || '참여자';
     sendKakaoShare(infoName, company, title, url || 'https://www.work24.go.kr');
 }
@@ -734,3 +922,188 @@ function updateKakaoStatus(message, success) {
 }
 
 
+// ===========================
+// 상담일지 복사 서브모달
+// ===========================
+
+const COPY_COLUMNS = [
+    { key: 'companyNm', label: '기업명', isDefault: true },
+    { key: 'recrutTitle', label: '채용공고', isDefault: true },
+    { key: 'indTpNm', label: '업종', isDefault: true },
+    { key: 'jobsNm', label: '직무', isDefault: true },
+    { key: 'qualification', label: '지원자격', isDefault: true, composite: true },
+    { key: 'salDesc', label: '급여', isDefault: true },
+    { key: 'empTpNm', label: '고용형태', isDefault: true },
+    { key: 'regionNm', label: '근무지역', isDefault: true },
+    { key: 'recommendationReason', label: '추천사유', isDefault: true, fromRow: true },
+    { key: 'wantedInfoUrl', label: '공고 URL', isDefault: true },
+    { key: 'infoSvc', label: '정보제공처', isDefault: true },
+    { key: 'reperNm', label: '대표자명', isDefault: false },
+    { key: 'busiSize', label: '회사규모', isDefault: false },
+    { key: 'totPsncnt', label: '근로자수', isDefault: false },
+    { key: 'capitalAmt', label: '자본금', isDefault: false },
+    { key: 'yrSalesAmt', label: '연매출', isDefault: false },
+    { key: 'busiCont', label: '사업내용', isDefault: false },
+    { key: 'homePg', label: '홈페이지', isDefault: false },
+    { key: 'recrutPeri', label: '채용기간', isDefault: false },
+    { key: 'recruitCnt', label: '모집인원', isDefault: false },
+    { key: 'jobCont', label: '직무내용', isDefault: false },
+    { key: 'workTimeCont', label: '근무시간', isDefault: false },
+    { key: 'fourIns', label: '4대보험', isDefault: false },
+    { key: 'retirePay', label: '퇴직금', isDefault: false },
+    { key: 'welfareDesc', label: '복리후생', isDefault: false },
+    { key: 'career', label: '경력', isDefault: false },
+    { key: 'education', label: '학력', isDefault: false, composite: true }
+];
+
+let _copyLogData = null;
+let _copyLogReason = '';
+
+function openCopyLogModal(btn) {
+    const row = btn.closest('tr');
+    if (!row) return;
+
+    const certNo = row.getAttribute('data-cert-no');
+    _copyLogReason = row.getAttribute('data-reason') || '';
+
+    if (!certNo) {
+        Swal.fire({icon:'warning', title:'공고 정보 없음', text:'구인인증번호가 없습니다.', customClass:{container:'swal-over-modal'}});
+        return;
+    }
+
+    // Show loading
+    document.getElementById('copyLogModal').style.display = 'flex';
+    document.getElementById('copyPreviewText').value = '데이터를 불러오는 중...';
+
+    $.ajax({
+        url: '/api/recommend/jobPostingDetail',
+        type: 'POST',
+        data: JSON.stringify({ wantedAuthNo: certNo }),
+        dataType: 'json',
+        contentType: 'application/json; charset=UTF-8',
+        success: function(response) {
+            if (response.success && response.data) {
+                _copyLogData = response.data;
+                updateCopyPreview();
+            } else {
+                document.getElementById('copyPreviewText').value = response.message || '공고 정보를 찾을 수 없습니다.';
+                _copyLogData = null;
+            }
+        },
+        error: function() {
+            document.getElementById('copyPreviewText').value = '서버 오류가 발생했습니다.';
+            _copyLogData = null;
+        }
+    });
+}
+
+function closeCopyLogModal() {
+    document.getElementById('copyLogModal').style.display = 'none';
+    _copyLogData = null;
+    _copyLogReason = '';
+}
+
+function toggleMoreCopyColumns(event) {
+    const moreSection = document.querySelector('#copyLogModal .copy-column-more');
+    const toggleBtn = event.currentTarget;
+    if (!moreSection) return;
+    if (moreSection.style.display === 'none') {
+        moreSection.style.display = 'block';
+        toggleBtn.innerHTML = '접기 <i class="fas fa-chevron-up ml-1"></i>';
+    } else {
+        moreSection.style.display = 'none';
+        toggleBtn.innerHTML = '더보기 <i class="fas fa-chevron-down ml-1"></i>';
+    }
+}
+
+function updateCopyPreview() {
+    if (!_copyLogData) return;
+    const lines = [];
+    const checks = document.querySelectorAll('.copy-column-check:checked');
+
+    checks.forEach(function(cb) {
+        const key = cb.getAttribute('data-key');
+        const col = COPY_COLUMNS.find(function(c) { return c.key === key; });
+        if (!col) return;
+
+        let value = '';
+        if (key === 'qualification') {
+            // composite: prefCond + certificate + major
+            const parts = [];
+            if (_copyLogData.prefCond) parts.push(_copyLogData.prefCond);
+            if (_copyLogData.certificate) parts.push(_copyLogData.certificate);
+            if (_copyLogData.major) parts.push(_copyLogData.major);
+            value = parts.join(' / ') || '-';
+        } else if (key === 'education') {
+            // composite: minEdubg ~ maxEdubg
+            const min = _copyLogData.minEdubg || '';
+            const max = _copyLogData.maxEdubg || '';
+            value = min === max ? (min || '-') : (min + ' ~ ' + max);
+        } else if (key === 'recommendationReason') {
+            value = _copyLogReason || '-';
+        } else if (key === 'infoSvc') {
+            value = '고용24';
+        } else if (key === 'totPsncnt' || key === 'recruitCnt') {
+            const num = _copyLogData[key];
+            value = num != null ? num + '명' : '-';
+        } else if (key === 'capitalAmt' || key === 'yrSalesAmt') {
+            const amt = _copyLogData[key];
+            value = amt != null ? Number(amt).toLocaleString() + '원' : '-';
+        } else {
+            value = _copyLogData[key] || '-';
+        }
+
+        lines.push('[' + col.label + '] ' + value);
+    });
+
+    document.getElementById('copyPreviewText').value = lines.join('\n');
+}
+
+function executeCopyLog() {
+    const text = document.getElementById('copyPreviewText').value;
+    if (!text || text === '데이터를 불러오는 중...') return;
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+            .then(function() {
+                Swal.fire({
+                    icon: 'success', title: '복사 완료',
+                    text: '상담일지용 채용정보가 클립보드에 복사되었습니다.',
+                    timer: 1500, showConfirmButton: false,
+                    customClass: { container: 'swal-over-modal' }
+                });
+            })
+            .catch(function() {
+                Swal.fire({
+                    icon: 'error', title: '복사 실패',
+                    text: '클립보드 복사에 실패했습니다. 다시 시도해주세요.',
+                    customClass: { container: 'swal-over-modal' }
+                });
+            });
+    } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try {
+            document.execCommand('copy');
+            Swal.fire({
+                icon: 'success', title: '복사 완료',
+                text: '상담일지용 채용정보가 클립보드에 복사되었습니다.',
+                timer: 1500, showConfirmButton: false,
+                customClass: { container: 'swal-over-modal' }
+            });
+        } catch (err) {
+            Swal.fire({
+                icon: 'error', title: '복사 실패',
+                text: '클립보드 복사에 실패했습니다. 다시 시도해주세요.',
+                customClass: { container: 'swal-over-modal' }
+            });
+        } finally {
+            document.body.removeChild(ta);
+        }
+    }
+}

@@ -895,3 +895,192 @@
     from { opacity: 1; }
     to   { opacity: 0; transform: translateY(-10px); }
 }
+
+/* =========================
+   SweetAlert2 z-index 오버라이드 (모달 위에 표시)
+   ========================= */
+.swal-over-modal {
+    z-index: 99999 !important;
+}
+
+/* =========================
+   행 내 복사 버튼 (소형, 카카오 공유 버튼과 동일 스타일)
+   ========================= */
+#recommendModal .btn-copy-sm {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: #e2e8f0;
+    color: #334155;
+    border: none;
+    border-radius: 5px;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+#recommendModal .btn-copy-sm:hover {
+    background: #cbd5e1;
+    transform: translateY(-1px);
+}
+
+#recommendModal .btn-copy-sm.btn-copy-info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+#recommendModal .btn-copy-sm.btn-copy-info:hover {
+    background: #bfdbfe;
+}
+
+/* =========================
+   비활성(마감) 공고 행 스타일
+   ========================= */
+#recommendModal .inactive-row {
+    opacity: 0.6;
+    background: #f8f8f8;
+}
+
+#recommendModal .inactive-row td {
+    color: #94a3b8;
+}
+
+/* =========================
+   상담일지 복사 서브모달
+   ========================= */
+#copyLogModal {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.5);
+    z-index: 10001;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+#copyLogModal .copy-log-container {
+    width: min(720px, 94vw);
+    max-height: 85vh;
+    background: #fff;
+    border-radius: 14px;
+    overflow-y: auto;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+    padding: 24px;
+}
+
+#copyLogModal .copy-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+#copyLogModal .copy-log-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+#copyLogModal .copy-log-close {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    color: #64748b;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.15s;
+}
+
+#copyLogModal .copy-log-close:hover {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+#copyLogModal .copy-column-section {
+    margin-bottom: 16px;
+}
+
+#copyLogModal .copy-column-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 8px;
+}
+
+#copyLogModal .copy-column-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+}
+
+#copyLogModal .copy-column-grid .form-check {
+    min-width: 100px;
+}
+
+#copyLogModal .copy-column-grid .form-check-label {
+    font-size: 0.82rem;
+    color: #334155;
+    cursor: pointer;
+}
+
+#copyLogModal .btn-toggle-more {
+    background: none;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 4px 14px;
+    font-size: 0.8rem;
+    color: #64748b;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.15s;
+}
+
+#copyLogModal .btn-toggle-more:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+}
+
+#copyLogModal .copy-column-more {
+    display: none;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #e2e8f0;
+}
+
+#copyLogModal .copy-preview-section {
+    margin-bottom: 16px;
+}
+
+#copyLogModal .copy-preview-section textarea {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.82rem;
+    font-family: 'Noto Sans KR', -apple-system, sans-serif;
+    line-height: 1.6;
+    resize: vertical;
+    background: #f8fafc;
+    color: #334155;
+}
+
+#copyLogModal .copy-log-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+#copyLogModal .copy-log-actions .btn {
+    padding: 6px 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 6px;
+}

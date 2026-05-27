@@ -162,7 +162,7 @@
                                         <select class="form-select" aria-label="Default select example" id="counselProgress" name="counselProgress">
                                             <option selected value="IAP 전">IAP 전</option>
                                             <option value="IAP 후">IAP 후</option>
-                                            <option value="미고보">미고보</option>
+                                            <option value="미고보/인력공급업">미고보/인력공급업</option>
                                             <option value="고보일반">고보일반</option>
                                             <option value="등록창업">등록창업</option>
                                             <option value="미등록창업">미등록창업</option>

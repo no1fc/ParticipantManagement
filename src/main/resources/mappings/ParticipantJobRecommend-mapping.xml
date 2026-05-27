@@ -31,33 +31,36 @@
     <!-- SELECT문 특정 구직번호의 추천 목록 전체 조회 (모달창 진입 시 사용) -->
     <select id="selectRecommendList" resultType="jobRecommend">
         SELECT
-            PK AS PK,
-            구직번호 AS jobSeekerNo,
-            참여자명 AS participantName,
-            진행단계 AS progressStage,
-            학력 AS education,
-            전공 AS major,
-            카테고리대분류 AS categoryMajor,
-            카테고리중분류 AS categoryMiddle,
-            카테고리소분류 AS categoryMinor,
-            희망직무 AS desiredJob,
-            알선상세정보 AS referralDetail,
-            생성된검색조건 AS generatedSearchCondition,
-            추천채용정보_구인인증번호 AS recommendedJobCertNo,
-            추천채용정보_URL AS recommendedJobUrl,
-            추천채용정보_기업명 AS recommendedJobCompany,
-            추천채용정보_제목 AS recommendedJobTitle,
-            추천채용정보_업종 AS recommendedJobIndustry,
-            베스트채용정보 AS bestJobInfo,
-            추천점수 AS recommendationScore,
-            추천사유 AS recommendationReason,
-            저장일시 AS createdAt,
-            수정일시 AS updatedAt
+            R.PK AS PK,
+            R.구직번호 AS jobSeekerNo,
+            R.참여자명 AS participantName,
+            R.진행단계 AS progressStage,
+            R.학력 AS education,
+            R.전공 AS major,
+            R.카테고리대분류 AS categoryMajor,
+            R.카테고리중분류 AS categoryMiddle,
+            R.카테고리소분류 AS categoryMinor,
+            R.희망직무 AS desiredJob,
+            R.알선상세정보 AS referralDetail,
+            R.생성된검색조건 AS generatedSearchCondition,
+            R.추천채용정보_구인인증번호 AS recommendedJobCertNo,
+            R.추천채용정보_URL AS recommendedJobUrl,
+            R.추천채용정보_기업명 AS recommendedJobCompany,
+            R.추천채용정보_제목 AS recommendedJobTitle,
+            R.추천채용정보_업종 AS recommendedJobIndustry,
+            R.베스트채용정보 AS bestJobInfo,
+            R.추천점수 AS recommendationScore,
+            R.추천사유 AS recommendationReason,
+            R.저장일시 AS createdAt,
+            R.수정일시 AS updatedAt,
+            ISNULL(P.is_active, 0) AS isActive
         FROM
-            J_참여자관리_참여자추천채용정보
+            J_참여자관리_참여자추천채용정보 R
+            LEFT JOIN J_참여자관리_JOB_POSTING P
+                ON R.추천채용정보_구인인증번호 = P.wanted_auth_no
         WHERE
-            구직번호 = #{jobSeekerNo}
-        ORDER BY 베스트채용정보 DESC, 추천점수 DESC, 저장일시 DESC;
+            R.구직번호 = #{jobSeekerNo}
+        ORDER BY R.베스트채용정보 DESC, R.추천점수 DESC, R.저장일시 DESC;
     </select>
 
     <!-- SELECT문 특정 구직번호의 추천 베스트 채용정보 단건 조회 (모달창 진입 시 사용) -->
@@ -228,6 +231,7 @@
             certificate     AS certificate
         FROM J_참여자관리_JOB_POSTING
         WHERE detail_fetched = 1
+          AND is_active = 1
           AND (close_dt IS NULL OR close_dt &gt;= CAST(GETDATE() AS DATE))
         <if test="(keywords != null and keywords.size() > 0) or (jobsCode != null and jobsCode.size() > 0)">
             AND (
@@ -298,6 +302,42 @@
 
     <!-- 참여자 정보 조회 끝 -->
 
-
+    <!-- ══════════════════════════════════════════════════════════════
+         상담일지 복사용 — 공고 상세 단건 조회 (wanted_auth_no 기준)
+         ══════════════════════════════════════════════════════════════ -->
+    <select id="selectJobPostingDetail" parameterType="String" resultType="jobPostingCopy">
+        SELECT
+            company_nm       AS companyNm,
+            recrut_title     AS recrutTitle,
+            ind_tp_nm        AS indTpNm,
+            jobs_nm          AS jobsNm,
+            pref_cond        AS prefCond,
+            certificate      AS certificate,
+            major            AS major,
+            sal_desc         AS salDesc,
+            emp_tp_nm        AS empTpNm,
+            region_nm        AS regionNm,
+            wanted_info_url  AS wantedInfoUrl,
+            ISNULL(info_svc, N'고용24') AS infoSvc,
+            reper_nm         AS reperNm,
+            tot_psncnt       AS totPsncnt,
+            capital_amt      AS capitalAmt,
+            yr_sales_amt     AS yrSalesAmt,
+            busi_cont        AS busiCont,
+            home_pg          AS homePg,
+            busi_size        AS busiSize,
+            recrut_peri      AS recrutPeri,
+            recruit_cnt      AS recruitCnt,
+            job_cont         AS jobCont,
+            work_time_cont   AS workTimeCont,
+            four_ins         AS fourIns,
+            retire_pay       AS retirePay,
+            welfare_desc     AS welfareDesc,
+            career           AS career,
+            min_edubg        AS minEdubg,
+            max_edubg        AS maxEdubg
+        FROM J_참여자관리_JOB_POSTING
+        WHERE wanted_auth_no = #{wantedAuthNo}
+    </select>
 
 </mapper>

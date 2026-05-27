@@ -208,7 +208,9 @@
                 wanted_info_url = source.wanted_info_url,
                 mobile_info_url = source.mobile_info_url,
                 smodify_dtm     = source.smodify_dtm,
-                sync_dtm        = source.sync_dtm
+                sync_dtm        = source.sync_dtm,
+                is_active       = 1,
+                deactivated_at  = NULL
         WHEN NOT MATCHED THEN
             INSERT (
                 wanted_auth_no, company_nm, biz_reg_no, ind_tp_nm,
@@ -239,6 +241,7 @@
         SELECT TOP (#{limit}) wanted_auth_no
         FROM J_참여자관리_JOB_POSTING
         WHERE detail_fetched = 0
+          AND is_active = 1
         ORDER BY created_at ASC
     </select>
 
@@ -285,12 +288,24 @@
     </update>
 
     <!-- ══════════════════════════════════════════════════════════════
-         마감 공고 삭제 (스케줄러 전용)
-         현재 동기화에서 갱신되지 않은 공고 = API에서 사라진 공고 → DELETE
+         비활성화 (soft delete) — API에서 사라진 공고를 is_active=0 전환
+         현재 동기화에서 갱신되지 않은 공고 = API에서 사라진 마감 공고
          ══════════════════════════════════════════════════════════════ -->
-    <delete id="deleteOldPostings" parameterType="String">
-        DELETE FROM J_참여자관리_JOB_POSTING
+    <update id="deactivateOldPostings" parameterType="String">
+        UPDATE J_참여자관리_JOB_POSTING
+        SET is_active = 0,
+            deactivated_at = GETDATE()
         WHERE sync_dtm <![CDATA[<]]> #{syncDtm}
+          AND is_active = 1
+    </update>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         마감 공고 삭제 (hard delete) — 비활성화 후 6개월 이상 경과한 공고만 삭제
+         ══════════════════════════════════════════════════════════════ -->
+    <delete id="deleteOldPostings">
+        DELETE FROM J_참여자관리_JOB_POSTING
+        WHERE is_active = 0
+          AND deactivated_at <![CDATA[<]]> DATEADD(MONTH, -6, GETDATE())
     </delete>
 
 </mapper>

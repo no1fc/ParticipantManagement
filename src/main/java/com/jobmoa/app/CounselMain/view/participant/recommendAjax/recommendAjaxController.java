@@ -5,6 +5,7 @@ import com.jobmoa.app.CounselMain.biz.recommend.ParticipantJobRecommendServiceIm
 import com.jobmoa.app.CounselMain.biz.recommend.ProcessRecommendResultDTO;
 import com.jobmoa.app.CounselMain.biz.recommend.RecommendConcurrencyManager;
 import com.jobmoa.app.CounselMain.biz.recommend.RecommendNotificationDTO;
+import com.jobmoa.app.CounselMain.biz.recommend.JobPostingCopyDTO;
 import com.jobmoa.app.CounselMain.biz.recommend.RecommendParticipantResponseDTO;
 import com.jobmoa.app.CounselMain.biz.recommend.RecommendRequestDTO;
 import com.jobmoa.app.jobPlacement.view.webSocket.WebSocketService;
@@ -190,8 +191,27 @@ public class recommendAjaxController {
 
     // 응답시간 체크
     private void checkResponseTime() {
+    }
 
+    @PostMapping(value = "/jobPostingDetail",
+            consumes = "application/json; charset=UTF-8",
+            produces = "application/json; charset=UTF-8")
+    public ResponseEntity<?> getJobPostingDetail(@RequestBody java.util.Map<String, String> request) {
+        String wantedAuthNo = request.get("wantedAuthNo");
+        if (wantedAuthNo == null || wantedAuthNo.isBlank()) {
+            return ResponseEntity.badRequest().body(
+                    java.util.Map.of("success", false, "message", "구인인증번호가 필요합니다."));
+        }
 
+        JobPostingCopyDTO detail = recommendService.getJobPostingDetail(wantedAuthNo);
+        if (detail == null) {
+            return ResponseEntity.ok().body(
+                    java.util.Map.of("success", false, "message", "해당 공고를 찾을 수 없습니다."));
+        }
 
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("success", true);
+        result.put("data", detail);
+        return ResponseEntity.ok(result);
     }
 }

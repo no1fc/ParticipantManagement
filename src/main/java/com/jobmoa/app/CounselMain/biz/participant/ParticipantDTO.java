@@ -101,9 +101,14 @@ public class ParticipantDTO {
 
     //검색 변수
     private String endDateOption;
+    private List<String> endDateOptionList;         // 진행여부 다중선택 (checkbox)
     private String searchOption;
     private String search;
     private String searchType;
+    private List<String> searchTypeList;           // 옵션 다중선택 (checkbox)
+    private List<String> participantPartTypeList;   // 유형 다중선택 (checkbox)
+    private String wishJobSearch;                   // 희망직무 검색 (단일, 하위호환)
+    private List<String> wishJobSearchList;          // 희망직무 다중검색
     private String searchFilter;
     private boolean searchStatus; // 검색 인지 아닌지 여부
     private String searchPath; // 검색한 페이지

@@ -148,7 +148,7 @@ public class DashboardMainController {
         // 5. 성과 점수 현황 - 기존 changeJson 활용
         processScoreData(model, dashboardDTO);
 
-        // 6. KPI 현황 TODO 데이트 오류인지 확인해서 수정한번 해봐야함
+        // 6. KPI 현황
         dashboardDTO.setDashboardCondition("myKPIDashboard");
         DashboardDTO myKPI = dashboardService.selectOne(dashboardDTO);
         model.addAttribute("myKPI", myKPI);

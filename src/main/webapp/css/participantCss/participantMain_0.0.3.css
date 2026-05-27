@@ -98,6 +98,10 @@ h1 {
     cursor: pointer;
 }
 
+.form-check .form-check-input   {
+    margin-left: 0;
+}
+
 .form-check:hover {
     border-color: var(--bs-gray-800);
     background: var(--bs-white);

@@ -131,10 +131,11 @@
 
     <!-- 새로 분리한 JS 파일들 추가 -->
     <!-- 참여자조회 Js 코드들 -->
-    <script defer src="/js/participant_main_0.0.3.js"></script>
+    <script defer src="/js/jobCategorySelectRenderText_0.0.2.js"></script>
+    <script defer src="/js/participant_main_0.0.4.js"></script>
     <script defer src="/js/participant_excel_download_0.0.1.js"></script>
 
-    <link rel="stylesheet" href="/css/participantCss/participantMain_0.0.2.css">
+    <link rel="stylesheet" href="/css/participantCss/participantMain_0.0.3.css">
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 
@@ -196,6 +197,9 @@
                                     <th class="table-Column">
                                         <span class="column">진행단계</span>
                                     </th>
+                                    <th>
+                                        <span>1순위 희망직무</span>
+                                    </th>
                                     <th class="table-Column">
                                         <span class="column">초기상담일</span>
                                     </th>
@@ -209,12 +213,6 @@
                                         <span class="column">간접고용서비스</span>
                                     </th>
                                     <th class="table-Column">
-                                        <span class="column">수당지급일</span>
-                                    </th>
-                                    <th class="table-Column">
-                                        <span class="column">구직만료일</span>
-                                    </th>
-                                    <th class="table-Column">
                                         <span class="column">기간만료일</span>
                                     </th>
                                     <th class="table-Column">
@@ -226,7 +224,7 @@
 
                                 <c:choose>
                                     <c:when test="${empty datas}">
-                                        <td class="text-center" colspan="16">
+                                        <td class="text-center" colspan="15">
                                             검색된 참여자가 없습니다.
                                         </td>
                                     </c:when>
@@ -249,12 +247,11 @@
                                                 <td>${data.participantLastCons}</td>
                                                 <td class="adventCons-td">${data.participantAdventCons}</td>
                                                 <td class="participantProgress-td">${data.participantProgress}</td>
+                                                <td>${data.participantJobWant}</td>
                                                 <td>${data.participantInItCons}</td>
                                                 <td class="participantIAP3Month-td">${data.participantIAP3Month} <input type="hidden" class="isIap3Month" value="${data.participantISIAP3Month}" readonly></td>
                                                 <td class="participantIAP5Month-td">${data.participantIAP5Month} <input type="hidden" class="isIap5Month" value="${data.participantISIAP5Month}" readonly></td>
                                                 <td>${data.participantEmploymentService eq '' or data.participantEmploymentService eq null?0:data.participantEmploymentService} 회</td>
-                                                <td>${data.participantAllowanceDate}</td>
-                                                <td>${data.participantJobEX}</td>
                                                 <td>${data.participantEXPDate}</td>
                                                 <td class="text-center isClose_td">
                                                     <span class="badge ${data.participantClose ? 'bg-danger' : 'bg-success'} isClose_span">${data.participantClose ?'마감':'진행중'}</span>

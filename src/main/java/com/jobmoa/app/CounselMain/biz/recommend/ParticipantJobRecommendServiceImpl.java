@@ -403,4 +403,9 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
         }
         return sb.toString();
     }
+
+    @Override
+    public JobPostingCopyDTO getJobPostingDetail(String wantedAuthNo) {
+        return participantJobRecommendDAO.selectJobPostingDetail(wantedAuthNo);
+    }
 }

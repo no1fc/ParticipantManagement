@@ -3,6 +3,7 @@ package com.jobmoa.app.recruitmentFormation.biz;
 import com.jobmoa.app.recruitmentFormation.biz.dto.RecruitmentPostingDTO;
 import com.jobmoa.app.recruitmentFormation.biz.dto.RecruitmentResultDTO;
 import com.jobmoa.app.recruitmentFormation.biz.dto.RecruitmentSearchDTO;
+import com.jobmoa.app.recruitmentFormation.biz.dto.RecruitmentSyncResultDTO;
 
 import java.util.List;
 
@@ -19,6 +20,12 @@ public interface RecruitmentService {
      * display=100 기준으로 모든 페이지를 순회해 누적 반환
      */
     List<RecruitmentPostingDTO> fetchAllForSync();
+
+    /**
+     * 고용24 API를 페이지 단위로 호출하고, 각 페이지를 즉시 DB에 저장한다.
+     * 전체 데이터를 JVM 메모리에 누적하지 않도록 스케줄러에서 사용한다.
+     */
+    RecruitmentSyncResultDTO syncPostingsByPage(String syncDtm);
 
     /**
      * detail_fetched=0 인 신규 공고만 상세 API 호출 후 DB 업데이트 (스케줄러 전용)

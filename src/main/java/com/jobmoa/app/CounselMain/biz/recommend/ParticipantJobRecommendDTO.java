@@ -25,4 +25,5 @@ public class ParticipantJobRecommendDTO {
     private String recommendationReason; // 추천사유
     private String createdAt; // 저장일시
     private String updatedAt; // 수정일시
+    private Boolean isActive; // 공고 활성 여부 (JOB_POSTING JOIN)
 }

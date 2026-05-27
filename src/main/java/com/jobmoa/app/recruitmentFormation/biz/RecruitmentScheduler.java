@@ -1,7 +1,7 @@
 package com.jobmoa.app.recruitmentFormation.biz;
 
-import com.jobmoa.app.recruitmentFormation.biz.dto.RecruitmentPostingDTO;
 import com.jobmoa.app.recruitmentFormation.biz.dto.RecruitmentSearchDTO;
+import com.jobmoa.app.recruitmentFormation.biz.dto.RecruitmentSyncResultDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -75,26 +75,36 @@ public class RecruitmentScheduler {
         log.info("[Scheduler] 채용공고 동기화 시작 — syncDtm={}", syncDtm);
 
         try {
-            // 1) 고용24 API 전체 페이지 호출
-            List<RecruitmentPostingDTO> postings = recruitmentService.fetchAllForSync();
-            log.info("[Scheduler] API 수집 완료: {}건", postings.size());
+            // 1~2) 고용24 API를 페이지 단위로 호출하고 각 페이지를 즉시 UPSERT
+            RecruitmentSyncResultDTO syncResult = recruitmentService.syncPostingsByPage(syncDtm);
+            log.info("[Scheduler] 페이지 단위 동기화 결과: total={}, pages={}/{}, fetched={}, saved={}, complete={}",
+                    syncResult.getTotalCount(),
+                    syncResult.getCompletedPages(),
+                    syncResult.getExpectedPages(),
+                    syncResult.getFetchedCount(),
+                    syncResult.getSavedCount(),
+                    syncResult.isAllPagesFetched());
 
-            if (postings.isEmpty()) {
+            if (!syncResult.isAllPagesFetched()) {
+                log.warn("[Scheduler] 전체 페이지 수집 미완료 — 기존 공고 삭제와 상세수집 생략. reason={}",
+                        syncResult.getFailureMessage());
+                return;
+            }
+
+            if (syncResult.getSavedCount() == 0) {
                 log.warn("[Scheduler] 수집된 공고 없음 — DB 업데이트 생략");
                 return;
             }
 
-            // 2) 각 공고에 syncDtm 설정 후 UPSERT
-            postings.forEach(p -> p.setSyncDtm(syncDtm));
-            recruitmentDAO.upsertBatch(postings);
-            log.info("[Scheduler] DB UPSERT 완료: {}건", postings.size());
+            // 3) API에서 사라진 공고 비활성화 (soft delete: is_active=0)
+            int deactivated = recruitmentDAO.deactivateOldPostings(syncDtm);
+            log.info("[Scheduler] 마감 공고 비활성화: {}건", deactivated);
 
-            // 3) 현재 동기화에서 갱신되지 않은 공고 삭제
-            //    (syncDtm < 현재 syncDtm = API에서 사라진 마감 공고)
-            int deleted = recruitmentDAO.deleteOldPostings(syncDtm);
-            log.info("[Scheduler] 마감 공고 삭제: {}건", deleted);
+            // 4) 비활성화 후 6개월 이상 경과한 공고 삭제 (hard delete)
+            int deleted = recruitmentDAO.deleteOldPostings();
+            log.info("[Scheduler] 6개월 경과 공고 삭제: {}건", deleted);
 
-            // 4) 신규 공고(detail_fetched=0)만 상세 API 호출 후 DB 업데이트
+            // 5) 신규 공고(detail_fetched=0, is_active=1)만 상세 API 호출 후 DB 업데이트
             recruitmentService.fetchDetailForNewPostings();
 
             log.info("[Scheduler] 채용공고 동기화 완료 — syncDtm={}", syncDtm);
