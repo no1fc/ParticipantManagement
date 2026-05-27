@@ -134,13 +134,13 @@
             CASE WHEN 취업인센티브_구분 = '미해당[서비스 미제공]' THEN 1 ELSE 0 END AS 서비스미제공,
             CASE WHEN 취업인센티브_구분 <![CDATA[<>]]> '미해당[서비스 미제공]' AND 취업인센티브_구분 LIKE '%미해당%' THEN 1 ELSE 0 END AS 미해당,
             CASE WHEN 취업인센티브_구분 NOT LIKE '%미해당%' AND 취업인센티브_구분 IS NOT NULL AND 취업인센티브_구분 <![CDATA[<>]]> '' THEN 1 ELSE 0 END AS 해당,
-            CASE WHEN ((진행단계 IN ('미고보/인력공급업', '고보일반', '등록창업', '미등록창업', '미취업사후관리', '미취업사후종료','중단'))
-                      AND 실제종료일 BETWEEN #{dashBoardStartDate, jdbcType=DATE} AND #{dashBoardEndDate}
+            CASE WHEN ((진행단계 IN ('미고보', '미고보/인력공급업', '고보일반', '등록창업', '미등록창업', '미취업사후관리', '미취업사후종료','중단'))
+                      AND 실제종료일 BETWEEN #{dashBoardStartDate, jdbcType=DATE} AND #{dashBoardEndDate, jdbcType=DATE}
                       AND 기간만료일 <![CDATA[>=]]> #{dashBoardStartDate, jdbcType=DATE})
                 THEN 1 ELSE 0 END AS 종료_F,
             CASE WHEN 취창업일 <![CDATA[>=]]> #{dashBoardStartDate, jdbcType=DATE}
                       AND (진행단계 IN ('등록창업','고보일반', '미취업사후종료', '중단')
-                      OR (진행단계 = '미고보/인력공급업' AND 취업유형 IN ('프리랜서', '특수고용') AND 임금 <![CDATA[>]]> 70))
+                      OR ((진행단계 = '미고보/인력공급업' OR 진행단계 = '미고보') AND 취업유형 IN ('프리랜서', '특수고용') AND 임금 <![CDATA[>]]> 70))
                       AND (취업인센티브_구분 NOT LIKE '%파견%' OR 취업인센티브_구분 IS NULL)
                 THEN 1 ELSE 0 END AS 취업_F,
             CASE WHEN 특정계층 = 'O' OR (DATEDIFF(YEAR, 생년월일, 등록일) <![CDATA[>]]> 34 AND 생년월일 <![CDATA[>]]> '1900-01-01') THEN 1 ELSE 0 END AS 특정계층_F,
@@ -153,7 +153,7 @@
                     (CASE WHEN (초기상담일 <![CDATA[>=]]> '2025-01-01' AND 초기상담일 <![CDATA[<=]]> GETDATE()) OR (등록일 <![CDATA[>=]]> '2025-01-01' AND 등록일 <![CDATA[<=]]> GETDATE()) THEN 1 ELSE 0 END)
 */
                 WHEN 지점 IN ('인천', '성남','서부','남부','부천','수원','의정부','인천남부','동대문','광명','안양','북부','천호','관악')
-                        AND 실제종료일 BETWEEN #{dashBoardStartDate, jdbcType=DATE} AND #{dashBoardEndDate}
+                        AND 실제종료일 BETWEEN #{dashBoardStartDate, jdbcType=DATE} AND #{dashBoardEndDate, jdbcType=DATE}
                     THEN 1
                 ELSE 0
             END AS 대상_F
@@ -283,8 +283,8 @@
             FROM
                 J_참여자관리
             WHERE
-                초기상담일 >= #{dashBoardPASD} AND
-                초기상담일 <![CDATA[<=]]> #{dashBoardPAED} AND
+                초기상담일 >= #{dashBoardPASD, jdbcType=DATE} AND
+                초기상담일 <![CDATA[<=]]> #{dashBoardPAED, jdbcType=DATE} AND
                 모집경로 <![CDATA[<>]]> '이관' AND
                 진행단계 <![CDATA[<>]]> '취소'
             GROUP BY 전담자_계정

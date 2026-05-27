@@ -29,7 +29,7 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public DashboardDTO selectOne(DashboardDTO dashboardDTO) {
         log.info("DashboardServiceImpl selectOne Start");
-        log.info("DashboardDTO DashboardService selectOne : [{}]", dashboardDTO);
+//        log.info("DashboardDTO DashboardService selectOne : [{}]", dashboardDTO);
         if(dashboardDTO == null || dashboardDTO.getDashboardCondition() == null) {
             log.info("DashboardDTO DashboardService selectOne DashboardDTO null OR DashboardCondition null");
             log.error("selectOne DashboardDTO null OR DashboardCondition null");
