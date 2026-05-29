@@ -252,6 +252,11 @@
                                         <small><p>지점 대시보드</p></small>
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a href="/admin/linkage-stats" class="nav-link">
+                                        <small><p>연계 현황</p></small>
+                                    </a>
+                                </li>
                             </c:if>
                             <c:if test="${IS_PRA_MANAGER or JOBMOA_LOGIN_DATA.memberBranch eq '남부' or JOBMOA_LOGIN_DATA.memberBranch eq '관악' or JOBMOA_LOGIN_DATA.memberBranch eq '인천남부' or JOBMOA_LOGIN_DATA.memberBranch eq '인천' or JOBMOA_LOGIN_DATA.memberBranch eq '성남' or JOBMOA_LOGIN_DATA.memberBranch eq '테스트'}">
                                 <li class="nav-item">

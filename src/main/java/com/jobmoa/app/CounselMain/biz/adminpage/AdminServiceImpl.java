@@ -322,4 +322,27 @@ public class AdminServiceImpl implements AdminService {
     public List<AdminDTO> getExcelTrainingList(AdminDTO dto) {
         return adminDAO.selectExcelTrainingList(dto);
     }
+
+    // ===== 연계 현황 =====
+    @Override
+    public Map<String, Object> getLinkageStats(AdminDTO dto) {
+        Map<String, Object> result = new HashMap<>();
+        List<AdminDTO> branchStats = adminDAO.selectLinkageStatsByBranch(dto);
+        List<AdminDTO> typeStats = adminDAO.selectLinkageStatsByType(dto);
+        int totalCount = branchStats.stream().mapToInt(AdminDTO::getLinkageCount).sum();
+        result.put("branchStats", branchStats);
+        result.put("typeStats", typeStats);
+        result.put("totalCount", totalCount);
+        return result;
+    }
+
+    @Override
+    public List<AdminDTO> getLinkageByCounselor(AdminDTO dto) {
+        return adminDAO.selectLinkageStatsByCounselor(dto);
+    }
+
+    @Override
+    public List<AdminDTO> getLinkageByType(AdminDTO dto) {
+        return adminDAO.selectLinkageStatsByType(dto);
+    }
 }

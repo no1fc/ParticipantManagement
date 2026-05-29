@@ -316,4 +316,20 @@ public class AdminDAO {
         log.info("AdminDAO selectExcelTrainingList");
         return sqlSession.selectList(ns + "selectExcelTrainingList", dto);
     }
+
+    // ===== 연계 현황 =====
+    public List<AdminDTO> selectLinkageStatsByBranch(AdminDTO dto) {
+        log.info("AdminDAO selectLinkageStatsByBranch");
+        return sqlSession.selectList(ns + "selectLinkageStatsByBranch", dto);
+    }
+
+    public List<AdminDTO> selectLinkageStatsByCounselor(AdminDTO dto) {
+        log.info("AdminDAO selectLinkageStatsByCounselor");
+        return sqlSession.selectList(ns + "selectLinkageStatsByCounselor", dto);
+    }
+
+    public List<AdminDTO> selectLinkageStatsByType(AdminDTO dto) {
+        log.info("AdminDAO selectLinkageStatsByType");
+        return sqlSession.selectList(ns + "selectLinkageStatsByType", dto);
+    }
 }

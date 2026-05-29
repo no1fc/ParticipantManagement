@@ -76,4 +76,10 @@ public class AdminPageController {
         if (!AdminAccessSupport.hasAdminAccess(session)) return "redirect:/";
         return "admin/adminExcelBuilder";
     }
+
+    @GetMapping("/linkage-stats")
+    public String adminLinkageStats(HttpSession session) {
+        if (!AdminAccessSupport.hasAdminAccess(session)) return "redirect:/";
+        return "admin/adminLinkageStats";
+    }
 }

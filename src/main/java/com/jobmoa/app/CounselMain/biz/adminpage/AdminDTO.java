@@ -63,6 +63,9 @@ public class AdminDTO {
     private String desiredJob;
     private String desiredSalary;
     private String memo;
+    private String linkDate; // 연계일
+    private String linkType; // 연계유형
+    private String linkNote; // 연계비고
     private String searchJobNo;
     private String searchStatus;
     private String searchClosed;
@@ -208,6 +211,10 @@ public class AdminDTO {
     private int completedCount;
     private int employedCount;
     private int placementEmployedCount;
+
+    // 연계 현황
+    private int linkageCount;
+    private String linkageType;
 
     // Excel 빌더 - 희망직무 시트
     private String excelCategoryLarge;

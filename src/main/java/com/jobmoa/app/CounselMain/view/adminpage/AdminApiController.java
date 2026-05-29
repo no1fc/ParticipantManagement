@@ -599,4 +599,32 @@ public class AdminApiController {
         AdminAccessSupport.enforceBranchScope(session, dto);
         return ResponseEntity.ok(adminService.getPlacementStatsByCounselor(dto));
     }
+
+    // ===== 연계 현황 =====
+    @GetMapping("/linkage-stats")
+    public ResponseEntity<?> getLinkageStats(AdminDTO dto, HttpSession session) {
+        log.info("GET /admin/api/linkage-stats");
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
+        AdminAccessSupport.enforceBranchScope(session, dto);
+        return ResponseEntity.ok(adminService.getLinkageStats(dto));
+    }
+
+    @GetMapping("/linkage-stats/by-counselor")
+    public ResponseEntity<?> getLinkageByCounselor(AdminDTO dto, HttpSession session) {
+        log.info("GET /admin/api/linkage-stats/by-counselor");
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
+        AdminAccessSupport.enforceBranchScope(session, dto);
+        return ResponseEntity.ok(adminService.getLinkageByCounselor(dto));
+    }
+
+    @GetMapping("/linkage-stats/by-type")
+    public ResponseEntity<?> getLinkageByType(AdminDTO dto, HttpSession session) {
+        log.info("GET /admin/api/linkage-stats/by-type");
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
+        AdminAccessSupport.enforceBranchScope(session, dto);
+        return ResponseEntity.ok(adminService.getLinkageByType(dto));
+    }
 }

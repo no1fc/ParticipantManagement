@@ -242,7 +242,10 @@
             A.희망급여 desiredSalary,
             CONVERT(varchar, A.등록일, 23) participantRegDate,
             A.메모 memo,
-            A.마감 closed
+            A.마감 closed,
+            CONVERT(varchar, A.연계일, 23) linkDate,
+            A.연계유형 linkType,
+            A.연계비고 linkNote
         FROM J_참여자관리 A
         WHERE A.구직번호 = #{jobNo}
     </select>
@@ -1075,6 +1078,71 @@
         LEFT JOIN J_참여자관리_로그인정보 M ON S.전담자_계정 = M.아이디
         GROUP BY S.지점, S.전담자_계정, M.이름
         ORDER BY S.지점, M.이름
+    </select>
+
+    <!-- ===== 연계 현황: 지점별 연계 건수 ===== -->
+    <select id="selectLinkageStatsByBranch" parameterType="admin" resultType="admin">
+        SELECT
+            B.지점 AS branchLabel,
+            COUNT(*) AS linkageCount
+        FROM J_참여자관리 A
+        JOIN J_참여자관리_로그인정보 B ON A.전담자_계정 = B.아이디
+        WHERE A.연계유형 IS NOT NULL AND A.연계유형 != ''
+        <if test="searchBranch != null and searchBranch != ''">
+            AND B.지점 = #{searchBranch}
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+            AND <![CDATA[ A.연계일 >= #{searchStartDate} ]]>
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+            AND <![CDATA[ A.연계일 <= #{searchEndDate} ]]>
+        </if>
+        GROUP BY B.지점
+        ORDER BY linkageCount DESC
+    </select>
+
+    <!-- ===== 연계 현황: 상담사별 연계 건수 ===== -->
+    <select id="selectLinkageStatsByCounselor" parameterType="admin" resultType="admin">
+        SELECT
+            B.이름 AS counselorName,
+            B.아이디 AS counselorAccount,
+            COUNT(*) AS linkageCount
+        FROM J_참여자관리 A
+        JOIN J_참여자관리_로그인정보 B ON A.전담자_계정 = B.아이디
+        WHERE A.연계유형 IS NOT NULL AND A.연계유형 != ''
+            AND B.지점 = #{searchBranch}
+        <if test="searchStartDate != null and searchStartDate != ''">
+            AND <![CDATA[ A.연계일 >= #{searchStartDate} ]]>
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+            AND <![CDATA[ A.연계일 <= #{searchEndDate} ]]>
+        </if>
+        GROUP BY B.이름, B.아이디
+        ORDER BY linkageCount DESC
+    </select>
+
+    <!-- ===== 연계 현황: 연계유형별 건수 ===== -->
+    <select id="selectLinkageStatsByType" parameterType="admin" resultType="admin">
+        SELECT
+            A.연계유형 AS linkageType,
+            COUNT(*) AS linkageCount
+        FROM J_참여자관리 A
+        JOIN J_참여자관리_로그인정보 B ON A.전담자_계정 = B.아이디
+        WHERE A.연계유형 IS NOT NULL AND A.연계유형 != ''
+        <if test="searchBranch != null and searchBranch != ''">
+            AND B.지점 = #{searchBranch}
+        </if>
+        <if test="searchCounselor != null and searchCounselor != ''">
+            AND A.전담자_계정 = #{searchCounselor}
+        </if>
+        <if test="searchStartDate != null and searchStartDate != ''">
+            AND <![CDATA[ A.연계일 >= #{searchStartDate} ]]>
+        </if>
+        <if test="searchEndDate != null and searchEndDate != ''">
+            AND <![CDATA[ A.연계일 <= #{searchEndDate} ]]>
+        </if>
+        GROUP BY A.연계유형
+        ORDER BY linkageCount DESC
     </select>
 
 </mapper>

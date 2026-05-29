@@ -94,4 +94,9 @@ public interface AdminService {
     List<AdminDTO> getExcelWishJobList(AdminDTO dto);
     List<AdminDTO> getExcelCertificateList(AdminDTO dto);
     List<AdminDTO> getExcelTrainingList(AdminDTO dto);
+
+    // 연계 현황
+    Map<String, Object> getLinkageStats(AdminDTO dto);
+    List<AdminDTO> getLinkageByCounselor(AdminDTO dto);
+    List<AdminDTO> getLinkageByType(AdminDTO dto);
 }
