@@ -333,6 +333,26 @@ document.addEventListener('DOMContentLoaded', function () {
         //간접고용서비스 목록 내용 변경
         selectOption($("#counselEmploymentService"),"${counsel.counselEmploymentService}");
 
+        //연계유형 목록 내용 변경
+        selectOption($("#counselLinkType"),"${counsel.counselLinkType}");
+
+        // 연계비고: 기타 유형 선택 시에만 표시
+        (function () {
+            const $linkType = $("#counselLinkType");
+            const $linkNote = $("#counselLinkNote");
+            const $linkNoteLabel = $("#counselLinkNoteLabel");
+            const LINK_NOTE_TYPES = new Set(["기타 일경험", "기타"]);
+
+            function toggleLinkNote() {
+                const show = LINK_NOTE_TYPES.has($linkType.val());
+                $linkNote.toggle(show);
+                $linkNoteLabel.toggle(show);
+                if (!show) { $linkNote.val(""); }
+            }
+            $linkType.on("change", toggleLinkNote);
+            toggleLinkNote(); // 페이지 로드 시 초기 상태
+        })();
+
         <%-- 직무 카테고리(대/중)는 hidden input으로 전환됨. 다중 희망직무 UI에서 렌더링 --%>
         <%-- 목록 내용 변경 끝 --%>
 

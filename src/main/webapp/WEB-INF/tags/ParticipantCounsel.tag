@@ -147,7 +147,33 @@
                 <th></th>
                 <td></td>
             </tr>
-            <%-- 행6: 다중 희망직무 (colspan=5, 6칸 중 th1칸 + td5칸) --%>
+            <%-- 행6: 연계일 / 연계유형 / 연계비고 --%>
+            <tr>
+                <th><label for="counselLinkDate">연계일</label></th>
+                <td>
+                    <div class="input-group">
+                        <i class="bi bi-calendar-date input-group-text"></i>
+                        <input type="text" class="form-control datepicker_on" id="counselLinkDate" name="counselLinkDate" placeholder="yyyy-mm-dd" aria-label="연계일" value="${not empty counsel ? counsel.counselLinkDate:""}" autocomplete="off">
+                    </div>
+                </td>
+                <th><label for="counselLinkType">연계유형</label></th>
+                <td>
+                    <select class="form-select" aria-label="연계유형" id="counselLinkType" name="counselLinkType">
+                        <option value="">선택</option>
+                        <option value="미래내일일경험">미래내일일경험</option>
+                        <option value="지자체일경험">지자체일경험</option>
+                        <option value="심리안정(정신건강복지센터)">심리안정(정신건강복지센터)</option>
+                        <option value="복지ㆍ금용ㆍ연계">복지ㆍ금용ㆍ연계</option>
+                        <option value="기타 일경험">기타 일경험</option>
+                        <option value="기타">기타</option>
+                    </select>
+                </td>
+                <th><label for="counselLinkNote" id="counselLinkNoteLabel" style="display:none;">연계비고</label></th>
+                <td>
+                    <input type="text" class="form-control" id="counselLinkNote" name="counselLinkNote" placeholder="기타 상세 사유 입력" value="${not empty counsel ? counsel.counselLinkNote:""}" style="display:none;">
+                </td>
+            </tr>
+            <%-- 행7: 다중 희망직무 (colspan=5, 6칸 중 th1칸 + td5칸) --%>
             <tr>
                 <th>
                     희망직무<span class="text-danger">*</span>

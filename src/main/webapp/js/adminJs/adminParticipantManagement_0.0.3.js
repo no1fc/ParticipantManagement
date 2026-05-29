@@ -193,6 +193,14 @@ function openParticipantDetail(jobNo) {
             // 상담 정보
             $('#detailCounselor').text((data.counselorName || '') + (data.counselorAccount ? ' (' + data.counselorAccount + ')' : ''));
             $('#detailProgressStage').text(data.progressStage || '');
+            $('#detailLinkDate').text(data.linkDate || '');
+            $('#detailLinkType').text(data.linkType || '');
+            if (data.linkNote) {
+                $('#detailLinkNote').text(data.linkNote);
+                $('#detailLinkNoteRow').show();
+            } else {
+                $('#detailLinkNoteRow').hide();
+            }
 
             // 희망 정보
             $('#detailDesiredJob').text(data.desiredJob || '');

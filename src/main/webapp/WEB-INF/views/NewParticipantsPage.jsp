@@ -279,6 +279,23 @@ document.addEventListener('DOMContentLoaded', function () {
         //page 로딩시 알선 상세정보 입력란을 숨김
         JobPlacementDetail(hiddenDiv);
 
+        // 연계비고: 기타 유형 선택 시에만 표시
+        (function () {
+            const $linkType = $("#counselLinkType");
+            const $linkNote = $("#counselLinkNote");
+            const $linkNoteLabel = $("#counselLinkNoteLabel");
+            const LINK_NOTE_TYPES = new Set(["기타 일경험", "기타"]);
+
+            function toggleLinkNote() {
+                const show = LINK_NOTE_TYPES.has($linkType.val());
+                $linkNote.toggle(show);
+                $linkNoteLabel.toggle(show);
+                if (!show) { $linkNote.val(""); }
+            }
+            $linkType.on("change", toggleLinkNote);
+            toggleLinkNote();
+        })();
+
     });
 </script>
 
