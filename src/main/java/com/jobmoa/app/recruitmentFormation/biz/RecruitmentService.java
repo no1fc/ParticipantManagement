@@ -29,7 +29,7 @@ public interface RecruitmentService {
 
     /**
      * detail_fetched=0 인 신규 공고만 상세 API 호출 후 DB 업데이트 (스케줄러 전용)
-     * 최대 500건 처리 / 100건당 1초 딜레이로 고용24 API Rate Limit 방지
+     * 최대 5,000건 처리 / 3스레드 병렬 + 100건 배치당 1초 딜레이로 고용24 API Rate Limit 방지
      */
     void fetchDetailForNewPostings();
 }
