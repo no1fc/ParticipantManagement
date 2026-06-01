@@ -50,7 +50,7 @@
     <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
 
     <!-- 페이지 전용 CSS -->
-    <link rel="stylesheet" href="/css/adminCss/adminLinkageStats_0.0.1.css">
+    <link rel="stylesheet" href="/css/adminCss/adminLinkageStats_0.0.2.css">
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 
@@ -75,6 +75,24 @@
                     </div>
                 </div>
 
+                <!-- 도움말 -->
+                <div class="help-panel">
+                    <div class="help-toggle" onclick="$('#helpContent').slideToggle(200); $(this).find('i').toggleClass('bi-chevron-down bi-chevron-up');">
+                        <i class="bi bi-question-circle"></i> 사용 안내
+                        <i class="bi bi-chevron-down" style="font-size: 0.7rem;"></i>
+                    </div>
+                    <div id="helpContent" style="display: none; margin-top: 0.5rem;">
+                        <ul>
+                            <li><strong>검색 필터</strong> — 지점, 기간을 선택한 후 <strong>검색</strong> 버튼을 클릭하면 해당 조건에 맞는 연계 현황이 표시됩니다.</li>
+                            <li><strong>막대 그래프 클릭</strong> — 지점별 막대 그래프의 막대를 클릭하면 해당 지점의 상담사별 상세 현황으로 전환됩니다.</li>
+                            <li><strong>지점 전체보기</strong> — 상담사별 현황에서 상단의 <strong>지점 전체보기</strong> 버튼을 클릭하면 전체 지점 보기로 돌아갑니다.</li>
+                            <c:if test="${sessionScope.IS_MANAGER == true}">
+                            <li><strong>가점 카드</strong> — 각 점수 카드(<span class="score-dot green"></span>3점, <span class="score-dot yellow"></span>2점, <span class="score-dot orange"></span>1점, <span class="score-dot red"></span>0점)를 클릭하면 해당 점수 범위의 지점만 필터링됩니다. 다시 클릭하면 전체 보기로 복귀합니다.</li>
+                            </c:if>
+                        </ul>
+                    </div>
+                </div>
+
                 <!-- 검색 패널 -->
                 <div class="search-panel">
                     <h5 class="mb-3"><i class="bi bi-search"></i> 검색 필터</h5>
@@ -94,23 +112,46 @@
                             <input type="date" class="form-control form-control-modern" id="searchEndDate">
                         </div>
                         <div class="col-md-3 d-flex align-items-end">
-                            <button class="btn btn-light w-100 me-2" onclick="searchLinkageStats()">
+                            <button class="btn btn-primary btn-search w-100 me-2" onclick="searchLinkageStats()">
                                 <i class="bi bi-search"></i> 검색
                             </button>
-                            <button class="btn btn-outline-secondary w-100" onclick="resetSearch()">
+                            <button class="btn btn-outline-secondary btn-reset w-100" onclick="resetSearch()">
                                 <i class="bi bi-arrow-counterclockwise"></i> 초기화
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- KPI 카드 -->
+                <!-- KPI 카드 (사이트 관리자만 표시) -->
+                <c:if test="${sessionScope.IS_MANAGER == true}">
                 <div class="row g-3 mb-4 align-items-stretch">
-                    <div class="col-md-4 d-flex">
+                    <div class="col-md-8 d-flex">
                         <div class="kpi-card position-relative w-100">
                             <i class="bi bi-link-45deg kpi-icon"></i>
                             <div class="kpi-label">전체 연계 건수</div>
                             <div class="kpi-value" id="totalLinkageCount">-</div>
+                            <div class="score-section">
+                                <div class="score-item" data-score="score3" onclick="filterByScore('score3')">
+                                    <span class="score-label">가점 3점</span>
+                                    <span class="score-range">(40개 이상)</span>
+                                    <span class="score-count" id="scoreCount3">-</span>
+                                </div>
+                                <div class="score-item" data-score="score2" onclick="filterByScore('score2')">
+                                    <span class="score-label">가점 2점</span>
+                                    <span class="score-range">(20~39개)</span>
+                                    <span class="score-count" id="scoreCount2">-</span>
+                                </div>
+                                <div class="score-item" data-score="score1" onclick="filterByScore('score1')">
+                                    <span class="score-label">가점 1점</span>
+                                    <span class="score-range">(10~19개)</span>
+                                    <span class="score-count" id="scoreCount1">-</span>
+                                </div>
+                                <div class="score-item" data-score="score0" onclick="filterByScore('score0')">
+                                    <span class="score-label">가점 0점</span>
+                                    <span class="score-range">(9개 이하)</span>
+                                    <span class="score-count" id="scoreCount0">-</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-4 d-flex">
@@ -120,14 +161,8 @@
                             <div class="kpi-value kpi-value-text" id="topLinkageType">-</div>
                         </div>
                     </div>
-                    <div class="col-md-4 d-flex">
-                        <div class="kpi-card emerald position-relative w-100">
-                            <i class="bi bi-building kpi-icon"></i>
-                            <div class="kpi-label">참여 지점 수</div>
-                            <div class="kpi-value" id="branchCount">-</div>
-                        </div>
-                    </div>
                 </div>
+                </c:if>
 
                 <!-- 드릴다운 표시 바 -->
                 <div class="drill-down-bar" id="drillDownBar" style="display: none;">
@@ -232,7 +267,7 @@
 </script>
 
 <!-- 페이지 전용 JS -->
-<script defer src="/js/adminJs/adminLinkageStats_0.0.1.js"></script>
+<script defer src="/js/adminJs/adminLinkageStats_0.0.2.js"></script>
 
 </body>
 </html>

@@ -1080,28 +1080,33 @@
         ORDER BY S.지점, M.이름
     </select>
 
-    <!-- ===== 연계 현황: 지점별 연계 건수 ===== -->
+    <!-- ===== 연계 현황: 지점별 연계 건수 (모든 활성 지점 포함, 테스트 제외) ===== -->
     <select id="selectLinkageStatsByBranch" parameterType="admin" resultType="admin">
         SELECT
-            B.지점 AS branchLabel,
-            COUNT(*) AS linkageCount
-        FROM J_참여자관리 A
-        JOIN J_참여자관리_로그인정보 B ON A.전담자_계정 = B.아이디
-        WHERE A.연계유형 IS NOT NULL AND A.연계유형 != ''
+            BR.지점 AS branchLabel,
+            ISNULL(S.cnt, 0) AS linkageCount
+        FROM J_참여자관리_지점 BR
+        LEFT JOIN (
+            SELECT B.지점, COUNT(*) AS cnt
+            FROM J_참여자관리 A
+            JOIN J_참여자관리_로그인정보 B ON A.전담자_계정 = B.아이디
+            WHERE A.연계유형 IS NOT NULL AND A.연계유형 != ''
+            <if test="searchStartDate != null and searchStartDate != ''">
+                AND <![CDATA[ A.연계일 >= #{searchStartDate} ]]>
+            </if>
+            <if test="searchEndDate != null and searchEndDate != ''">
+                AND <![CDATA[ A.연계일 <= #{searchEndDate} ]]>
+            </if>
+            GROUP BY B.지점
+        ) S ON BR.지점 = S.지점
+        WHERE BR.사용여부 = '사용' AND BR.지점 != '테스트'
         <if test="searchBranch != null and searchBranch != ''">
-            AND B.지점 = #{searchBranch}
+            AND BR.지점 = #{searchBranch}
         </if>
-        <if test="searchStartDate != null and searchStartDate != ''">
-            AND <![CDATA[ A.연계일 >= #{searchStartDate} ]]>
-        </if>
-        <if test="searchEndDate != null and searchEndDate != ''">
-            AND <![CDATA[ A.연계일 <= #{searchEndDate} ]]>
-        </if>
-        GROUP BY B.지점
         ORDER BY linkageCount DESC
     </select>
 
-    <!-- ===== 연계 현황: 상담사별 연계 건수 ===== -->
+    <!-- ===== 연계 현황: 상담사별 연계 건수 (테스트 지점 제외) ===== -->
     <select id="selectLinkageStatsByCounselor" parameterType="admin" resultType="admin">
         SELECT
             B.이름 AS counselorName,
@@ -1110,6 +1115,7 @@
         FROM J_참여자관리 A
         JOIN J_참여자관리_로그인정보 B ON A.전담자_계정 = B.아이디
         WHERE A.연계유형 IS NOT NULL AND A.연계유형 != ''
+            AND B.지점 != '테스트'
             AND B.지점 = #{searchBranch}
         <if test="searchStartDate != null and searchStartDate != ''">
             AND <![CDATA[ A.연계일 >= #{searchStartDate} ]]>
@@ -1121,7 +1127,7 @@
         ORDER BY linkageCount DESC
     </select>
 
-    <!-- ===== 연계 현황: 연계유형별 건수 ===== -->
+    <!-- ===== 연계 현황: 연계유형별 건수 (테스트 지점 제외) ===== -->
     <select id="selectLinkageStatsByType" parameterType="admin" resultType="admin">
         SELECT
             A.연계유형 AS linkageType,
@@ -1129,6 +1135,7 @@
         FROM J_참여자관리 A
         JOIN J_참여자관리_로그인정보 B ON A.전담자_계정 = B.아이디
         WHERE A.연계유형 IS NOT NULL AND A.연계유형 != ''
+            AND B.지점 != '테스트'
         <if test="searchBranch != null and searchBranch != ''">
             AND B.지점 = #{searchBranch}
         </if>

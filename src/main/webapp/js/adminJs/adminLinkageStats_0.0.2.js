@@ -1,12 +1,16 @@
 /* =============================================
    연계 현황 JavaScript
-   adminLinkageStats_0.0.1.js
+   adminLinkageStats_0.0.2.js
+   - 점수별 분류 + 클릭 필터링
+   - 테스트 지점 제외
    ============================================= */
 
 let branchChart = null;
 let typeChart = null;
 let currentView = 'branch'; // 'branch' or 'counselor'
 let currentBranch = '';
+let cachedBranchStats = [];
+let currentScoreFilter = null; // null, 'score3', 'score2', 'score1', 'score0'
 
 $(document).ready(function () {
     loadBranchOptions();
@@ -44,7 +48,9 @@ function getSearchParams() {
 function searchLinkageStats() {
     currentView = 'branch';
     currentBranch = '';
+    currentScoreFilter = null;
     $('#drillDownBar').hide();
+    clearScoreActive();
     loadLinkageData();
 }
 
@@ -65,9 +71,11 @@ function loadLinkageData() {
         type: 'GET',
         data: params,
         success: function (res) {
+            const branchStats = res.branchStats || [];
+            cachedBranchStats = branchStats;
+
             // KPI 업데이트
             $('#totalLinkageCount').text(res.totalCount + '건');
-            $('#branchCount').text((res.branchStats || []).length + '개');
 
             const typeStats = res.typeStats || [];
             if (typeStats.length > 0) {
@@ -76,16 +84,74 @@ function loadLinkageData() {
                 $('#topLinkageType').text('-');
             }
 
+            // 점수별 분류 업데이트 (KPI 카드 내)
+            updateScoreCards(branchStats);
+
             // 차트 렌더링
-            renderBranchChart(res.branchStats || []);
+            renderBranchChart(branchStats);
             renderTypeChart(typeStats);
-            renderTable(res.branchStats || [], 'branch');
+            renderTable(branchStats, 'branch');
         },
         error: function () {
             Swal.fire('오류', '데이터를 불러올 수 없습니다.', 'error');
         }
     });
 }
+
+// ===== 점수별 분류 로직 =====
+
+function classifyByScore(branchStats) {
+    const filtered = branchStats.filter(function (b) {
+        return b.branchLabel !== '테스트';
+    });
+    return {
+        score3: filtered.filter(function (b) { return b.linkageCount >= 40; }),
+        score2: filtered.filter(function (b) { return b.linkageCount >= 20 && b.linkageCount < 40; }),
+        score1: filtered.filter(function (b) { return b.linkageCount >= 10 && b.linkageCount < 20; }),
+        score0: filtered.filter(function (b) { return b.linkageCount < 10; })
+    };
+}
+
+function updateScoreCards(branchStats) {
+    const scores = classifyByScore(branchStats);
+    $('#scoreCount3').text(scores.score3.length + '곳');
+    $('#scoreCount2').text(scores.score2.length + '곳');
+    $('#scoreCount1').text(scores.score1.length + '곳');
+    $('#scoreCount0').text(scores.score0.length + '곳');
+}
+
+function filterByScore(scoreKey) {
+    // 토글: 같은 필터 클릭 시 해제
+    if (currentScoreFilter === scoreKey) {
+        currentScoreFilter = null;
+        clearScoreActive();
+        renderBranchChart(cachedBranchStats);
+        renderTable(cachedBranchStats, 'branch');
+        return;
+    }
+
+    currentScoreFilter = scoreKey;
+    currentView = 'branch';
+    currentBranch = '';
+    $('#drillDownBar').hide();
+
+    // 활성 상태 표시
+    clearScoreActive();
+    $('[data-score="' + scoreKey + '"]').addClass('active');
+
+    // 해당 점수 범위 데이터만 필터링
+    const scores = classifyByScore(cachedBranchStats);
+    const filteredData = scores[scoreKey] || [];
+
+    renderBranchChart(filteredData);
+    renderTable(filteredData, 'branch');
+}
+
+function clearScoreActive() {
+    $('.score-item').removeClass('active');
+}
+
+// ===== 차트 렌더링 =====
 
 // 지점별 막대 차트
 function renderBranchChart(data) {
@@ -114,22 +180,23 @@ function renderBranchChart(data) {
         },
         plotOptions: {
             bar: {
-                horizontal: true,
+                horizontal: false,
                 borderRadius: 4,
-                dataLabels: { position: 'top' }
+                columnWidth: '60%'
             }
         },
         dataLabels: {
             enabled: true,
-            offsetX: 20,
+            offsetY: -20,
             style: { fontSize: '12px', colors: ['#333'] }
         },
         xaxis: {
             categories: categories,
-            title: { text: '연계 건수' }
+            title: { text: '지점' },
+            labels: { rotate: -45, rotateAlways: false }
         },
         yaxis: {
-            title: { text: '지점' }
+            title: { text: '연계 건수' }
         },
         colors: ['#4361ee'],
         title: {
@@ -237,6 +304,8 @@ function renderCounselorChart(data, branch) {
 function backToBranchView() {
     currentView = 'branch';
     currentBranch = '';
+    currentScoreFilter = null;
+    clearScoreActive();
     $('#drillDownBar').hide();
     loadLinkageData();
 }
