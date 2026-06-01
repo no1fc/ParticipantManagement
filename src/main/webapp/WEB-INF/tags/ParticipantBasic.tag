@@ -46,6 +46,7 @@
                         <option value="자체모집(대학)">자체모집(대학)</option>
                         <option value="자체모집(고교)">자체모집(고교)</option>
                         <option value="자체모집(훈련기관)">자체모집(훈련기관)</option>
+                        <option value="자체모집(당사_희망리턴패키지)">자체모집(당사_희망리턴패키지)</option>
                         <option value="자체모집(기타)">자체모집(기타)</option>
                         <option value="이관">이관</option>
                     </select>
