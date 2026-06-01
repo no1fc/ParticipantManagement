@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.jobmoa.app</groupId>
     <artifactId>JobmoaProject</artifactId>
-    <version>1.6.05-SNAPSHOT</version>
+    <version>1.6.1-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>JobmoaProject</name>
     <description>JobmoaProject</description>

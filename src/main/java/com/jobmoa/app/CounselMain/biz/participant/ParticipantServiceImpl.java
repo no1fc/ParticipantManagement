@@ -117,7 +117,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     // 매일 00시 00분 (오전 12시)에 Spring 스케줄러를 통해 데이터를 확인한다.
     // 확인을 진행할때 일주일이 지난 취소자를 제거 및 백업 데이터로 이전한다.
     @Transactional(rollbackFor = Exception.class)
-    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 02 * * *", zone = "Asia/Seoul")
     public void canselParticipantBackup(){
         log.info("=== 일주일 경과 취소자 백업 및 삭제 배치 시작 ===");
 

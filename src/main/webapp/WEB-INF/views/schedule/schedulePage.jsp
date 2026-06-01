@@ -50,7 +50,7 @@
             crossorigin="anonymous"></script>
 
     <!--begin::Schedule CSS-->
-    <link rel="stylesheet" href="/css/scheduleCss/schedule_0.0.1.css" />
+    <link rel="stylesheet" href="/css/scheduleCss/schedule_0.0.2.css" />
     <!--end::Schedule CSS-->
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
@@ -111,53 +111,79 @@
                 <div class="form-group mb-3">
                     <label class="form-label">시간 <span class="text-danger">*</span></label>
                     <div class="time-select">
-                        <select class="form-control" id="startHour">
-                            <option value="">시</option>
-                            <option value="09">09</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12">12</option>
-                            <option value="13">13</option>
-                            <option value="14">14</option>
-                            <option value="15">15</option>
-                            <option value="16">16</option>
-                            <option value="17">17</option>
-                            <option value="18">18</option>
-                        </select>
+                        <!-- 시작 시 -->
+                        <div class="time-combo" data-type="hour">
+                            <input type="hidden" id="startHour">
+                            <input type="text" class="form-control time-input" id="startHourInput"
+                                   maxlength="2" placeholder="시" inputmode="numeric" autocomplete="off">
+                            <div class="time-dropdown" id="startHourDropdown">
+                                <div class="time-option" data-value="08">08</div>
+                                <div class="time-option" data-value="09">09</div>
+                                <div class="time-option" data-value="10">10</div>
+                                <div class="time-option" data-value="11">11</div>
+                                <div class="time-option" data-value="12">12</div>
+                                <div class="time-option" data-value="13">13</div>
+                                <div class="time-option" data-value="14">14</div>
+                                <div class="time-option" data-value="15">15</div>
+                                <div class="time-option" data-value="16">16</div>
+                                <div class="time-option" data-value="17">17</div>
+                                <div class="time-option" data-value="18">18</div>
+                                <div class="time-option" data-value="19">19</div>
+                                <div class="time-option" data-value="20">20</div>
+                            </div>
+                        </div>
                         <span>:</span>
-                        <select class="form-control" id="startMinute">
-                            <option value="">분</option>
-                            <option value="00">00</option>
-                            <option value="10">10</option>
-                            <option value="20">20</option>
-                            <option value="30">30</option>
-                            <option value="40">40</option>
-                            <option value="50">50</option>
-                        </select>
+                        <!-- 시작 분 -->
+                        <div class="time-combo" data-type="minute">
+                            <input type="hidden" id="startMinute">
+                            <input type="text" class="form-control time-input" id="startMinuteInput"
+                                   maxlength="2" placeholder="분" inputmode="numeric" autocomplete="off">
+                            <div class="time-dropdown" id="startMinuteDropdown">
+                                <div class="time-option" data-value="00">00</div>
+                                <div class="time-option" data-value="10">10</div>
+                                <div class="time-option" data-value="20">20</div>
+                                <div class="time-option" data-value="30">30</div>
+                                <div class="time-option" data-value="40">40</div>
+                                <div class="time-option" data-value="50">50</div>
+                            </div>
+                        </div>
                         <span>~</span>
-                        <select class="form-control" id="endHour">
-                            <option value="">시</option>
-                            <option value="09">09</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12">12</option>
-                            <option value="13">13</option>
-                            <option value="14">14</option>
-                            <option value="15">15</option>
-                            <option value="16">16</option>
-                            <option value="17">17</option>
-                            <option value="18">18</option>
-                        </select>
+                        <!-- 종료 시 -->
+                        <div class="time-combo" data-type="hour">
+                            <input type="hidden" id="endHour">
+                            <input type="text" class="form-control time-input" id="endHourInput"
+                                   maxlength="2" placeholder="시" inputmode="numeric" autocomplete="off">
+                            <div class="time-dropdown" id="endHourDropdown">
+                                <div class="time-option" data-value="08">08</div>
+                                <div class="time-option" data-value="09">09</div>
+                                <div class="time-option" data-value="10">10</div>
+                                <div class="time-option" data-value="11">11</div>
+                                <div class="time-option" data-value="12">12</div>
+                                <div class="time-option" data-value="13">13</div>
+                                <div class="time-option" data-value="14">14</div>
+                                <div class="time-option" data-value="15">15</div>
+                                <div class="time-option" data-value="16">16</div>
+                                <div class="time-option" data-value="17">17</div>
+                                <div class="time-option" data-value="18">18</div>
+                                <div class="time-option" data-value="19">19</div>
+                                <div class="time-option" data-value="20">20</div>
+                            </div>
+                        </div>
                         <span>:</span>
-                        <select class="form-control" id="endMinute">
-                            <option value="">분</option>
-                            <option value="00">00</option>
-                            <option value="10">10</option>
-                            <option value="20">20</option>
-                            <option value="30">30</option>
-                            <option value="40">40</option>
-                            <option value="50">50</option>
-                        </select>
+                        <!-- 종료 분 -->
+                        <div class="time-combo" data-type="minute">
+                            <input type="hidden" id="endMinute">
+                            <input type="text" class="form-control time-input" id="endMinuteInput"
+                                   maxlength="2" placeholder="분" inputmode="numeric" autocomplete="off">
+                            <div class="time-dropdown" id="endMinuteDropdown">
+                                <div class="time-option" data-value="00">00</div>
+                                <div class="time-option" data-value="10">10</div>
+                                <div class="time-option" data-value="20">20</div>
+                                <div class="time-option" data-value="30">30</div>
+                                <div class="time-option" data-value="40">40</div>
+                                <div class="time-option" data-value="50">50</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -328,7 +354,7 @@
 <!--end::FullCalendar JS-->
 
 <!--begin::Schedule JS-->
-<script defer src="/js/schedule_0.0.2.js"></script>
+<script defer src="/js/schedule_0.0.3.js"></script>
 <!--end::Schedule JS-->
 
 </html>
