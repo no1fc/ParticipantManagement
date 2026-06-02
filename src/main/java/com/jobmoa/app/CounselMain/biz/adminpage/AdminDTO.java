@@ -233,4 +233,13 @@ public class AdminDTO {
 
     // Excel 빌더 - 컬럼 선택 파라미터
     private String excelColumns;
+
+    // 운영 현황 대시보드
+    private int assignedCount;          // 배정인원
+    private int selfRecruitCount;       // 자체모집인원수
+    private int activeParticipantCount; // 참여자수
+    private int canceledCount;          // 취소인원
+    private double counselorWeighted;   // 상담사수 (가중평균)
+    private double counselorLoad;       // 상담사 1명당 초기상담 인원
+    private String searchYear;          // 조회 연도
 }

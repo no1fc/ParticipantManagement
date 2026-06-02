@@ -1152,4 +1152,101 @@
         ORDER BY linkageCount DESC
     </select>
 
+    <!-- ===== 운영 현황 대시보드 (지점별 당해년도) ===== -->
+    <select id="selectManagementDashboardData" resultType="admin">
+        SET ANSI_WARNINGS OFF;
+        SET ARITHIGNORE ON;
+        SET ARITHABORT OFF;
+
+        WITH 배정 AS (
+            SELECT 지점, COUNT(*) AS 배정인원
+            FROM J_참여자관리
+            WHERE YEAR(IIF((초기상담일 = '1900-01-01' OR 초기상담일 IS NULL), 등록일, ISNULL(초기상담일, ''))) = #{searchYear}
+              AND 모집경로 <![CDATA[<>]]> '이관'
+              AND 진행단계 <![CDATA[<>]]> '취소'
+            GROUP BY 지점
+        ),
+        자체모집 AS (
+            SELECT 지점, COUNT(*) AS 자체모집인원
+            FROM J_참여자관리
+            WHERE YEAR(IIF((초기상담일 = '1900-01-01' OR 초기상담일 IS NULL), 등록일, ISNULL(초기상담일, ''))) = #{searchYear}
+              AND 참여유형 = '1'
+              AND 모집경로 <![CDATA[<>]]> '이관'
+              AND 진행단계 <![CDATA[<>]]> '취소'
+            GROUP BY 지점
+        ),
+        참여자 AS (
+            SELECT 지점, COUNT(*) AS 참여자수
+            FROM J_참여자관리
+            WHERE YEAR(IIF((초기상담일 = '1900-01-01' OR 초기상담일 IS NULL), 등록일, ISNULL(초기상담일, ''))) = #{searchYear}
+              AND 마감 = 'false'
+              AND 진행단계 NOT IN ('취소', '이관')
+            GROUP BY 지점
+        ),
+        취소_원본 AS (
+            SELECT 구직번호, 지점
+            FROM J_참여자관리
+            WHERE YEAR(IIF((초기상담일 = '1900-01-01' OR 초기상담일 IS NULL), 등록일, ISNULL(초기상담일, ''))) = #{searchYear}
+              AND 진행단계 = '취소'
+        ),
+        취소_백업 AS (
+            SELECT 구직번호, 지점
+            FROM J_참여자관리_취소자백업
+            WHERE YEAR(ISNULL(참여자_등록일, 취소자백업_등록일)) = #{searchYear}
+        ),
+        취소_통합 AS (
+            SELECT DISTINCT 구직번호, 지점 FROM 취소_원본
+            UNION
+            SELECT DISTINCT 구직번호, 지점 FROM 취소_백업
+        ),
+        취소 AS (
+            SELECT 지점, COUNT(*) AS 취소인원
+            FROM 취소_통합
+            GROUP BY 지점
+        ),
+        상담사 AS (
+            SELECT 지점,
+                SUM(
+                    CASE
+                        WHEN 입사일 IS NULL OR 입사일 = '' THEN 0
+                        ELSE
+                            CAST(
+                                DATEDIFF(MONTH,
+                                    IIF(YEAR(입사일) <![CDATA[<]]> CAST(#{searchYear} AS INT), DATEFROMPARTS(CAST(#{searchYear} AS INT), 1, 1), 입사일),
+                                    IIF(퇴사일 IS NOT NULL AND 퇴사일 <![CDATA[<>]]> '' AND YEAR(퇴사일) = CAST(#{searchYear} AS INT), 퇴사일,
+                                        IIF(YEAR(입사일) <![CDATA[>]]> CAST(#{searchYear} AS INT), 입사일,
+                                            DATEFROMPARTS(CAST(#{searchYear} AS INT), 12, 31)))
+                                ) AS FLOAT) / 12.0
+                    END
+                ) AS 상담사수
+            FROM J_참여자관리_로그인정보
+            WHERE 아이디사용여부 NOT IN ('승인대기', '잠금', '정지', '퇴사', '사용대기')
+              AND (YEAR(입사일) <![CDATA[<=]]> CAST(#{searchYear} AS INT))
+              AND (퇴사일 IS NULL OR 퇴사일 = '' OR YEAR(퇴사일) <![CDATA[>=]]> CAST(#{searchYear} AS INT))
+            GROUP BY 지점
+        )
+        SELECT
+            B.지점 AS branchName,
+            ISNULL(배정.배정인원, 0) AS assignedCount,
+            ISNULL(자체모집.자체모집인원, 0) AS selfRecruitCount,
+            ISNULL(참여자.참여자수, 0) AS activeParticipantCount,
+            ISNULL(취소.취소인원, 0) AS canceledCount,
+            ROUND(ISNULL(상담사.상담사수, 0), 2) AS counselorWeighted,
+            IIF(ISNULL(상담사.상담사수, 0) = 0, 0,
+                ROUND(CAST(ISNULL(참여자.참여자수, 0) AS FLOAT) / 상담사.상담사수, 1)
+            ) AS counselorLoad
+        FROM J_참여자관리_지점 B
+        LEFT JOIN 배정 ON B.지점 = 배정.지점
+        LEFT JOIN 자체모집 ON B.지점 = 자체모집.지점
+        LEFT JOIN 참여자 ON B.지점 = 참여자.지점
+        LEFT JOIN 취소 ON B.지점 = 취소.지점
+        LEFT JOIN 상담사 ON B.지점 = 상담사.지점
+        WHERE B.사용여부 = '사용'
+          AND B.지점 <![CDATA[<>]]> '테스트'
+        <if test="searchBranch != null and searchBranch != ''">
+            AND B.지점 = #{searchBranch}
+        </if>
+        ORDER BY B.순서 ASC
+    </select>
+
 </mapper>

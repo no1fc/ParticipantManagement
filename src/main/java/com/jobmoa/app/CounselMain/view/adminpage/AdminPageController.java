@@ -14,7 +14,7 @@ public class AdminPageController {
     @GetMapping
     public String adminDashboard(HttpSession session) {
         if (!AdminAccessSupport.hasAdminAccess(session)) return "redirect:/";
-        return "admin/adminTotalDashboard";
+        return "admin/adminManagementDashboard";
     }
 
     @GetMapping("/users")
@@ -82,4 +82,5 @@ public class AdminPageController {
         if (!AdminAccessSupport.hasAdminAccess(session)) return "redirect:/";
         return "admin/adminLinkageStats";
     }
+
 }

@@ -332,4 +332,10 @@ public class AdminDAO {
         log.info("AdminDAO selectLinkageStatsByType");
         return sqlSession.selectList(ns + "selectLinkageStatsByType", dto);
     }
+
+    // ===== 운영 현황 대시보드 =====
+    public List<AdminDTO> selectManagementDashboardData(AdminDTO dto) {
+        log.info("AdminDAO selectManagementDashboardData year={}", dto.getSearchYear());
+        return sqlSession.selectList(ns + "selectManagementDashboardData", dto);
+    }
 }

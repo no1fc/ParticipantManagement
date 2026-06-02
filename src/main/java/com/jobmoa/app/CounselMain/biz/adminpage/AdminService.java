@@ -99,4 +99,7 @@ public interface AdminService {
     Map<String, Object> getLinkageStats(AdminDTO dto);
     List<AdminDTO> getLinkageByCounselor(AdminDTO dto);
     List<AdminDTO> getLinkageByType(AdminDTO dto);
+
+    // 운영 현황 대시보드
+    List<AdminDTO> getManagementDashboardData(AdminDTO dto);
 }

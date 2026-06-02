@@ -1,0 +1,166 @@
+/**
+ * 지점별 당해년도 운영 현황 대시보드 스타일
+ * adminManagementDashboard_0.0.1.css
+ * 2026-06-02
+ */
+
+/* ===== KPI 카드 ===== */
+.mgmt-kpi-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mgmt-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+}
+
+.mgmt-kpi-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.mgmt-kpi-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #1e293b;
+    line-height: 1.2;
+    margin-top: 0.25rem;
+}
+
+.mgmt-kpi-sub {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    margin-top: 0.5rem;
+}
+
+/* KPI 카드 색상 변형 */
+.mgmt-kpi-card.accent-indigo {
+    border-left: 4px solid #4f46e5;
+}
+.mgmt-kpi-card.accent-indigo .mgmt-kpi-value {
+    color: #4f46e5;
+}
+
+.mgmt-kpi-card.accent-emerald {
+    border-left: 4px solid #10b981;
+}
+.mgmt-kpi-card.accent-emerald .mgmt-kpi-value {
+    color: #10b981;
+}
+
+.mgmt-kpi-card.accent-rose {
+    border-left: 4px solid #f43f5e;
+}
+.mgmt-kpi-card.accent-rose .mgmt-kpi-value {
+    color: #f43f5e;
+}
+
+.mgmt-kpi-card.accent-amber {
+    border-left: 4px solid #f59e0b;
+}
+.mgmt-kpi-card.accent-amber .mgmt-kpi-value {
+    color: #f59e0b;
+}
+
+/* ===== 테이블 ===== */
+.mgmt-title-bar {
+    display: inline-block;
+    width: 4px;
+    height: 20px;
+    background: #4f46e5;
+    border-radius: 2px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.mgmt-th-sortable {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #475569;
+    transition: background-color 0.15s;
+}
+
+.mgmt-th-sortable:hover {
+    background-color: #e2e8f0 !important;
+}
+
+.mgmt-th-highlight {
+    background-color: rgba(79, 70, 229, 0.05) !important;
+    color: #312e81 !important;
+}
+
+.mgmt-td-highlight {
+    background-color: rgba(79, 70, 229, 0.04);
+}
+
+.mgmt-table-footer {
+    background-color: rgba(79, 70, 229, 0.06) !important;
+    border-top: 2px solid #cbd5e1 !important;
+}
+
+.mgmt-table-footer td {
+    font-weight: 700 !important;
+    color: #1e293b;
+}
+
+/* ===== 지점 필터 버튼 ===== */
+.mgmt-branch-btn {
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+    transition: all 0.15s;
+}
+
+/* ===== 차트 컨테이너 ===== */
+#mgmtChart1,
+#mgmtChart2 {
+    width: 100%;
+    overflow: visible;
+}
+
+/* ===== 차트 안내 박스 ===== */
+.mgmt-chart-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+}
+
+.mgmt-chart-notice i {
+    font-size: 1.1rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+/* ===== 반응형 ===== */
+@media (max-width: 768px) {
+    .mgmt-kpi-value {
+        font-size: 1.35rem;
+    }
+
+    .mgmt-th-sortable {
+        font-size: 0.7rem;
+    }
+
+    #mgmtTable td, #mgmtTable th {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+}

@@ -627,4 +627,100 @@ public class AdminApiController {
         AdminAccessSupport.enforceBranchScope(session, dto);
         return ResponseEntity.ok(adminService.getLinkageByType(dto));
     }
+
+    // ===== 운영 현황 대시보드 =====
+    @GetMapping("/management-dashboard")
+    public ResponseEntity<?> getManagementDashboardData(AdminDTO dto, HttpSession session) {
+        log.info("GET /admin/api/management-dashboard year={}", dto.getSearchYear());
+        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
+        if (denied != null) return denied;
+        AdminAccessSupport.enforceBranchScope(session, dto);
+        return ResponseEntity.ok(adminService.getManagementDashboardData(dto));
+    }
+
+    @GetMapping("/management-dashboard/excel")
+    public void downloadManagementDashboardExcel(AdminDTO dto, HttpSession session, jakarta.servlet.http.HttpServletResponse response) {
+        log.info("GET /admin/api/management-dashboard/excel year={}", dto.getSearchYear());
+        if (!AdminAccessSupport.hasAdminAccess(session)) {
+            response.setStatus(403);
+            return;
+        }
+        AdminAccessSupport.enforceBranchScope(session, dto);
+        List<AdminDTO> dataList = adminService.getManagementDashboardData(dto);
+
+        try {
+            String year = dto.getSearchYear() != null ? dto.getSearchYear() : String.valueOf(java.time.Year.now().getValue());
+            String fileName = java.net.URLEncoder.encode("지점별_운영현황_" + year + "년.xlsx", java.nio.charset.StandardCharsets.UTF_8);
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+
+            org.apache.poi.xssf.usermodel.XSSFWorkbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook();
+            org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("운영현황");
+
+            // 헤더 스타일
+            org.apache.poi.ss.usermodel.CellStyle headerStyle = workbook.createCellStyle();
+            org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            headerStyle.setAlignment(org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER);
+
+            // 헤더 행
+            String[] headers = {"지점명", "배정인원", "자체모집인원수", "참여자수", "취소인원", "상담사수", "상담사 1명당 초기상담 인원"};
+            org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < headers.length; i++) {
+                org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // 데이터 행
+            int totalAssigned = 0, totalSelfRecruit = 0, totalActive = 0, totalCanceled = 0;
+            double totalCounselor = 0;
+            int rowNum = 1;
+            for (AdminDTO item : dataList) {
+                org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(item.getBranchName());
+                row.createCell(1).setCellValue(item.getAssignedCount());
+                row.createCell(2).setCellValue(item.getSelfRecruitCount());
+                row.createCell(3).setCellValue(item.getActiveParticipantCount());
+                row.createCell(4).setCellValue(item.getCanceledCount());
+                row.createCell(5).setCellValue(item.getCounselorWeighted());
+                row.createCell(6).setCellValue(item.getCounselorLoad());
+
+                totalAssigned += item.getAssignedCount();
+                totalSelfRecruit += item.getSelfRecruitCount();
+                totalActive += item.getActiveParticipantCount();
+                totalCanceled += item.getCanceledCount();
+                totalCounselor += item.getCounselorWeighted();
+            }
+
+            // 합계 행
+            org.apache.poi.ss.usermodel.Row totalRow = sheet.createRow(rowNum);
+            org.apache.poi.ss.usermodel.CellStyle totalStyle = workbook.createCellStyle();
+            org.apache.poi.ss.usermodel.Font totalFont = workbook.createFont();
+            totalFont.setBold(true);
+            totalStyle.setFont(totalFont);
+
+            org.apache.poi.ss.usermodel.Cell totalLabelCell = totalRow.createCell(0);
+            totalLabelCell.setCellValue("전체 합계");
+            totalLabelCell.setCellStyle(totalStyle);
+            totalRow.createCell(1).setCellValue(totalAssigned);
+            totalRow.createCell(2).setCellValue(totalSelfRecruit);
+            totalRow.createCell(3).setCellValue(totalActive);
+            totalRow.createCell(4).setCellValue(totalCanceled);
+            totalRow.createCell(5).setCellValue(Math.round(totalCounselor * 100.0) / 100.0);
+            totalRow.createCell(6).setCellValue(totalCounselor > 0 ? Math.round((totalActive / totalCounselor) * 10.0) / 10.0 : 0);
+
+            // 컬럼 너비 자동 조정
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            workbook.write(response.getOutputStream());
+            workbook.close();
+        } catch (Exception e) {
+            log.error("운영 현황 엑셀 다운로드 실패", e);
+            response.setStatus(500);
+        }
+    }
 }

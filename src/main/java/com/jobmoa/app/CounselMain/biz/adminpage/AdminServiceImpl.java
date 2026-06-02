@@ -345,4 +345,13 @@ public class AdminServiceImpl implements AdminService {
     public List<AdminDTO> getLinkageByType(AdminDTO dto) {
         return adminDAO.selectLinkageStatsByType(dto);
     }
+
+    // ===== 운영 현황 대시보드 =====
+    @Override
+    public List<AdminDTO> getManagementDashboardData(AdminDTO dto) {
+        if (dto.getSearchYear() == null || dto.getSearchYear().isEmpty()) {
+            dto.setSearchYear(String.valueOf(java.time.Year.now().getValue()));
+        }
+        return adminDAO.selectManagementDashboardData(dto);
+    }
 }
