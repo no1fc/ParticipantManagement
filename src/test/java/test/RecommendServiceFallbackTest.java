@@ -1,5 +1,6 @@
-package com.jobmoa.app.CounselMain.biz.recommend;
+package test;
 
+import com.jobmoa.app.CounselMain.biz.recommend.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -41,12 +42,9 @@ class RecommendServiceFallbackTest {
                     participant, List.of(cat), Collections.emptyList());
 
             assertNotNull(result);
-            // 추천키워드가 먼저 들어감
             assertTrue(result.getKeywords().contains("웹개발"));
             assertTrue(result.getKeywords().contains("프론트엔드"));
-            // 희망직무도 포함
             assertTrue(result.getKeywords().contains("프로그래머"));
-            // 중분류도 포함
             assertTrue(result.getKeywords().contains("소프트웨어개발"));
         }
 
@@ -200,7 +198,6 @@ class RecommendServiceFallbackTest {
         }
     }
 
-    // 헬퍼 메서드
     private RecommendParticipantDTO createParticipant(String address) {
         RecommendParticipantDTO p = new RecommendParticipantDTO();
         p.setJobSeekerNo(12345);

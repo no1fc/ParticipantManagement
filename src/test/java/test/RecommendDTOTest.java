@@ -1,6 +1,7 @@
-package com.jobmoa.app.CounselMain.biz.recommend;
+package test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jobmoa.app.CounselMain.biz.recommend.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -111,7 +112,6 @@ class RecommendDTOTest {
             assertEquals("K151012025050002", dto.getBestGujinNo());
             assertEquals(3, dto.getScores().size());
 
-            // 최고점 후보 검증
             RecommendationScoreDTO best = dto.getScores().get(0);
             assertEquals("K151012025050002", best.getCertNo());
             assertEquals(92, best.getScore());

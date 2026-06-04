@@ -442,7 +442,7 @@ public class GeminiApiService {
     }
 
     // Gemini API 응답에서 JSON 추출 메서드 (Structured Output 미적용 시 안전장치)
-    String extractJsonFromResponse(String text) {
+    public String extractJsonFromResponse(String text) {
         if (text.contains("```json")) {
             text = text.substring(text.indexOf("```json") + 7);
             text = text.substring(0, text.lastIndexOf("```")).trim();
@@ -454,7 +454,7 @@ public class GeminiApiService {
     }
 
     // Gemini API 응답에서 JSON 추출 및 파싱 메서드
-    SearchConditionDTO parseSearchConditionResponse(String responseText) {
+    public SearchConditionDTO parseSearchConditionResponse(String responseText) {
         try {
             return objectMapper.readValue(extractJsonFromResponse(responseText), SearchConditionDTO.class);
         } catch (Exception e) {
@@ -466,7 +466,7 @@ public class GeminiApiService {
     }
 
     // 후보군 + 알선상세정보 전달로 최적 채용정보 선별 응답 파싱 메서드
-    BestSelectionResultDTO parseBestSelectionResponse(String responseText) {
+    public BestSelectionResultDTO parseBestSelectionResponse(String responseText) {
         try {
             return objectMapper.readValue(extractJsonFromResponse(responseText), BestSelectionResultDTO.class);
         } catch (Exception e) {

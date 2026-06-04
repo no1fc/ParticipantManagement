@@ -1,13 +1,13 @@
-package com.jobmoa.app.CounselMain.biz.recommend;
+package test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jobmoa.app.CounselMain.biz.recommend.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 

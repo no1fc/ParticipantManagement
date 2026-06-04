@@ -410,7 +410,7 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
     /**
      * AI 검색조건 생성 실패 시 참여자 데이터에서 직접 키워드를 추출하여 검색 조건을 구성한다.
      */
-    SearchConditionDTO buildFallbackSearchCondition(
+    public SearchConditionDTO buildFallbackSearchCondition(
             RecommendParticipantDTO participant,
             List<RecommendCategoryDTO> categoryList,
             List<String> certificates) {
