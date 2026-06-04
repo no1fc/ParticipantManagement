@@ -12,7 +12,10 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * JOB_POSTING 테이블 MyBatis DAO
+ * 채용공고(JOB_POSTING) 데이터 접근 객체.
+ * <p>채용공고 검색 조회, 스케줄러 동기화(UPSERT/비활성화/삭제),
+ * 상세정보 수집(Phase 2) 등 채용공고 전반의 SQL 매핑을 담당한다.</p>
+ * <p>MyBatis 매퍼 네임스페이스 "RecruitmentDAO." 를 사용한다.</p>
  */
 @Slf4j
 @Repository
@@ -82,7 +85,9 @@ public class RecruitmentDAO {
     }
 
     /**
-     * 리스트 전체 UPSERT (스케줄러 배치 저장)
+     * 채용공고 리스트 전체를 배치 UPSERT한다. (스케줄러 배치 저장)
+     *
+     * @param list UPSERT 대상 채용공고 목록
      */
     public void upsertBatch(List<RecruitmentPostingDTO> list) {
         for (RecruitmentPostingDTO dto : list) {
