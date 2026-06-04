@@ -175,6 +175,18 @@ public class ParticipantJobRecommendDAO {
     }
 
     /**
+     * 후보군 0건 시 완화된 조건으로 채용정보 후보군을 재검색한다.
+     * 지역 필터 제거, 키워드 상위 2개 + 직종코드만 사용.
+     *
+     * @param searchCondition AI가 생성한 검색 조건
+     * @return 채용정보 후보군 목록
+     */
+    public List<JobCandidateDTO> selectJobInfoCandidatesFallback(SearchConditionDTO searchCondition) {
+        log.debug("Fetching job info candidates (fallback) for search condition: {}", searchCondition);
+        return sqlSession.selectList(ns + "selectJobInfoCandidatesFallback", searchCondition);
+    }
+
+    /**
      * 상담일지 복사용 채용공고 상세 정보를 단건 조회한다.
      *
      * @param wantedAuthNo 구인인증번호

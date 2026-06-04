@@ -237,10 +237,17 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
 
         // 5. 채용정보 후보군 조회 (maxCount 필수 포함)
         searchCondition.setMaxCount(maxCandidates);
-        log.info("[추천저장] Gemini 검색조건 생성 jobSeekerNo={}, searchCondition={}", jobSeekerNo, searchCondition);
+        log.info("[추천저장] 검색조건 적용 jobSeekerNo={}, searchCondition={}", jobSeekerNo, searchCondition);
         List<JobCandidateDTO> candidates =
             participantJobRecommendDAO.selectJobInfoCandidates(searchCondition);
         log.debug("[추천저장] 후보군 {}건 조회 jobSeekerNo={}", candidates.size(), jobSeekerNo);
+
+        // 5-1. 후보군 0건 시 완화 재검색 (지역 필터 제거, 키워드 상위 2개만)
+        if (candidates.isEmpty()) {
+            log.info("[추천저장] 후보군 0건, 완화 재검색 실행 jobSeekerNo={}", jobSeekerNo);
+            candidates = participantJobRecommendDAO.selectJobInfoCandidatesFallback(searchCondition);
+            log.debug("[추천저장] 완화 재검색 후보군 {}건 jobSeekerNo={}", candidates.size(), jobSeekerNo);
+        }
 
         if (candidates.isEmpty()) {
             result.setSuccess(true);
