@@ -79,11 +79,7 @@
                                     <h3 class="fw-bold text-brand mb-1">
                                         <i class="bi bi-building"></i> 지점별 당해년도 운영 현황
                                     </h3>
-                                    <p class="text-muted mb-0">14개 지점의 운영 데이터를 통합 조회합니다.</p>
                                 </div>
-                                <span class="badge bg-success-subtle text-success fw-semibold px-3 py-2">
-                                    <i class="bi bi-check-circle me-1"></i>개발-SQM 최종 합의 규격
-                                </span>
                             </div>
                         </div>
                     </div>
@@ -106,7 +102,7 @@
                         </div>
                         <div class="col-auto d-flex gap-2">
                             <button class="btn btn-light" onclick="loadDashboardData()" title="데이터 새로고침">
-                                <i class="bi bi-arrow-clockwise"></i> 새로고침스택형
+                                <i class="bi bi-arrow-clockwise"></i> 새로고침
                             </button>
                             <button class="btn btn-success" onclick="downloadExcel()">
                                 <i class="bi bi-download"></i> 엑셀 다운로드
