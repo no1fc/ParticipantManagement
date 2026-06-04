@@ -1,3 +1,8 @@
+<%--
+  ParticipantCounsel.tag - 참여자 상담정보 입력 폼 태그
+  최근상담일, 진행단계, 취업역량 등 상담 관련 정보를 입력하는 6컬럼 테이블 폼을 렌더링한다.
+  CounselDTO를 속성으로 받아 수정 시 기존 데이터를 표시하며, 참여자 등록/수정 페이지에서 사용된다.
+--%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ tag language="java" pageEncoding="UTF-8" %>
 <%@ attribute name="counsel" type="com.jobmoa.app.CounselMain.biz.participantCounsel.CounselDTO" %>

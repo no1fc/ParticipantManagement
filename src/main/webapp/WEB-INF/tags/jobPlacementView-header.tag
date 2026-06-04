@@ -1,3 +1,8 @@
+<%--
+  jobPlacementView-header.tag - 알선 관리 페이지 헤더 태그
+  알선(잡플레이스먼트) 모듈 페이지 상단에 표시되는 헤더를 렌더링한다.
+  Jobmoa 로고 이미지와 '(주)잡모아 청년잡스케어' 시스템 타이틀을 포함한다.
+--%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ tag language="java" pageEncoding="UTF-8" %>
 <!-- Header -->

@@ -1,3 +1,8 @@
+<%--
+  ParticipantBasic.tag - 참여자 기본정보 입력 폼 태그
+  참여자명, 생년월일, 성별, 모집경로 등 기본정보를 입력하는 8컬럼 테이블 폼을 렌더링한다.
+  BasicDTO를 속성으로 받아 수정 시 기존 데이터를 표시하며, 참여자 등록/수정 페이지에서 사용된다.
+--%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ tag language="java" pageEncoding="UTF-8" %>
 <%@ attribute name="basic" type="com.jobmoa.app.CounselMain.biz.participantBasic.BasicDTO" %>

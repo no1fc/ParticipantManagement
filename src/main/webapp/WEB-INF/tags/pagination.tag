@@ -1,3 +1,8 @@
+<%--
+  pagination.tag - 페이지네이션 UI 컴포넌트 태그
+  목록 페이지 하단에 표시되는 페이지 번호 네비게이션을 렌더링한다. 현재 페이지, 시작/끝 버튼 번호,
+  전체 페이지 수를 속성으로 받아 이전/다음/페이지 번호 링크를 생성한다.
+--%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ tag language="java" pageEncoding="UTF-8" %>
 <%@ attribute name="page"%>

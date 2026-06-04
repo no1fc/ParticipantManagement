@@ -1,3 +1,8 @@
+<%--
+  ParticipantEmployment.tag - 참여자 취창업정보 입력 폼 태그
+  취창업일, 취창업처리일 등 취업/창업 관련 정보를 입력하는 4컬럼 테이블 폼을 렌더링한다.
+  EmploymentDTO를 속성으로 받아 수정 시 기존 데이터를 표시하며, 참여자 등록/수정 페이지에서 사용된다.
+--%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ tag language="java" pageEncoding="UTF-8" %>
 <%@ attribute name="employment" type="com.jobmoa.app.CounselMain.biz.participantEmployment.EmploymentDTO" %>

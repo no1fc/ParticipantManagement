@@ -1,3 +1,8 @@
+<%--
+  samplePageMain.tag - 샘플 메인 페이지 레이아웃 태그
+  신규 페이지 개발 시 참고용으로 사용되는 샘플 레이아웃을 렌더링한다.
+  콘텐츠 헤더명을 속성으로 받아 AdminLTE 기반의 기본 테이블 레이아웃 구조를 제공한다.
+--%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ tag language="java" pageEncoding="UTF-8" %>
 <%@ attribute name="content_header_name" %>

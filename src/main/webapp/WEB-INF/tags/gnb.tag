@@ -1,3 +1,8 @@
+<%--
+  gnb.tag - 참여자 화면 글로벌 네비게이션 바(GNB) 태그
+  참여자(상담사) 페이지 상단에 표시되는 헤더 네비게이션을 렌더링한다. 메인/서브/서브메뉴 헤더 텍스트를
+  속성으로 받아 브레드크럼 형태로 표시하며, WebSocket(SockJS+STOMP) 기반 실시간 알림 기능을 포함한다.
+--%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ tag language="java" pageEncoding="UTF-8" %>
 <%@ attribute name="gnb_main_header"%>

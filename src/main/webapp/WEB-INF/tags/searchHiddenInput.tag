@@ -1,3 +1,8 @@
+<%--
+  searchHiddenInput.tag - 검색 조건 hidden input 태그
+  참여자 상세/수정 페이지에서 폼 제출 시 현재 검색 조건(페이지 번호, 검색어, 정렬, 필터 등)을
+  hidden input으로 유지하여, 수정 완료 후 이전 목록 페이지로 동일한 검색 상태로 복귀할 수 있게 한다.
+--%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ tag language="java" pageEncoding="UTF-8" %>
 
