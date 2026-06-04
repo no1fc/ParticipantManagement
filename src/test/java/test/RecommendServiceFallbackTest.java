@@ -32,7 +32,7 @@ class RecommendServiceFallbackTest {
         @Test
         @DisplayName("추천키워드가 최우선 반영됨")
         void recommendedKeywordsFirst() {
-            RecommendParticipantDTO participant = createParticipant("서울,강남구");
+            RecommendParticipantDTO participant = createParticipant("서울 강남구 테헤란로 123");
             RecommendCategoryDTO cat = new RecommendCategoryDTO();
             cat.setRecommendedKeywords("웹개발, 프론트엔드");
             cat.setInfoJob("프로그래머");
@@ -51,7 +51,7 @@ class RecommendServiceFallbackTest {
         @Test
         @DisplayName("자격증명이 키워드에 포함됨")
         void certificatesIncluded() {
-            RecommendParticipantDTO participant = createParticipant("서울,강남구");
+            RecommendParticipantDTO participant = createParticipant("서울 강남구 테헤란로 123");
             RecommendCategoryDTO cat = new RecommendCategoryDTO();
             cat.setInfoJob("IT엔지니어");
 
@@ -67,7 +67,7 @@ class RecommendServiceFallbackTest {
         @Test
         @DisplayName("중복 키워드 제거")
         void duplicateKeywordsRemoved() {
-            RecommendParticipantDTO participant = createParticipant("서울,강남구");
+            RecommendParticipantDTO participant = createParticipant("서울 강남구 테헤란로 123");
             RecommendCategoryDTO cat = new RecommendCategoryDTO();
             cat.setRecommendedKeywords("웹개발");
             cat.setInfoJob("웹개발");
@@ -95,13 +95,13 @@ class RecommendServiceFallbackTest {
     }
 
     @Nested
-    @DisplayName("buildFallbackSearchCondition - 지역 파싱")
+    @DisplayName("buildFallbackSearchCondition - 지역 파싱 (실제 DB 주소 형식)")
     class AddressParsingTests {
 
         @Test
-        @DisplayName("쉼표 구분 주소 파싱: 서울,강남구")
-        void parseCommaAddress() {
-            RecommendParticipantDTO participant = createParticipant("서울,강남구");
+        @DisplayName("도로명 주소 파싱: 서울 강남구 테헤란로 123 (역삼동)")
+        void parseRoadAddress() {
+            RecommendParticipantDTO participant = createParticipant("서울 강남구 테헤란로 123 (역삼동)");
 
             SearchConditionDTO result = service.buildFallbackSearchCondition(
                     participant, null, null);
@@ -109,12 +109,15 @@ class RecommendServiceFallbackTest {
             assertTrue(result.getIsAddress());
             assertTrue(result.getLargescaleUnits().contains("서울"));
             assertTrue(result.getLocalUnits().contains("강남구"));
+            // 도로명, 번지, 동 등은 포함되지 않아야 함
+            assertFalse(result.getLargescaleUnits().contains("테헤란로"));
+            assertFalse(result.getLargescaleUnits().contains("123"));
         }
 
         @Test
-        @DisplayName("공백 구분 주소 파싱: 경기 수원시")
-        void parseSpaceAddress() {
-            RecommendParticipantDTO participant = createParticipant("경기 수원시");
+        @DisplayName("지번 주소 파싱: 경기 수원시 팔달구 인계동 123-4")
+        void parseJibunAddress() {
+            RecommendParticipantDTO participant = createParticipant("경기 수원시 팔달구 인계동 123-4");
 
             SearchConditionDTO result = service.buildFallbackSearchCondition(
                     participant, null, null);
@@ -125,14 +128,55 @@ class RecommendServiceFallbackTest {
         }
 
         @Test
-        @DisplayName("'군' 단위 지역 파싱")
-        void parseGunUnit() {
-            RecommendParticipantDTO participant = createParticipant("강원,횡성군");
+        @DisplayName("정식 명칭 주소 파싱: 서울특별시 → 서울")
+        void parseFullProvinceName() {
+            RecommendParticipantDTO participant = createParticipant("서울특별시 서초구 반포대로 123");
 
             SearchConditionDTO result = service.buildFallbackSearchCondition(
                     participant, null, null);
 
+            assertTrue(result.getIsAddress());
+            assertTrue(result.getLargescaleUnits().contains("서울"));
+            assertTrue(result.getLocalUnits().contains("서초구"));
+        }
+
+        @Test
+        @DisplayName("광역시 파싱: 부산광역시 해운대구")
+        void parseMetropolitanCity() {
+            RecommendParticipantDTO participant = createParticipant("부산광역시 해운대구 우동 123");
+
+            SearchConditionDTO result = service.buildFallbackSearchCondition(
+                    participant, null, null);
+
+            assertTrue(result.getIsAddress());
+            assertTrue(result.getLargescaleUnits().contains("부산"));
+            assertTrue(result.getLocalUnits().contains("해운대구"));
+        }
+
+        @Test
+        @DisplayName("'군' 단위 지역 파싱: 강원 횡성군")
+        void parseGunUnit() {
+            RecommendParticipantDTO participant = createParticipant("강원 횡성군 횡성읍 읍상리 12");
+
+            SearchConditionDTO result = service.buildFallbackSearchCondition(
+                    participant, null, null);
+
+            assertTrue(result.getLargescaleUnits().contains("강원"));
             assertTrue(result.getLocalUnits().contains("횡성군"));
+        }
+
+        @Test
+        @DisplayName("세종(기초자치단체 없음): 세종특별자치시 조치원읍")
+        void parseSejong() {
+            RecommendParticipantDTO participant = createParticipant("세종특별자치시 조치원읍 신안리 1");
+
+            SearchConditionDTO result = service.buildFallbackSearchCondition(
+                    participant, null, null);
+
+            assertTrue(result.getIsAddress());
+            assertTrue(result.getLargescaleUnits().contains("세종"));
+            // 조치원읍은 구/시/군으로 끝나지 않으므로 localUnits에 미포함
+            assertTrue(result.getLocalUnits().isEmpty());
         }
 
         @Test
@@ -165,7 +209,7 @@ class RecommendServiceFallbackTest {
         @Test
         @DisplayName("전체 데이터 통합: 추천키워드 + 희망직무 + 자격증 + 주소")
         void fullDataCombination() {
-            RecommendParticipantDTO participant = createParticipant("서울,서초구");
+            RecommendParticipantDTO participant = createParticipant("서울 서초구 반포대로 58 (서초동)");
 
             RecommendCategoryDTO cat1 = new RecommendCategoryDTO();
             cat1.setRecommendedKeywords("React, TypeScript");

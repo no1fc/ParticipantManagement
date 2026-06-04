@@ -464,24 +464,42 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
 
         fallback.setKeywords(keywords);
 
-        // 주소에서 지역 단위 직접 파싱 (쉼표 구분: "서울,강남구")
+        // 주소에서 광역/기초 자치단위 추출
+        // DB 저장 형식: 카카오 주소 API 전체 주소 (예: "서울 강남구 테헤란로 123 (역삼동)")
+        // 첫 번째 단어 = 광역자치단위 (서울, 경기, 인천 등)
+        // 두 번째 단어 = 기초자치단위 (강남구, 수원시, 횡성군 등) — 구/시/군으로 끝나는 경우만
         String address = participant.getInfoAddress();
         if (address != null && !address.trim().isEmpty()) {
-            fallback.setIsAddress(true);
-            String[] addrParts = address.split("[,\\s]+");
+            String cleaned = address.replaceAll("\\(.*?\\)", "").trim(); // 괄호 내용 제거
+            String[] addrParts = cleaned.split("\\s+");
             List<String> largescale = new ArrayList<>();
             List<String> local = new ArrayList<>();
-            for (String part : addrParts) {
-                String trimmed = part.trim();
-                if (trimmed.isEmpty()) continue;
-                if (trimmed.endsWith("구") || trimmed.endsWith("시") || trimmed.endsWith("군")) {
-                    local.add(trimmed);
-                } else {
-                    largescale.add(trimmed);
+
+            // 1단어: 광역자치단위 (시/도 접미사 제거)
+            if (addrParts.length >= 1) {
+                String first = addrParts[0].trim();
+                if (!first.isEmpty()) {
+                    // "서울특별시" → "서울", "경기도" → "경기" 등 접미사 제거
+                    first = first.replaceAll("(특별시|광역시|특별자치시|특별자치도|도)$", "");
+                    if (!first.isEmpty()) {
+                        largescale.add(first);
+                    }
                 }
             }
-            fallback.setLargescaleUnits(largescale);
-            fallback.setLocalUnits(local);
+
+            // 2단어: 기초자치단위 (구/시/군으로 끝나는 경우만)
+            if (addrParts.length >= 2) {
+                String second = addrParts[1].trim();
+                if (second.endsWith("구") || second.endsWith("시") || second.endsWith("군")) {
+                    local.add(second);
+                }
+            }
+
+            if (!largescale.isEmpty() || !local.isEmpty()) {
+                fallback.setIsAddress(true);
+                fallback.setLargescaleUnits(largescale);
+                fallback.setLocalUnits(local);
+            }
         }
 
         log.info("[추천저장] 폴백 검색조건 생성: keywords={}", keywords);
