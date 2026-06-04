@@ -6,23 +6,29 @@ import com.google.genai.types.Content;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.Part;
+import com.google.genai.types.Schema;
+import com.google.genai.types.Type;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Google Gemini AI API 연동 서비스.
  * 참여자 정보를 기반으로 검색 조건을 생성하고, 채용정보 후보군에서 최적 공고를 선별한다.
  */
+@Slf4j
 @Service
 public class GeminiApiService {
 
-    // 기본 설정 값에 적용되어 있는 Gemini Model 설정
-    @Value("${gemini.api.model}")
-    private String modelName;
+    // Stage별 Gemini Model 설정
+    @Value("${gemini.api.model.stage1}")
+    private String modelNameStage1;
+
+    @Value("${gemini.api.model.stage2}")
+    private String modelNameStage2;
 
     @Autowired
     private Client geminiClient;
@@ -49,9 +55,9 @@ public class GeminiApiService {
             List<String> certificates,
             List<String> trainings) {
         String prompt = buildSearchConditionPrompt(participant, referralInfo, categoryList, relatedCategories, certificates, trainings);
-        System.out.println("generateSearchCondition prompt: [" + prompt + "]");
-        String response = callGeminiApiWithRetry(prompt);
-        System.out.println("generateSearchCondition response: [" + response + "]");
+        log.info("generateSearchCondition prompt length: {}", prompt.length());
+        String response = callGeminiApiWithRetry(prompt, modelNameStage1, buildSearchConditionSchema());
+        log.info("generateSearchCondition response length: {}", response != null ? response.length() : 0);
         return parseSearchConditionResponse(response);
     }
 
@@ -240,12 +246,12 @@ public class GeminiApiService {
             String additionalInfo,
             List<String> certificates,
             List<String> trainings) {
-        System.out.println("------------ selectBestFromCandidates 시작 -------------");
+        log.info("------------ selectBestFromCandidates 시작 -------------");
         String prompt = buildBestSelectionPrompt(candidates, participant, alsonDetail, additionalInfo, certificates, trainings);
-        System.out.println("prompt: " + prompt);
-        String response = callGeminiApiWithRetry(prompt);
-        System.out.println("response: " + response);
-        System.out.println("------------ selectBestFromCandidates 종료 -------------");
+        log.info("selectBestFromCandidates prompt length: {}", prompt.length());
+        String response = callGeminiApiWithRetry(prompt, modelNameStage2, buildBestSelectionSchema());
+        log.info("selectBestFromCandidates response length: {}", response != null ? response.length() : 0);
+        log.info("------------ selectBestFromCandidates 종료 -------------");
         return parseBestSelectionResponse(response);
     }
 
@@ -336,19 +342,76 @@ public class GeminiApiService {
         return sb.toString();
     }
 
-    // Gemini API 호출 메서드
-    private String callGeminiApi(String prompt) {
+    // =========================================================
+    // Structured Output 스키마 정의
+    // =========================================================
+
+    /** Stage 1 응답 스키마: 검색 조건 JSON */
+    private Schema buildSearchConditionSchema() {
+        Schema stringArraySchema = Schema.builder()
+                .type(Type.Known.ARRAY)
+                .items(Schema.builder().type(Type.Known.STRING).build())
+                .build();
+
+        return Schema.builder()
+                .type(Type.Known.OBJECT)
+                .properties(Map.of(
+                        "keywords", stringArraySchema,
+                        "jobCategory", Schema.builder().type(Type.Known.STRING).build(),
+                        "educationLevel", Schema.builder().type(Type.Known.STRING).build(),
+                        "industryType", Schema.builder().type(Type.Known.STRING).build(),
+                        "jobs_code", stringArraySchema,
+                        "jobs_nm", Schema.builder().type(Type.Known.STRING).build(),
+                        "isAddress", Schema.builder().type(Type.Known.BOOLEAN).build(),
+                        "largescaleUnits", stringArraySchema,
+                        "localUnits", stringArraySchema
+                ))
+                .build();
+    }
+
+    /** Stage 2 응답 스키마: 베스트 선별 결과 JSON */
+    private Schema buildBestSelectionSchema() {
+        Schema scoreItemSchema = Schema.builder()
+                .type(Type.Known.OBJECT)
+                .properties(Map.of(
+                        "구인인증번호", Schema.builder().type(Type.Known.STRING).build(),
+                        "score", Schema.builder().type(Type.Known.INTEGER).build(),
+                        "reason", Schema.builder().type(Type.Known.STRING).build()
+                ))
+                .build();
+
+        return Schema.builder()
+                .type(Type.Known.OBJECT)
+                .properties(Map.of(
+                        "bestGujinNo", Schema.builder().type(Type.Known.STRING).build(),
+                        "scores", Schema.builder()
+                                .type(Type.Known.ARRAY)
+                                .items(scoreItemSchema)
+                                .build()
+                ))
+                .build();
+    }
+
+    // =========================================================
+    // Gemini API 호출 + 재시도
+    // =========================================================
+
+    /** Gemini API 호출 (Structured Output 지원) */
+    private String callGeminiApi(String prompt, String modelName, Schema responseSchema) {
         try {
-            GenerateContentConfig config =
-                    GenerateContentConfig
-                            .builder()
-                            .temperature(0.1f)
-                            .build();
+            GenerateContentConfig.Builder configBuilder = GenerateContentConfig.builder()
+                    .temperature(0.1f);
+
+            // Structured Output 적용 (스키마가 있으면 JSON 응답 보장)
+            if (responseSchema != null) {
+                configBuilder.responseMimeType("application/json")
+                             .responseSchema(responseSchema);
+            }
 
             GenerateContentResponse response = geminiClient.models.generateContent(
                     modelName,
                     Content.fromParts(Part.fromText(prompt)),
-                    config
+                    configBuilder.build()
             );
             return response.text();
         } catch (Exception e) {
@@ -356,23 +419,30 @@ public class GeminiApiService {
         }
     }
 
-    // GeminiApiService — callGeminiApi()를 내부적으로 감싸는 재시도 래퍼
-    String callGeminiApiWithRetry(String prompt) {
-        int maxRetry = 1;
+    /** 재시도 래퍼: maxRetry 2, 점진적 딜레이 (500ms, 1000ms) */
+    String callGeminiApiWithRetry(String prompt, String modelName, Schema responseSchema) {
+        int maxRetry = 2;
         for (int i = 0; i <= maxRetry; i++) {
             try {
-                return callGeminiApi(prompt);
+                return callGeminiApi(prompt, modelName, responseSchema);
             } catch (Exception e) {
+                log.warn("[Gemini API] 시도 {}/{} 실패 (model={}): {}", i + 1, maxRetry + 1, modelName, e.getMessage());
                 if (i == maxRetry) {
                     throw new RuntimeException("Gemini API 최종 실패: " + e.getMessage(), e);
+                }
+                try {
+                    Thread.sleep(500L * (i + 1));
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("재시도 중단", ie);
                 }
             }
         }
         return null;
     }
 
-    // Gemini API 응답에서 JSON 추출 메서드
-    private String extractJsonFromResponse(String text) {
+    // Gemini API 응답에서 JSON 추출 메서드 (Structured Output 미적용 시 안전장치)
+    String extractJsonFromResponse(String text) {
         if (text.contains("```json")) {
             text = text.substring(text.indexOf("```json") + 7);
             text = text.substring(0, text.lastIndexOf("```")).trim();
@@ -384,7 +454,7 @@ public class GeminiApiService {
     }
 
     // Gemini API 응답에서 JSON 추출 및 파싱 메서드
-    private SearchConditionDTO parseSearchConditionResponse(String responseText) {
+    SearchConditionDTO parseSearchConditionResponse(String responseText) {
         try {
             return objectMapper.readValue(extractJsonFromResponse(responseText), SearchConditionDTO.class);
         } catch (Exception e) {
@@ -396,7 +466,7 @@ public class GeminiApiService {
     }
 
     // 후보군 + 알선상세정보 전달로 최적 채용정보 선별 응답 파싱 메서드
-    private BestSelectionResultDTO parseBestSelectionResponse(String responseText) {
+    BestSelectionResultDTO parseBestSelectionResponse(String responseText) {
         try {
             return objectMapper.readValue(extractJsonFromResponse(responseText), BestSelectionResultDTO.class);
         } catch (Exception e) {

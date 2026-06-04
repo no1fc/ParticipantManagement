@@ -308,7 +308,8 @@ ROS2 기반 시스템 아키텍...
         // Gemini API 호출 (콘솔에 프롬프트/응답 자동 출력됨)
         System.out.println("\n[Gemini API 호출 시작]");
         SearchConditionDTO result = geminiApi.generateSearchCondition(
-                participant, referralInfo, categoryList, relatedCategories);
+                participant, referralInfo, categoryList, relatedCategories,
+                java.util.Collections.emptyList(), java.util.Collections.emptyList());
 
         System.out.println("\n[검색 조건 생성 결과]");
         System.out.println("  keywords: " + result.getKeywords());
@@ -459,7 +460,8 @@ ROS2 기반 시스템 아키텍...
         // Gemini API 호출 (콘솔에 프롬프트/응답 자동 출력됨)
         System.out.println("\n[Gemini API 호출 시작]");
         BestSelectionResultDTO result = geminiApi.selectBestFromCandidates(
-                candidates, participant, alsonDetail);
+                candidates, participant, alsonDetail, null,
+                java.util.Collections.emptyList(), java.util.Collections.emptyList());
 
         System.out.println("\n[최적 채용정보 선별 결과]");
         System.out.println("  bestGujinNo: " + result.getBestGujinNo());

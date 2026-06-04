@@ -335,7 +335,7 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
     }
 
     /**
-     * 알선상세정보 없는 경우: 후보군 전체 bestJobInfo = 0 으로 저장
+     * Gemini 2단계 실패 시 그레이스풀 저하: 점수 없이 저장하되 사유 명시
      */
     private void saveWithoutGeminiJudgment(
             RecommendParticipantDTO participant,
@@ -348,8 +348,9 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
             ParticipantJobRecommendDTO dto =
                 buildRecommendDto(participant, categoryList, referralInfo, candidate, searchCondition);
             dto.setBestJobInfo(false);
+            dto.setRecommendationReason("AI 점수 미적용 - 수동 검토 필요");
             int inserted = participantJobRecommendDAO.insertOrUpdateRecommend(dto);
-            log.debug("[추천저장] 알선상세정보 없는 경우 후보자 저장 결과: {}", inserted > 0);
+            log.debug("[추천저장] Gemini 실패 그레이스풀 저장 결과: {}", inserted > 0);
         }
     }
 
@@ -409,7 +410,7 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
     /**
      * AI 검색조건 생성 실패 시 참여자 데이터에서 직접 키워드를 추출하여 검색 조건을 구성한다.
      */
-    private SearchConditionDTO buildFallbackSearchCondition(
+    SearchConditionDTO buildFallbackSearchCondition(
             RecommendParticipantDTO participant,
             List<RecommendCategoryDTO> categoryList,
             List<String> certificates) {
