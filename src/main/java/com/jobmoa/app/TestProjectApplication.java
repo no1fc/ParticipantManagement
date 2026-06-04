@@ -25,10 +25,21 @@ import com.jobmoa.app.config.WebSocketConfig;
 @Import({RootConfig.class, WebSocketConfig.class})
 public class TestProjectApplication extends SpringBootServletInitializer {
 
+    /**
+     * 내장 Tomcat으로 애플리케이션을 실행하는 메인 메서드.
+     *
+     * @param args 커맨드 라인 인자
+     */
     public static void main(String[] args) {
         SpringApplication.run(TestProjectApplication.class, args);
     }
 
+    /**
+     * 외부 WAS(Tomcat 등)에 WAR로 배포할 때 사용되는 설정 메서드.
+     *
+     * @param application SpringApplicationBuilder 인스턴스
+     * @return 소스가 등록된 SpringApplicationBuilder
+     */
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return application.sources(TestProjectApplication.class);

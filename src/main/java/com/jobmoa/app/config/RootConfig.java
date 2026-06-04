@@ -31,6 +31,23 @@ import redis.clients.jedis.JedisPoolConfig;
 import javax.sql.DataSource;
 import java.util.Properties;
 
+/**
+ * 루트 애플리케이션 컨텍스트 설정.
+ *
+ * <p>서비스(biz) 계층의 컴포넌트 스캔과 인프라 빈을 정의한다.
+ * <ul>
+ *   <li>DataSource (Apache DBCP2) + MyBatis (SqlSessionFactory/Template)</li>
+ *   <li>Redis (Jedis) 연결 풀 및 RedisTemplate</li>
+ *   <li>JavaMailSender (SMTP)</li>
+ *   <li>AOP 기반 트랜잭션 어드바이저 (CounselMain, jobPlacement)</li>
+ *   <li>Google Gemini AI 클라이언트</li>
+ * </ul>
+ *
+ * <p>환경 변수는 classpath 상의 {@code .env} 파일에서 로드한다.
+ *
+ * @see WebMvcConfig 컨트롤러(view) 계층 설정
+ * @see WebSocketConfig WebSocket 메시지 브로커 설정
+ */
 @Configuration
 @ComponentScan(basePackages = {
     "com.jobmoa.app.CounselMain.biz.common",
