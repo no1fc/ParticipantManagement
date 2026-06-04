@@ -1,5 +1,7 @@
 /**
- * 교육내역 동적 추가/삭제 모듈 (희망직무와 동일 패턴)
+ * @file 교육내역 동적 추가/삭제 모듈 (희망직무와 동일 패턴)
+ * @version 0.0.2
+ * @requires jQuery, SortableJS
  * - 항목 단위 [핸들][입력][삭제] 구조
  * - 추가 버튼: #addEduBtn
  * - 컨테이너: #education (기존 ID 유지)

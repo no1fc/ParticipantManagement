@@ -1,3 +1,8 @@
+/**
+ * @file 메인 대시보드 ApexCharts 옵션 설정 (도넛, 바 차트)
+ * @version 0.0.1
+ * @requires jQuery, ApexCharts
+ */
 // Main Dashboard Apex Chart Option Config
 function apexChartDoughnut(title,series,labels, colors, isBuble) {
     let percent = ''

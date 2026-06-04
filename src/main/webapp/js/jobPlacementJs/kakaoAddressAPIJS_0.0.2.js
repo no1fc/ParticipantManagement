@@ -1,3 +1,9 @@
+/**
+ * @file 카카오 주소 API 연동 (우편번호 검색, 주소 입력)
+ * @version 0.0.2
+ * @requires jQuery, Daum Postcode API
+ */
+
 $(document).ready(function () {
     // kakao 주소 api function 시작
     const btnCloseLayer = $("#btnCloseLayer");
@@ -24,8 +30,8 @@ $(document).ready(function () {
         new daum.Postcode({
             oncomplete: function(data) {
                 // 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
-                var addr = ''; // 주소 변수
-                var extraAddr = ''; // 참고항목 변수
+                let addr = ''; // 주소 변수
+                let extraAddr = ''; // 참고항목 변수
 
                 //사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다.
                 if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
@@ -76,9 +82,9 @@ $(document).ready(function () {
 // resize이벤트나, orientationchange이벤트를 이용하여 값이 변경될때마다 아래 함수를 실행 시켜 주시거나,
 // 직접 element_layer의 top,left값을 수정해 주시면 됩니다.
     function initLayerPosition(element_layer){
-        let width = 500; //우편번호서비스가 들어갈 element의 width
-        let height = 600; //우편번호서비스가 들어갈 element의 height
-        let borderWidth = 1; //샘플에서 사용하는 border의 두께
+        const width = 500; //우편번호서비스가 들어갈 element의 width
+        const height = 600; //우편번호서비스가 들어갈 element의 height
+        const borderWidth = 1; //샘플에서 사용하는 border의 두께
 
         // 위에서 선언한 값들을 실제 element에 넣는다.
         element_layer.css({
@@ -91,4 +97,3 @@ $(document).ready(function () {
     }
 // kakao 주소 api function 끝
 })
-

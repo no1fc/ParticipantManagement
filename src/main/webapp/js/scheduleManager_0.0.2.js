@@ -1,6 +1,7 @@
 /**
- * 관리자 지점 일정 통합 조회 JS
+ * @file 관리자 지점별 일정 통합 조회 (상담사 필터, FullCalendar 연동)
  * @version 0.0.2
+ * @requires jQuery, FullCalendar, Bootstrap
  */
 $(function () {
     'use strict';

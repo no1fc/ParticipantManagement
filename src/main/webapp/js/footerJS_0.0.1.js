@@ -1,3 +1,8 @@
+/**
+ * @file 푸터 영역 스크립트 (이메일 링크, iframe 모달 제어)
+ * @version 0.0.1
+ * @requires jQuery
+ */
 $(document).ready(function () {
     // let APP_URL = window.location.href; // 현재 페이지 URL
     // let email = "namsd@jobmoa.com"; // 수신 이메일

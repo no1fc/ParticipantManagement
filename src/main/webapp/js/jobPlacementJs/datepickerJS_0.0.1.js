@@ -1,3 +1,9 @@
+/**
+ * @file 날짜 선택기 (datepicker) 공통 설정
+ * @version 0.0.1
+ * @requires jQuery, Bootstrap Datepicker
+ */
+
 function default_datepicker() {
         // 한국어 기본 설정 적용
         // $.datepicker.setDefaults($.datepicker.regional['ko']);

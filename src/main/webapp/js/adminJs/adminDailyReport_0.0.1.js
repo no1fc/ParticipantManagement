@@ -1,3 +1,9 @@
+/**
+ * @file 일일업무보고 관리 (보고 목록 조회, 검색, 통계)
+ * @version 0.0.1
+ * @requires jQuery, SweetAlert2, DataTables, OverlayScrollbars
+ */
+
 let dailyReportTable;
 
 $(document).ready(function() {

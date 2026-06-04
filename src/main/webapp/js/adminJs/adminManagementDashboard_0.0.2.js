@@ -1,8 +1,7 @@
 /**
- * 관리자 대시보드 - 지점별 당해년도 운영 현황
- * adminManagementDashboard_0.0.2.js
- * 2026-06-02
- * v0.0.2: 다중 지점 선택, 차트 동시 표시, 그룹형 막대 전환
+ * @file 관리자 대시보드 - 지점별 당해년도 운영 현황 (다중 지점 선택, 차트, KPI)
+ * @version 0.0.2
+ * @requires jQuery, SweetAlert2, ApexCharts
  */
 
 let allDashboardData = [];

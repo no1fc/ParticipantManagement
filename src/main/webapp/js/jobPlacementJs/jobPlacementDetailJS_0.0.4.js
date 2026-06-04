@@ -1,4 +1,10 @@
 /**
+ * @file 알선 상세정보 관리 (수정/저장, 희망직무 관리, 이력서 요청)
+ * @version 0.0.4
+ * @requires jQuery, Bootstrap, SweetAlert2
+ */
+
+/**
  * TextArea로 저장된 값에 대한 내용중 Enter 키를 HTML 코드 <br> Code로 전환
  */
 function lineFeedChange(textData){

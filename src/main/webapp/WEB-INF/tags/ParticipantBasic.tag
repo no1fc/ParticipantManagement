@@ -115,7 +115,7 @@
                     <span class="cert-count" id="certCount">0</span>
                 </th>
                 <td colspan="7" class="autocomplete-cell">
-                    <%-- particcertifDiv_0.0.2.js가 항목을 렌더링 --%>
+                    <%-- particcertifDiv_0.0.3.js가 항목을 렌더링 --%>
                     <div class="particcertif-div-content" id="particcertifCertif"></div>
                     <button type="button" class="btn btn-sm btn-outline-primary mt-1" id="addCertBtn">
                         <i class="bi bi-plus-circle"></i> 자격증 추가

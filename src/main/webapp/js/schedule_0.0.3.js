@@ -1,7 +1,7 @@
 /**
- * schedule_0.0.3.js - 상담 일정 관리
- * FullCalendar 6.1.11 + jQuery + SweetAlert2
- * v0.0.3: 시간 콤보박스(input 직접입력 + 드롭다운 선택) + 자동 포커스 이동
+ * @file 상담 일정 관리 (등록/수정/삭제, 드래그 이동, 시간 콤보박스)
+ * @version 0.0.3
+ * @requires jQuery, FullCalendar, SweetAlert2, Bootstrap
  */
 $(document).ready(function () {
 

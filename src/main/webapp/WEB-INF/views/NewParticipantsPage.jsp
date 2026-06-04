@@ -126,10 +126,10 @@
     <script defer src="/js/educationDiv_0.0.2.js"></script>
 
     <!-- particcertifDiv JS -->
-    <script defer src="/js/particcertifDiv_0.0.2.js"></script>
+    <script defer src="/js/particcertifDiv_0.0.3.js"></script>
 
-    <!-- participants_insert_update_CommonnessJS_0.1.1.js  -->
-    <script defer src="/js/participants_insert_update_CommonnessJS_0.1.1.js"></script>
+    <!-- participants_insert_update_CommonnessJS_0.1.2.js  -->
+    <script defer src="/js/participants_insert_update_CommonnessJS_0.1.2.js"></script>
 
     <!-- selectOption JS -->
     <script defer src="/js/selectOptionJS_0.0.1.js"></script>

@@ -1,3 +1,8 @@
+/**
+ * @file 참여자 목록 엑셀 다운로드 기능
+ * @version 0.0.1
+ * @requires jQuery, SweetAlert2
+ */
 $(document).ready(function () {
 
     let excelDownloadButton = $('#excelDownload');

@@ -293,7 +293,7 @@
         integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
 <script defer src="/js/adminlte.js"></script>
 
-<script defer src="/js/adminJs/adminParticipantManagement_0.0.3.js"></script>
+<script defer src="/js/adminJs/adminParticipantManagement_0.0.4.js"></script>
 <!--end::Script-->
 
 <script>

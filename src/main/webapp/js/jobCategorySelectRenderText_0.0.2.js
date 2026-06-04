@@ -1,3 +1,8 @@
+/**
+ * @file 직업 카테고리 대/중/소분류 데이터 및 셀렉트 렌더링
+ * @version 0.0.2
+ * @requires jQuery
+ */
 // 카테고리 데이터 전역 노출 (jobWishListManager에서 참조)
 window.JOB_CATEGORY_LARGE = [
     {text: "경영·사무·금융·보험", value: "경영·사무·금융·보험"},

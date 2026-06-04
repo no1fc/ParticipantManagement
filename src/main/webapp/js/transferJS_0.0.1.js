@@ -1,3 +1,8 @@
+/**
+ * @file 참여자 이관 (상담사 간 참여자 이전) 기능
+ * @version 0.0.1
+ * @requires jQuery, SweetAlert2
+ */
 $(document).ready(function() {
     let selectedParticipants = new Set();
     let transferredParticipants = new Set();

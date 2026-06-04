@@ -1,10 +1,11 @@
-/* =============================================
-   통합 관리 대시보드 JS
-   adminTotalDashboard_0.0.2.js
-   ============================================= */
+/**
+ * @file 통합 관리 대시보드 (KPI, 취업 실적 차트, 참여자 현황 차트, 알선 취업 차트)
+ * @version 0.0.3
+ * @requires jQuery, SweetAlert2, DataTables, ApexCharts, OverlayScrollbars
+ */
 
-var performanceChart, statusChart, placementChart;
-var placementStatsTable;
+let performanceChart, statusChart, placementChart;
+let placementStatsTable;
 
 $(document).ready(function() {
     // 지점 목록 로드
@@ -33,7 +34,7 @@ function loadBranchOptions() {
         url: '/admin/api/branches',
         method: 'GET',
         success: function(data) {
-            var html = '<option value="">전체</option>';
+            let html = '<option value="">전체</option>';
             data.forEach(function(item) {
                 html += '<option value="' + item.branchName + '">' + item.branchName + '</option>';
             });
@@ -43,7 +44,7 @@ function loadBranchOptions() {
 }
 
 function loadCounselorOptions(branch) {
-    var params = {};
+    const params = {};
     if (branch) {
         params.searchBranch = branch;
     }
@@ -52,7 +53,7 @@ function loadCounselorOptions(branch) {
         method: 'GET',
         data: params,
         success: function(data) {
-            var html = '<option value="">전체</option>';
+            let html = '<option value="">전체</option>';
             data.forEach(function(item) {
                 html += '<option value="' + item.userId + '">' + item.memberName + ' (' + item.userId + ')</option>';
             });
@@ -71,7 +72,7 @@ function getSearchParams() {
 }
 
 function searchDashboard() {
-    var params = getSearchParams();
+    const params = getSearchParams();
     loadKPIData(params);
     loadPlacementStats(params);
 }
@@ -96,14 +97,14 @@ function loadKPIData(params) {
         method: 'GET',
         data: params || {},
         success: function(res) {
-            var kpi = res.kpi || {};
+            const kpi = res.kpi || {};
             $('#totalParticipants').text((kpi.totalParticipants || 0).toLocaleString() + '명');
             $('#monthlyNewAssignments').text((kpi.monthlyNewAssignments || 0) + '건');
             $('#employment').text((kpi.fiscal_employed || 0) + '명');
             $('#completed').text((kpi.fiscal_completed || 0) + '명');
             $('#employmentRate').text((kpi.employmentRate || 0).toFixed(1) + '%');
 
-            var branchStats = res.branchStats || [];
+            const branchStats = res.branchStats || [];
             window._branchCategories = branchStats.map(function(b) { return b.branchLabel || b.branch || ''; });
             window._branchCounts    = branchStats.map(function(b) { return b.employmentCount || 0; });
             window._branchAlseon   = branchStats.map(function(b) { return b.placementCount || 0; });
@@ -133,7 +134,7 @@ function loadPlacementStats(params) {
         success: function(data) {
             placementStatsTable.clear();
             data.forEach(function(item) {
-                var rate = (item.employmentRate != null) ? item.employmentRate.toFixed(1) + '%' : '0.0%';
+                const rate = (item.employmentRate != null) ? item.employmentRate.toFixed(1) + '%' : '0.0%';
                 placementStatsTable.row.add([
                     item.branch || '',
                     item.counselorId || '',
@@ -153,11 +154,11 @@ function loadPlacementStats(params) {
 }
 
 function loadEmploymentPerformanceChart() {
-    var categories   = window._branchCategories || [];
-    var employData   = window._branchCounts || [];
-    var placementData = window._branchAlseon || [];
+    const categories   = window._branchCategories || [];
+    const employData   = window._branchCounts || [];
+    const placementData = window._branchAlseon || [];
 
-    var options = {
+    const options = {
         chart: { type: 'bar', height: 350, toolbar: { show: true } },
         plotOptions: { bar: { horizontal: false, columnWidth: '55%' } },
         dataLabels: { enabled: true },
@@ -179,10 +180,10 @@ function loadEmploymentPerformanceChart() {
 }
 
 function loadParticipantStatusChart() {
-    var categories = window._branchCategories || [];
-    var counts     = window._branchCounts || [];
+    const categories = window._branchCategories || [];
+    const counts     = window._branchCounts || [];
 
-    var options = {
+    const options = {
         chart: { type: 'donut', height: 350 },
         series: counts.length > 0 ? counts : [1],
         labels: categories.length > 0 ? categories : ['데이터 없음'],
@@ -204,10 +205,10 @@ function loadParticipantStatusChart() {
 }
 
 function loadJobPlacementChart() {
-    var categories = window._branchCategories || [];
-    var data       = window._branchAlseon || [];
+    const categories = window._branchCategories || [];
+    const data       = window._branchAlseon || [];
 
-    var options = {
+    const options = {
         chart: { type: 'bar', height: 300, toolbar: { show: false } },
         series: [{ name: '알선 취업', data: data.length > 0 ? data : [0] }],
         xaxis: { categories: categories.length > 0 ? categories : ['-'] },
@@ -224,7 +225,7 @@ function loadJobPlacementChart() {
 }
 
 // OverlayScrollbars 초기화
-var OverlayScrollbarsObj = OverlayScrollbarsGlobal.OverlayScrollbars;
+const OverlayScrollbarsObj = OverlayScrollbarsGlobal.OverlayScrollbars;
 if (document.querySelector('.app-sidebar-wrapper')) {
     OverlayScrollbarsObj(document.querySelector('.app-sidebar-wrapper'), {});
 }

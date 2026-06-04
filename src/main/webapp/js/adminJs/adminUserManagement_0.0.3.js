@@ -1,3 +1,9 @@
+/**
+ * @file 관리자 사용자 관리 (목록 조회, 추가, 수정, 삭제, 비밀번호 초기화)
+ * @version 0.0.3
+ * @requires jQuery, SweetAlert2, DataTables, Bootstrap, OverlayScrollbars
+ */
+
 let userTable;
 let userModal;
 
@@ -35,10 +41,10 @@ function loadBranchOptions() {
         url: '/admin/api/branches',
         method: 'GET',
         success: function(data) {
-            var searchHtml = '<option value="">전체</option>';
-            var modalHtml = '<option value="">선택</option>';
+            let searchHtml = '<option value="">전체</option>';
+            let modalHtml = '<option value="">선택</option>';
             data.forEach(function(item) {
-                var opt = '<option value="' + item.branchName + '">' + item.branchName + '</option>';
+                const opt = '<option value="' + item.branchName + '">' + item.branchName + '</option>';
                 searchHtml += opt;
                 modalHtml += opt;
             });
@@ -56,12 +62,12 @@ function loadUsers(params) {
         success: function(data) {
             userTable.clear();
             data.forEach(function(item) {
-                var adminIcon = item.isAdmin ? '<i class="bi bi-check-circle-fill text-success"></i>' : '<i class="bi bi-x-circle-fill text-muted"></i>';
+                const adminIcon = item.isAdmin ? '<i class="bi bi-check-circle-fill text-success"></i>' : '<i class="bi bi-x-circle-fill text-muted"></i>';
                 let statusClass = 'status-inactive';
                 if (item.useStatus === '사용') statusClass = 'status-active';
                 else if (item.useStatus === '승인대기') statusClass = 'status-pending';
                 const statusBadge = '<span class="role-badge ' + statusClass + '">' + (item.useStatus || '사용') + '</span>';
-                var roleBadge = item.isAdmin ? '<span class="role-badge role-admin">' + item.role + '</span>' : '<span class="role-badge role-counselor">' + (item.role || '상담') + '</span>';
+                const roleBadge = item.isAdmin ? '<span class="role-badge role-admin">' + item.role + '</span>' : '<span class="role-badge role-counselor">' + (item.role || '상담') + '</span>';
                 userTable.row.add([
                     item.memberNo,
                     item.memberName || '',
@@ -87,7 +93,7 @@ function loadUsers(params) {
 }
 
 function searchUsers() {
-    var params = {
+    const params = {
         searchName: $('#searchName').val(),
         searchUserId: $('#searchUserId').val(),
         searchBranch: $('#searchBranch').val(),
@@ -118,8 +124,8 @@ function loadNextMemberNo() {
  * 아이디 중복체크
  */
 function checkDuplicateId() {
-    var userId = $('#userId').val();
-    var memberNo = $('#userNo').val();
+    const userId = $('#userId').val();
+    const memberNo = $('#userNo').val();
 
     if (!userId || userId.trim() === '') {
         Swal.fire('알림', '아이디를 입력해주세요.', 'warning');
@@ -194,7 +200,7 @@ function editUser(userNo) {
 }
 
 function saveUser() {
-    var isEdit = $('#userNo').prop('readonly') && $('#userModalLabel').text() === '사용자 수정';
+    const isEdit = $('#userNo').prop('readonly') && $('#userModalLabel').text() === '사용자 수정';
 
     // 신규 등록 시 중복체크 필수
     if (!isEdit && !window._idChecked) {
@@ -202,7 +208,7 @@ function saveUser() {
         return;
     }
 
-    var formData = {
+    const formData = {
         memberNo: $('#userNo').val(),
         memberName: $('#userName').val(),
         userId: $('#userId').val(),
@@ -221,8 +227,8 @@ function saveUser() {
         viewOrder: $('#viewOrder').val()
     };
 
-    var method = isEdit ? 'PUT' : 'POST';
-    var url = isEdit ? '/admin/api/users/' + formData.memberNo : '/admin/api/users';
+    const method = isEdit ? 'PUT' : 'POST';
+    const url = isEdit ? '/admin/api/users/' + formData.memberNo : '/admin/api/users';
 
     $.ajax({
         url: url,
@@ -301,7 +307,7 @@ function exportToExcel() {
 }
 
 // OverlayScrollbars 초기화
-var OverlayScrollbarsObj = OverlayScrollbarsGlobal.OverlayScrollbars;
+const OverlayScrollbarsObj = OverlayScrollbarsGlobal.OverlayScrollbars;
 if (document.querySelector('.app-sidebar-wrapper')) {
     OverlayScrollbarsObj(document.querySelector('.app-sidebar-wrapper'), {});
 }

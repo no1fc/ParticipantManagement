@@ -1,3 +1,8 @@
+/**
+ * @file 날짜 선택기(Datepicker) 초기화 및 입력 검증
+ * @version 0.0.1
+ * @requires jQuery, Bootstrap Datepicker
+ */
 $('document').ready(function () {
     const datepicker_on = $('.datepicker_on');
     const datepicker_title = $('.datepicker_title');

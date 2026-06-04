@@ -1,3 +1,9 @@
+/**
+ * @file AI 추천 채용정보 모달 (추천 요청, 결과 표시, 카카오톡 공유, 상담일지 복사)
+ * @version 0.0.7
+ * @requires jQuery, SweetAlert2, Kakao SDK
+ */
+
 // ===========================
 // WebSocket 알림 수신 (GNB에서 커스텀 이벤트로 전달받음)
 // ===========================
@@ -6,7 +12,7 @@
  * WebSocket 추천 완료 알림 수신 핸들러
  */
 function handleRecommendNotification(notification) {
-    var notifJobSeekerNo = notification.jobSeekerNo;
+    const notifJobSeekerNo = notification.jobSeekerNo;
 
     // 해당 참여자의 진행 중 플래그 제거
     if (notifJobSeekerNo) {
@@ -19,20 +25,20 @@ function handleRecommendNotification(notification) {
     }
 
     // 모달이 열려 있고 같은 참여자를 보고 있는 경우 → 버튼 재활성화 + 결과 표시
-    var modal = document.getElementById('recommendModal');
-    var currentGujikNo = _getCurrentModalJobSeekerNo();
-    var isModalOpenForThis = modal && modal.style.display === 'flex'
+    const modal = document.getElementById('recommendModal');
+    const currentGujikNo = _getCurrentModalJobSeekerNo();
+    const isModalOpenForThis = modal && modal.style.display === 'flex'
         && currentGujikNo == notifJobSeekerNo;
 
     if (isModalOpenForThis) {
         enableAiRecommendButton(notifJobSeekerNo);
 
         if (notification.reused) {
-            var lastTime = notification.lastRecommendedAt || '';
+            const lastTime = notification.lastRecommendedAt || '';
             document.getElementById('recommendStatusMsg').innerText =
                 '24시간 이내에 이미 추천이 완료되었습니다. (마지막 추천: ' + lastTime + ')';
         } else if (notification.success) {
-            var count = notification.savedCount || 0;
+            const count = notification.savedCount || 0;
             document.getElementById('recommendStatusMsg').innerText =
                 count > 0
                     ? count + '개의 채용정보가 추천 저장되었습니다.'
@@ -49,9 +55,9 @@ function handleRecommendNotification(notification) {
  * 현재 진행 중인 AI 추천 건수 표시
  */
 function updateSlotDisplay(activeCount) {
-    var active = activeCount || 0;
-    var el = document.getElementById('recommendSlotCount');
-    var info = document.getElementById('recommendSlotInfo');
+    const active = activeCount || 0;
+    const el = document.getElementById('recommendSlotCount');
+    const info = document.getElementById('recommendSlotInfo');
     if (el && info) {
         if (active > 0) {
             info.style.display = 'inline';
@@ -71,11 +77,11 @@ function updateSlotDisplay(activeCount) {
  * 토스트 알림 표시
  */
 function showRecommendToast(message, type) {
-    var container = document.getElementById('recommendToastContainer');
+    const container = document.getElementById('recommendToastContainer');
     if (!container) return;
 
-    var iconMap = { success: '&#10003;', error: '&#10007;', warning: '&#9888;' };
-    var toast = document.createElement('div');
+    const iconMap = { success: '&#10003;', error: '&#10007;', warning: '&#9888;' };
+    const toast = document.createElement('div');
     toast.className = 'recommend-toast recommend-toast-' + type;
     toast.innerHTML = '<span class="toast-icon">' + (iconMap[type] || '') + '</span>'
         + '<span class="toast-message">' + message + '</span>'
@@ -105,7 +111,7 @@ function _recommendStorageKey(jobSeekerNo) {
  * AI 추천 버튼 비활성화 (sessionStorage 기반 상태 유지)
  */
 function disableAiRecommendButton(jobSeekerNo) {
-    var btn = document.getElementById('btnAiRecommend');
+    const btn = document.getElementById('btnAiRecommend');
     btn.style.opacity = '0.5';
     btn.style.cursor = 'not-allowed';
     btn.disabled = true;
@@ -119,7 +125,7 @@ function disableAiRecommendButton(jobSeekerNo) {
  * AI 추천 버튼 재활성화 (특정 참여자의 진행 플래그만 제거)
  */
 function enableAiRecommendButton(jobSeekerNo) {
-    var btn = document.getElementById('btnAiRecommend');
+    const btn = document.getElementById('btnAiRecommend');
     btn.style.opacity = '';
     btn.style.cursor = '';
     btn.disabled = false;
@@ -135,7 +141,7 @@ function enableAiRecommendButton(jobSeekerNo) {
  * 현재 모달에 열린 참여자의 구직번호 가져오기
  */
 function _getCurrentModalJobSeekerNo() {
-    var btn = document.getElementById('btnAiRecommend');
+    const btn = document.getElementById('btnAiRecommend');
     return btn ? parseInt(btn.getAttribute('data-gujik')) || 0 : 0;
 }
 
@@ -143,7 +149,7 @@ function _getCurrentModalJobSeekerNo() {
  * AI 추천 버튼 쿨다운 비활성화 (24시간 이내 재사용 차단)
  */
 function disableAiRecommendButtonCooldown(lastRecommendedAt) {
-    var btn = document.getElementById('btnAiRecommend');
+    const btn = document.getElementById('btnAiRecommend');
     btn.style.opacity = '0.5';
     btn.style.cursor = 'not-allowed';
     btn.disabled = true;
@@ -276,8 +282,8 @@ function loadRecommendData(gujikNo) {
             document.getElementById('recommendLoading').style.display = 'none';
             if (response.success) {
                 // 리스트 초기화 (진행 중 상태 메시지 보존)
-                var savedStatusMsg = document.getElementById('recommendStatusMsg').innerText;
-                var savedInProgress = isRecommendInProgress(gujikNo);
+                const savedStatusMsg = document.getElementById('recommendStatusMsg').innerText;
+                const savedInProgress = isRecommendInProgress(gujikNo);
                 resetModalContent();
 
                 bindParticipantInfo(response.participant);
@@ -331,12 +337,12 @@ function saveAiRecommend() {
         success: function(response) {
             // 결과는 WebSocket 알림(handleRecommendNotification)에서도 처리됨
             // 모달이 열려 있고, 같은 참여자를 보고 있는 경우에만 UI 업데이트
-            var currentGujik = _getCurrentModalJobSeekerNo();
+            const currentGujik = _getCurrentModalJobSeekerNo();
             if (currentGujik !== jobSeekerNo) return; // 다른 참여자 모달이 열려있으면 무시
 
             if (response.reused) {
                 enableAiRecommendButton(jobSeekerNo);
-                var lastTime = response.lastRecommendedAt || '';
+                const lastTime = response.lastRecommendedAt || '';
                 document.getElementById('recommendStatusMsg').innerText =
                     '24시간 이내에 이미 추천이 완료되었습니다. (마지막 추천: ' + lastTime + ')';
                 return;
@@ -361,7 +367,7 @@ function saveAiRecommend() {
             }
         },
         error: function(xhr, status) {
-            var currentGujik = _getCurrentModalJobSeekerNo();
+            const currentGujik = _getCurrentModalJobSeekerNo();
 
             // sessionStorage 진행 플래그 제거 (에러 시)
             sessionStorage.removeItem(_recommendStorageKey(jobSeekerNo));
@@ -371,9 +377,9 @@ function saveAiRecommend() {
                 enableAiRecommendButton(jobSeekerNo);
 
                 if (xhr.status === 429) {
-                    var errBody = null;
+                    let errBody = null;
                     try { errBody = JSON.parse(xhr.responseText); } catch(e) {}
-                    var errMsg = (errBody && errBody.message)
+                    const errMsg = (errBody && errBody.message)
                         ? errBody.message
                         : '동시 AI 추천 요청이 최대 5건을 초과했습니다.';
                     document.getElementById('recommendStatusMsg').innerText = errMsg;
@@ -725,10 +731,10 @@ function toggleAllRecommendCheck(masterCheckbox) {
 }
 
 // 공유 큐 상태
-var _kakaoShareQueue = [];
-var _kakaoShareIndex = 0;
+let _kakaoShareQueue = [];
+let _kakaoShareIndex = 0;
 
-var KAKAO_SVG = '<svg class="kakao-icon" viewBox="0 0 24 24" width="20" height="20">'
+const KAKAO_SVG = '<svg class="kakao-icon" viewBox="0 0 24 24" width="20" height="20">'
     + '<path d="M12 3C6.48 3 2 6.58 2 10.94c0 2.8 1.86 5.27 4.66 6.67-.15.56-.96 3.6-.99 3.83 0 0-.02.17.09.24.11.06.24.01.24.01.32-.04 3.7-2.44 4.28-2.86.55.08 1.13.12 1.72.12 5.52 0 10-3.58 10-7.99C22 6.58 17.52 3 12 3z" fill="#191919"/>'
     + '</svg>';
 

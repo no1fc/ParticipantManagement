@@ -1,3 +1,9 @@
+/**
+ * @file 자격증 및 직업훈련 관리 (목록 조회, 추가, 수정, 삭제)
+ * @version 0.0.1
+ * @requires jQuery, SweetAlert2, DataTables, Bootstrap, OverlayScrollbars
+ */
+
 let certificateTable, trainingTable;
 let certificateModal, trainingModal;
 

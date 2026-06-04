@@ -1,3 +1,9 @@
+/**
+ * @file 기준금액 및 나은기준임금 관리 (목록 조회, 추가, 수정, 삭제)
+ * @version 0.0.1
+ * @requires jQuery, SweetAlert2, DataTables, Bootstrap, OverlayScrollbars
+ */
+
 let standardAmountTable, betterWageTable;
 let standardAmountModal, betterWageModal;
 

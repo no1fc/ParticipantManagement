@@ -1,3 +1,8 @@
+/**
+ * @file 채용정보 검색 페이지 (지역/직종/학력/경력 필터, 페이징, 상세 조회)
+ * @version 0.0.2
+ * @requires jQuery, SweetAlert2, Bootstrap
+ */
 $(document).ready(function () {
 
     /* ============================================================
@@ -2182,11 +2187,11 @@ $(document).ready(function () {
         if (regionNames.length) p.region = regionNames;
 
         // 다중: 직종 (대분류/중분류 선택 시 소분류 코드로 확장)
-        var expandedOccCodes = [];
+        const expandedOccCodes = [];
         selectedOccupations.forEach(function (o) {
-            var code = String(o.code);
+            const code = String(o.code);
             // 대분류 체크
-            var cat = OCC_DATA.find(function (c) { return c.code === code; });
+            const cat = OCC_DATA.find(function (c) { return c.code === code; });
             if (cat) {
                 cat.subs.forEach(function (sub) {
                     if (sub.subs) sub.subs.forEach(function (d) { expandedOccCodes.push(d.code); });
@@ -2194,7 +2199,7 @@ $(document).ready(function () {
                 return;
             }
             // 중분류 체크
-            var foundSub = null;
+            let foundSub = null;
             OCC_DATA.forEach(function (c) {
                 c.subs.forEach(function (s) { if (s.code === code) foundSub = s; });
             });
@@ -2205,7 +2210,7 @@ $(document).ready(function () {
             // 소분류 코드 그대로 사용
             expandedOccCodes.push(code);
         });
-        var uniqueOccCodes = expandedOccCodes.filter(function (v, i, a) { return a.indexOf(v) === i; });
+        const uniqueOccCodes = expandedOccCodes.filter(function (v, i, a) { return a.indexOf(v) === i; });
         if (uniqueOccCodes.length) p.occupation = uniqueOccCodes;
 
         // 다중: 학력
@@ -2621,22 +2626,22 @@ $(document).ready(function () {
 
         // 중분류 → 소분류 3단계 표시
         cat.subs.forEach(function (sub) {
-            var subNameMatch = !kw || sub.name.toLowerCase().includes(kw);
-            var matchingDetails = (sub.subs || []).filter(function (d) {
+            const subNameMatch = !kw || sub.name.toLowerCase().includes(kw);
+            const matchingDetails = (sub.subs || []).filter(function (d) {
                 return !kw || d.name.toLowerCase().includes(kw);
             });
 
             if (!subNameMatch && matchingDetails.length === 0) return;
 
             // 중분류 헤더 (전체 선택 가능)
-            var subSel = selectedOccupations.some(function (o) { return o.code === sub.code; });
+            const subSel = selectedOccupations.some(function (o) { return o.code === sub.code; });
             $detail.append(buildOccItem(sub.code, sub.name + ' (전체)', subSel));
 
             // 소분류 아이템 (들여쓰기)
-            var detailsToShow = subNameMatch ? (sub.subs || []) : matchingDetails;
+            const detailsToShow = subNameMatch ? (sub.subs || []) : matchingDetails;
             detailsToShow.forEach(function (d) {
-                var dSel = selectedOccupations.some(function (o) { return o.code === d.code; });
-                var $item = buildOccItem(d.code, d.name, dSel);
+                const dSel = selectedOccupations.some(function (o) { return o.code === d.code; });
+                const $item = buildOccItem(d.code, d.name, dSel);
                 $item.addClass('occ-detail-item');
                 $detail.append($item);
             });
@@ -2712,17 +2717,17 @@ $(document).ready(function () {
         const kw = $(this).val().trim().toLowerCase();
         if (kw) {
             const $detail = $('#occDetailList').empty();
-            var found = false;
+            let found = false;
             OCC_DATA.forEach(function (cat) {
-                var catPrefix = '[' + cat.name.split('·')[0] + '] ';
+                const catPrefix = '[' + cat.name.split('·')[0] + '] ';
                 cat.subs.forEach(function (sub) {
-                    var subMatch = sub.name.toLowerCase().includes(kw) || cat.name.toLowerCase().includes(kw);
+                    const subMatch = sub.name.toLowerCase().includes(kw) || cat.name.toLowerCase().includes(kw);
                     // 소분류 검색
                     if (sub.subs) {
                         sub.subs.forEach(function (d) {
                             if (subMatch || d.name.toLowerCase().includes(kw)) {
                                 found = true;
-                                var isSel = selectedOccupations.some(function (o) { return o.code === d.code; });
+                                const isSel = selectedOccupations.some(function (o) { return o.code === d.code; });
                                 $detail.append(buildOccItem(d.code, catPrefix + d.name, isSel));
                             }
                         });

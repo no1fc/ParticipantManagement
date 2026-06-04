@@ -1,9 +1,8 @@
-/* =============================================
-   연계 현황 JavaScript
-   adminLinkageStats_0.0.2.js
-   - 점수별 분류 + 클릭 필터링
-   - 테스트 지점 제외
-   ============================================= */
+/**
+ * @file 연계 현황 관리 (지점별/상담사별 연계 통계, 점수별 분류, 차트 렌더링)
+ * @version 0.0.2
+ * @requires jQuery, SweetAlert2, ApexCharts
+ */
 
 let branchChart = null;
 let typeChart = null;

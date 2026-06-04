@@ -60,7 +60,7 @@
   <script defer src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 
   <!-- kakao 주소 API 호출 JS API 문서 주소 https://postcode.map.daum.net/guide#usage -->
-  <script defer src="/js/jobPlacementJs/kakaoAddressAPIJS_0.0.1.js"></script>
+  <script defer src="/js/jobPlacementJs/kakaoAddressAPIJS_0.0.2.js"></script>
 
   <!-- 카테고리 설정 jobPlacementDefault JS -->
   <script defer src="/js/jobCategorySelectRenderText_0.0.2.js"></script>

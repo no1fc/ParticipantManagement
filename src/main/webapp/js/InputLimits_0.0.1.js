@@ -1,3 +1,8 @@
+/**
+ * @file 숫자 입력 필드 범위 제한 유틸리티
+ * @version 0.0.1
+ * @requires jQuery
+ */
 function inputLimitsWithRegex(id,min,max) {
     // 숫자 입력 필드에 이벤트 바인딩
     id.on("input", function() {

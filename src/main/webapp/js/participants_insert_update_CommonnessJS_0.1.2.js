@@ -1,3 +1,8 @@
+/**
+ * @file 참여자 등록/수정 공통 유효성 검사 및 폼 제출 처리
+ * @version 0.1.2
+ * @requires jQuery, SweetAlert2
+ */
 $(document).ready(function () {
 
     /* 기본 정보 */
@@ -65,7 +70,7 @@ $(document).ready(function () {
     function keywordCountFunction(){
         //hiddenKeywordInput 이 0이라면 배열 제거
         keywordArray.splice(0,keywordArray.length);
-        
+
         //알선 키워드 클릭시 개수 확인을 위해 추가.
         const hiddenKeywordInput = $(".hidden-keyword-input");
 
@@ -237,7 +242,7 @@ $(document).ready(function () {
             //             flag = true;
             //         }
             //     })
-            
+
             // 초기상담일 변경
             counselInItCons.val(counselLastConsVal);
 
@@ -439,8 +444,8 @@ $(document).ready(function () {
         new kakao.Postcode({
             oncomplete: function(data) {
                 // 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
-                var addr = ''; // 주소 변수
-                var extraAddr = ''; // 참고항목 변수
+                let addr = ''; // 주소 변수
+                let extraAddr = ''; // 참고항목 변수
 
                 //사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다.
                 if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우

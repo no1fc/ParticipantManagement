@@ -1,13 +1,7 @@
 /**
- * 회원가입 페이지 JavaScript
- *
- * 기능:
- * - 아이디 중복 체크
- * - 비밀번호 유효성 검증
- * - 회원가입 폼 제출
- * - 비밀번호 표시/숨김 토글
- *
+ * @file 회원가입 페이지 (아이디 중복 체크, 비밀번호 검증, 폼 제출)
  * @version 0.0.1
+ * @requires jQuery, SweetAlert2
  */
 $(document).ready(function () {
 

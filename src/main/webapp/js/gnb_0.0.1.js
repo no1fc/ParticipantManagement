@@ -1,3 +1,8 @@
+/**
+ * @file GNB 세션 시간 표시 스크립트
+ * @version 0.0.1
+ * @requires jQuery
+ */
 $(document).ready(function(){
     let SESSION_TIME = $("#sessionTimeHidden").val();
     SESSION_TIME = Number(SESSION_TIME);

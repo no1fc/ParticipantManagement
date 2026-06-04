@@ -1,3 +1,8 @@
+/**
+ * @file 참여자 알선 키워드 입력 및 추천 키워드 관리
+ * @version 0.1.2
+ * @requires jQuery
+ */
 $(document).ready(function () {
     // DOM 요소 가져오기
     const tagsContainer = document.getElementById('keywords-container');

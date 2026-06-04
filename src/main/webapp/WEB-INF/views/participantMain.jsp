@@ -142,7 +142,7 @@
 
     <!-- 추천 채용정보 CSS & JS -->
     <link rel="stylesheet" href="/css/participantCss/recommend-modal_0.0.4.css">
-    <script defer src="/js/recommend-modal_0.0.6.js"></script>
+    <script defer src="/js/recommend-modal_0.0.7.js"></script>
 
     <!-- SockJS + STOMP + JOBMOA_USER_ID는 gnb.tag에서 공통 로드 -->
 

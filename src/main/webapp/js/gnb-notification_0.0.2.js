@@ -1,22 +1,27 @@
+/**
+ * @file GNB 알림 관리 (WebSocket + 드롭다운 + 토스트)
+ * @version 0.0.2
+ * @requires jQuery, SockJS, StompJS, Bootstrap
+ */
 // ===========================
 // GNB 알림 관리 (WebSocket + 드롭다운 + 토스트)
 // ===========================
 (function() {
     'use strict';
 
-    var MAX_NOTIFICATIONS = 10;
-    var RECONNECT_DELAY = 5000;
-    var TOAST_DURATION = 5000;
+    const MAX_NOTIFICATIONS = 10;
+    const RECONNECT_DELAY = 5000;
+    const TOAST_DURATION = 5000;
 
     function escapeHtml(str) {
-        var div = document.createElement('div');
+        const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
     }
 
-    var _stompClient = null;
-    var _wsConnected = false;
-    var _notifications = [];
+    let _stompClient = null;
+    let _wsConnected = false;
+    let _notifications = [];
 
     function getStorageKey() {
         return 'gnbNotifications_' + (typeof JOBMOA_USER_ID !== 'undefined' ? JOBMOA_USER_ID : '');
@@ -30,7 +35,7 @@
         if (typeof SockJS === 'undefined' || typeof Stomp === 'undefined') return;
         if (typeof JOBMOA_USER_ID === 'undefined' || !JOBMOA_USER_ID) return;
 
-        var socket = new SockJS('/ws-notification');
+        const socket = new SockJS('/ws-notification');
         _stompClient = Stomp.over(socket);
         _stompClient.debug = null;
 
@@ -40,7 +45,7 @@
             _stompClient.subscribe(
                 '/topic/recommend-complete/' + JOBMOA_USER_ID,
                 function(msg) {
-                    var notification = JSON.parse(msg.body);
+                    const notification = JSON.parse(msg.body);
                     handleGnbNotification(notification);
                 }
             );
@@ -48,7 +53,7 @@
             _stompClient.subscribe(
                 '/topic/resume-request/' + JOBMOA_USER_ID,
                 function(msg) {
-                    var notification = JSON.parse(msg.body);
+                    const notification = JSON.parse(msg.body);
                     notification._notifType = 'resume-request';
                     handleGnbNotification(notification);
                 }
@@ -57,7 +62,7 @@
             _stompClient.subscribe(
                 '/topic/schedule-alert/' + JOBMOA_USER_ID,
                 function(msg) {
-                    var notification = JSON.parse(msg.body);
+                    const notification = JSON.parse(msg.body);
                     notification._notifType = 'schedule-alert';
                     handleGnbNotification(notification);
                 }
@@ -66,7 +71,7 @@
             _stompClient.subscribe(
                 '/topic/schedule-modified/' + JOBMOA_USER_ID,
                 function(msg) {
-                    var notification = JSON.parse(msg.body);
+                    const notification = JSON.parse(msg.body);
                     notification._notifType = 'schedule-modified';
                     handleGnbNotification(notification);
                 }
@@ -83,7 +88,7 @@
     // ===========================
     function handleGnbNotification(notification) {
         // 알림 데이터 구성
-        var notifType;
+        let notifType;
         if (notification._notifType === 'schedule-alert') {
             notifType = 'warning';
         } else if (notification._notifType === 'schedule-modified') {
@@ -94,7 +99,7 @@
             notifType = notification.reused ? 'warning' : (notification.success ? 'success' : 'error');
         }
 
-        var item = {
+        const item = {
             id: Date.now().toString(),
             type: notifType,
             jobSeekerNo: notification.jobSeekerNo,
@@ -132,15 +137,15 @@
         }
 
         // AI 추천 완료 알림
-        var name = notification.participantName || '';
-        var no = notification.jobSeekerNo || '';
-        var prefix = name ? (name + '(' + no + ')') : ('구직번호 ' + no);
+        const name = notification.participantName || '';
+        const no = notification.jobSeekerNo || '';
+        const prefix = name ? (name + '(' + no + ')') : ('구직번호 ' + no);
 
         if (notification.reused) {
             return prefix + ' - 24시간 이내에 이미 추천이 완료되었습니다.';
         }
         if (notification.success) {
-            var count = notification.savedCount || 0;
+            const count = notification.savedCount || 0;
             return count > 0
                 ? prefix + ' - ' + count + '개의 채용정보가 추천 저장되었습니다.'
                 : prefix + ' - 조건에 맞는 채용정보를 찾지 못했습니다.';
@@ -159,7 +164,7 @@
 
     function loadNotificationsFromStorage() {
         try {
-            var data = sessionStorage.getItem(getStorageKey());
+            const data = sessionStorage.getItem(getStorageKey());
             if (data) {
                 _notifications = JSON.parse(data);
             }
@@ -172,7 +177,7 @@
     // UI 렌더링
     // ===========================
     function renderAll() {
-        var list = document.getElementById('gnbNotificationList');
+        const list = document.getElementById('gnbNotificationList');
         if (!list) return;
 
         list.innerHTML = '';
@@ -182,27 +187,27 @@
             return;
         }
 
-        for (var i = 0; i < _notifications.length; i++) {
+        for (let i = 0; i < _notifications.length; i++) {
             renderNotificationItem(_notifications[i], false);
         }
     }
 
     function renderNotificationItem(item, prepend) {
-        var list = document.getElementById('gnbNotificationList');
+        const list = document.getElementById('gnbNotificationList');
         if (!list) return;
 
         // 빈 메시지 제거
-        var empty = list.querySelector('.gnb-notification-empty');
+        const empty = list.querySelector('.gnb-notification-empty');
         if (empty) empty.remove();
 
-        var iconMap = {
+        const iconMap = {
             success: '<i class="bi bi-check-circle-fill text-success"></i>',
             error: '<i class="bi bi-x-circle-fill text-danger"></i>',
             warning: '<i class="bi bi-exclamation-triangle-fill text-warning"></i>',
             info: '<i class="bi bi-envelope-fill text-info"></i>'
         };
 
-        var el = document.createElement('a');
+        const el = document.createElement('a');
         el.href = '#';
         el.className = 'gnb-notification-item' + (item.read ? '' : ' unread');
         el.setAttribute('data-notification-id', item.id);
@@ -212,7 +217,7 @@
             handleNotificationClick(this);
         };
 
-        var nameLabel = item.participantName
+        const nameLabel = item.participantName
             ? escapeHtml(item.participantName) + '(' + escapeHtml(String(item.jobSeekerNo)) + ')'
             : '구직번호 ' + escapeHtml(String(item.jobSeekerNo));
 
@@ -238,11 +243,11 @@
     }
 
     function updateNotificationBadge() {
-        var badge = document.getElementById('gnbNotifBadge');
+        const badge = document.getElementById('gnbNotifBadge');
         if (!badge) return;
 
-        var unreadCount = 0;
-        for (var i = 0; i < _notifications.length; i++) {
+        let unreadCount = 0;
+        for (let i = 0; i < _notifications.length; i++) {
             if (!_notifications[i].read) unreadCount++;
         }
 
@@ -254,14 +259,14 @@
         }
 
         // 벨 아이콘 변경 (알림 있으면 채워진 벨)
-        var bellIcon = document.getElementById('gnbBellIcon');
+        const bellIcon = document.getElementById('gnbBellIcon');
         if (bellIcon) {
             bellIcon.className = unreadCount > 0 ? 'bi bi-bell-fill' : 'bi bi-bell';
         }
     }
 
     function triggerBellAnimation() {
-        var bellIcon = document.getElementById('gnbBellIcon');
+        const bellIcon = document.getElementById('gnbBellIcon');
         if (!bellIcon) return;
 
         bellIcon.classList.add('gnb-bell-ringing');
@@ -274,10 +279,10 @@
     // 알림 클릭 처리
     // ===========================
     function handleNotificationClick(element) {
-        var notifId = element.getAttribute('data-notification-id');
+        const notifId = element.getAttribute('data-notification-id');
 
         // 읽음 처리
-        for (var i = 0; i < _notifications.length; i++) {
+        for (let i = 0; i < _notifications.length; i++) {
             if (_notifications[i].id === notifId) {
                 _notifications[i].read = true;
                 break;
@@ -302,7 +307,7 @@
     // 토스트 알림
     // ===========================
     function showGnbToast(message, type) {
-        var container = document.getElementById('gnbToastContainer');
+        let container = document.getElementById('gnbToastContainer');
         if (!container) {
             container = document.createElement('div');
             container.id = 'gnbToastContainer';
@@ -310,14 +315,14 @@
             document.body.appendChild(container);
         }
 
-        var iconMap = {
+        const iconMap = {
             success: '<i class="bi bi-check-circle-fill text-success"></i>',
             error: '<i class="bi bi-x-circle-fill text-danger"></i>',
             warning: '<i class="bi bi-exclamation-triangle-fill text-warning"></i>',
             info: '<i class="bi bi-envelope-fill text-info"></i>'
         };
 
-        var toast = document.createElement('div');
+        const toast = document.createElement('div');
         toast.className = 'gnb-toast gnb-toast-' + type;
         toast.innerHTML =
             '<div class="d-flex align-items-center">' +
@@ -340,13 +345,13 @@
     // 드롭다운 열릴 때 읽음 처리
     // ===========================
     function setupDropdownEvents() {
-        var dropdownEl = document.getElementById('gnbNotificationArea');
+        const dropdownEl = document.getElementById('gnbNotificationArea');
         if (!dropdownEl) return;
 
         dropdownEl.addEventListener('shown.bs.dropdown', function() {
             // 드롭다운 열면 모든 알림 읽음 처리
-            var changed = false;
-            for (var i = 0; i < _notifications.length; i++) {
+            let changed = false;
+            for (let i = 0; i < _notifications.length; i++) {
                 if (!_notifications[i].read) {
                     _notifications[i].read = true;
                     changed = true;
@@ -356,8 +361,8 @@
                 saveNotificationsToStorage();
                 updateNotificationBadge();
                 // unread 클래스 제거
-                var items = document.querySelectorAll('.gnb-notification-item.unread');
-                for (var j = 0; j < items.length; j++) {
+                const items = document.querySelectorAll('.gnb-notification-item.unread');
+                for (let j = 0; j < items.length; j++) {
                     items[j].classList.remove('unread');
                 }
             }
@@ -375,7 +380,7 @@
         connectGnbWebSocket();
 
         // "모든 알림 지우기" 버튼 이벤트
-        var clearBtn = document.getElementById('gnbNotifClearAll');
+        const clearBtn = document.getElementById('gnbNotifClearAll');
         if (clearBtn) {
             clearBtn.addEventListener('click', function(e) {
                 e.preventDefault();

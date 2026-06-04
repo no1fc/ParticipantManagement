@@ -1,3 +1,7 @@
+/**
+ * @file 랜덤 색상 생성 유틸리티
+ * @version 0.0.1
+ */
 // 사용 예시
 const availableColors = ['rgba(111,220,113,0.82)', 'rgba(0,255,187,0.77)', '#2196F3', '#00796B', '#4CAF50'];
 function randomColor(){

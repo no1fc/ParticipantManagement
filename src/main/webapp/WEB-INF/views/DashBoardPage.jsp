@@ -77,7 +77,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
-    <script defer src="/js/drawChartCenterTextPlugin_0.0.1.js"></script>
+    <script defer src="/js/drawChartCenterTextPlugin_0.0.2.js"></script>
     <script defer src="/js/dashBoardJS_0.0.1.js"></script>
 
     <!-- ApexChart로 변경 -->

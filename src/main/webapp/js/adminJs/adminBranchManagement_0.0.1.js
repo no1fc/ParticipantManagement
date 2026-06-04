@@ -1,3 +1,9 @@
+/**
+ * @file 지점 관리 (지점 목록 조회, 추가, 수정, 삭제)
+ * @version 0.0.1
+ * @requires jQuery, SweetAlert2, DataTables, Bootstrap, OverlayScrollbars
+ */
+
 let branchTable, branchModal;
 
 $(document).ready(function() {
