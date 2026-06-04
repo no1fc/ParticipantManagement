@@ -29,4 +29,6 @@ public class ParticipantJobRecommendDTO {
     private String createdAt; // 저장일시
     private String updatedAt; // 수정일시
     private Boolean isActive; // 공고 활성 여부 (JOB_POSTING JOIN)
+    private String career;    // 경력 (JOB_POSTING JOIN)
+    private String regionNm;  // 근무지역 (JOB_POSTING JOIN)
 }
