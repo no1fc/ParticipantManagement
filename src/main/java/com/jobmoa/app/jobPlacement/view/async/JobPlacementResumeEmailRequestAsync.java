@@ -14,6 +14,11 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 이력서 요청 비동기 REST API 컨트롤러.
+ * 기업에서 참여자의 이력서를 요청하면 해당 정보를 저장하고,
+ * 담당 상담사에게 WebSocket 알림을 전송하여 확인 후 이메일 발송을 처리하도록 한다.
+ */
 @Slf4j
 @RestController
 public class JobPlacementResumeEmailRequestAsync {
@@ -24,6 +29,12 @@ public class JobPlacementResumeEmailRequestAsync {
     @Autowired
     private WebSocketService webSocketService;
 
+    /**
+     * 이력서 요청을 접수하고 담당 상담사에게 WebSocket 알림을 전송한다.
+     *
+     * @param jobPlacementDTO 이력서 요청 데이터 (구직번호, 기업명 등)
+     * @return 요청 처리 결과 JSON 응답 (statusData, message)
+     */
     @PostMapping(value = "/jobPlacement/resumeRequest", produces = "application/json;charset=UTF-8")
     public ResponseEntity<String> resumeRequestAsync(@RequestBody JobPlacementDTO jobPlacementDTO) {
         log.info("JobPlacementResumeEmailRequestAsync resumeRequestAsync Start");

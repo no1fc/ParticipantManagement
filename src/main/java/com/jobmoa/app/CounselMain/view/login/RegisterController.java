@@ -15,6 +15,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 회원가입 컨트롤러.
+ * <p>회원가입 페이지 표시, 신규 회원 등록(승인대기 상태), 아이디 중복 확인 기능을 제공한다.
+ * 비밀번호는 BCrypt로 해싱하여 저장한다.</p>
+ */
 @Slf4j
 @Controller
 public class RegisterController {
@@ -25,6 +30,12 @@ public class RegisterController {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    /**
+     * 회원가입 페이지를 표시한다.
+     * <p>활성 지점 목록을 조회하여 지점 선택 드롭다운에 전달한다.</p>
+     * @param model Spring MVC Model
+     * @return 회원가입 JSP 뷰 이름 (views/register)
+     */
     @GetMapping("/register.do")
     public String registerPage(Model model) {
         log.info("-----------------------------------");
@@ -35,6 +46,12 @@ public class RegisterController {
         return "views/register";
     }
 
+    /**
+     * 회원가입을 처리한다.
+     * <p>필수값 검증, 아이디 중복 체크 후 비밀번호를 BCrypt 해싱하여 승인대기 상태로 등록한다.</p>
+     * @param memberDTO 회원가입 정보 (아이디, 비밀번호, 이름, 지점)
+     * @return 회원가입 처리 결과를 담은 JSON 응답 (success, message)
+     */
     @PostMapping("/register.api")
     @ResponseBody
     public Map<String, Object> register(MemberDTO memberDTO) {
@@ -80,6 +97,11 @@ public class RegisterController {
         return result;
     }
 
+    /**
+     * 아이디 중복 여부를 확인한다.
+     * @param memberDTO 확인할 아이디를 담은 DTO
+     * @return 중복 확인 결과를 담은 JSON 응답 (available, message)
+     */
     @GetMapping("/register.api")
     @ResponseBody
     public Map<String, Object> checkDuplicateId(MemberDTO memberDTO) {

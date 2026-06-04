@@ -16,6 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
+/**
+ * 알선 정보 비동기 업데이트 REST API 컨트롤러.
+ * 참여자의 알선 관련 정보(자격증 포함)를 비동기 방식으로 업데이트한다.
+ */
 @Slf4j
 @RestController
 public class JobPlacementUpdateAsync {
@@ -23,6 +27,13 @@ public class JobPlacementUpdateAsync {
     @Autowired
     JobPlacementService jobPlacementService;
 
+    /**
+     * 참여자의 알선 정보를 비동기적으로 업데이트한다.
+     * 자격증 데이터가 포함된 경우 특수문자를 구분자로 분리하여 개별 자격증으로 저장한다.
+     *
+     * @param jobPlacementDTO 업데이트할 알선 데이터 (자격증 문자열 포함 가능)
+     * @return 업데이트 성공 여부 (true/false)
+     */
     @PostMapping("/jobPlacement/jobPlacementAsync")
     public ResponseEntity<Boolean> updateJobPlacement(@RequestBody JobPlacementDTO jobPlacementDTO) {
         ResponseEntity<Boolean> response = null;

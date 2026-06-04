@@ -14,6 +14,13 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
+/**
+ * 알선 현황 대시보드 페이지 컨트롤러.
+ * <p>
+ * 당월/전월 기준 알선 카드 데이터(총 알선 건수, 1/2위 지점, 전월 대비 달성률)와
+ * 지점별 알선 차트 데이터를 조회하여 대시보드 페이지에 제공한다.
+ * </p>
+ */
 @Slf4j
 @Controller
 public class DashboardArrangementController {
@@ -24,23 +31,43 @@ public class DashboardArrangementController {
     @Autowired
     private ChangeJson changeJson;
 
+    /**
+     * 이번 달 1일 날짜를 반환한다.
+     *
+     * @return yyyy-MM-dd 형식의 이번 달 1일 문자열
+     */
     private String firstDayOfMonthDate(){
         LocalDate today = LocalDate.now();
         LocalDate firstDay = today.with(TemporalAdjusters.firstDayOfMonth());
         return firstDay.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
+    /**
+     * 이번 달 마지막 날짜를 반환한다.
+     *
+     * @return yyyy-MM-dd 형식의 이번 달 마지막 날짜 문자열
+     */
     private String lastDayOfMonthDate(){
         LocalDate today = LocalDate.now();
         LocalDate lastDay = today.with(TemporalAdjusters.lastDayOfMonth());
         return lastDay.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 
+    /**
+     * 전월 1일 날짜를 반환한다.
+     *
+     * @return yyyy-MM-dd 형식의 전월 1일 문자열
+     */
     private String firstDayPreviousMonthOfMonthDate(){
         LocalDate today = LocalDate.now();
         LocalDate firstDay = today.with(TemporalAdjusters.firstDayOfMonth());
         firstDay = firstDay.minusMonths(1);
         return firstDay.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
+    /**
+     * 전월 마지막 날짜를 반환한다.
+     *
+     * @return yyyy-MM-dd 형식의 전월 마지막 날짜 문자열
+     */
     private String lastDayPreviousMonthOfMonthDate(){
         LocalDate today = LocalDate.now();
         LocalDate lastDay = today.with(TemporalAdjusters.lastDayOfMonth());
@@ -48,6 +75,11 @@ public class DashboardArrangementController {
         return lastDay.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 
+    /**
+     * 알선 실적 기간 시작일(전년도 11월 1일)을 반환한다.
+     *
+     * @return yyyy-MM-dd 형식의 전년도 11월 1일 문자열
+     */
     private String startArrangementPerformanceStartDate(){
         LocalDate today = LocalDate.now();
         String previousYear = today.getYear() - 1 + "";
@@ -55,6 +87,17 @@ public class DashboardArrangementController {
         return lastDay.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 
+    /**
+     * 알선 현황 대시보드 페이지로 이동한다.
+     * <p>
+     * 당월/전월 기간을 설정하여 알선 카드 데이터(총건수, 1/2위 지점, 전월 달성률)와
+     * 지점별 알선 차트 데이터를 조회하여 모델에 추가한다.
+     * </p>
+     *
+     * @param model          뷰에 전달할 데이터 모델
+     * @param arrangementDTO 알선 검색 조건 DTO
+     * @return {@code "views/DashBoardArrangementPage"} JSP 뷰
+     */
     @GetMapping("/arrangementDashboard.login")
     public String arrangementDashboard(Model model, ArrangementDTO arrangementDTO){
 

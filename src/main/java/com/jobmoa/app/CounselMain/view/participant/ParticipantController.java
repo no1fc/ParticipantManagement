@@ -26,6 +26,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.List;
 
+/**
+ * 참여자 관리 페이지 컨트롤러.
+ * <p>참여자 목록 조회(페이지네이션/검색 지원) 및 신규 참여자 등록 기능을 제공한다.
+ * 신규 등록 시 기본정보, 상담정보, 취업정보, 자격증정보, 교육정보를 함께 저장한다.</p>
+ */
 @Slf4j
 @Controller
 public class ParticipantController {
@@ -54,7 +59,16 @@ public class ParticipantController {
     @Autowired
     private InfoBean infoBean;
 
-    //Page 이동
+    /**
+     * 참여자 목록 페이지를 표시한다.
+     * <p>로그인한 전담자의 참여자 목록을 페이지네이션 및 검색 조건과 함께 조회한다.
+     * 마감 여부 필터, 카카오톡 공유 키 등을 JSP에 전달한다.</p>
+     * @param model Spring MVC Model
+     * @param session HTTP 세션 (로그인 정보 확인용)
+     * @param participantDTO 검색 조건 및 페이지 정보를 담은 DTO
+     * @param paginationBean 페이지네이션 계산용 빈
+     * @return 참여자 목록 JSP 뷰 이름 (views/participantMain)
+     */
     @GetMapping("participant.login")
     public String participantPageController(Model model, HttpSession session, ParticipantDTO participantDTO, PaginationBean paginationBean){
         log.info("-----------------------------------");
@@ -133,12 +147,29 @@ public class ParticipantController {
         return "views/participantMain";
     }
 
+    /**
+     * 신규 참여자 등록 페이지를 표시한다.
+     * @return 신규 참여자 등록 JSP 뷰 이름 (views/NewParticipantsPage)
+     */
     @GetMapping("newparticipant.login")
     public String newParticipantsController(){
         return "views/NewParticipantsPage";
     }
 
 
+    /**
+     * 신규 참여자를 등록한다.
+     * <p>기본정보, 상담정보, 취업정보, 자격증정보, 교육정보를 함께 저장한다.
+     * 세션의 로그인 정보에서 전담자 ID와 지점을 가져와 기본정보에 설정한다.</p>
+     * @param model Spring MVC Model
+     * @param session HTTP 세션 (로그인 정보 확인용)
+     * @param basicDTO 참여자 기본정보 DTO
+     * @param counselDTO 상담정보 DTO
+     * @param employmentDTO 취업정보 DTO
+     * @param particcertifDTO 자격증정보 DTO
+     * @param educationDTO 교육정보 DTO
+     * @return 알림 페이지 (views/info) - 등록 결과 표시 후 신규 등록 페이지로 이동
+     */
     @PostMapping("newparticipant.login")
     public String newParticipantsController(Model model, HttpSession session,
                                             BasicDTO basicDTO, CounselDTO counselDTO, EmploymentDTO employmentDTO,

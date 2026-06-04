@@ -12,6 +12,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 
+/**
+ * 외부 참여자 관리 페이지 컨트롤러.
+ * <p>참여자 목록을 페이지네이션과 함께 조회하며,
+ * 개인정보 보호를 위해 참여자 이름을 마스킹 처리하여 표시한다.</p>
+ */
 @Slf4j
 @Controller
 public class ParticipantManagement {
@@ -19,7 +24,15 @@ public class ParticipantManagement {
     @Autowired
     private ParticipantServiceImpl participantService; // 서비스 클래스 의존성 주입
 
-    //participant_management_page.jsp
+    /**
+     * 외부 참여자 목록 페이지를 표시한다.
+     * <p>참여자 목록을 페이지네이션 적용하여 조회하고, 참여자 이름의 첫 글자를 제외한
+     * 나머지를 "O"으로 마스킹하여 JSP에 전달한다.</p>
+     * @param model Spring MVC Model
+     * @param participantDTO 검색 조건 및 페이지 정보를 담은 DTO
+     * @param paginationBean 페이지네이션 계산용 빈
+     * @return 참여자 관리 JSP 뷰 이름 (external/participant_management_page)
+     */
     @GetMapping("/jobseekers")
     public String viewParticipants(Model model, ParticipantDTO participantDTO, PaginationBean paginationBean) {
         log.info("viewParticipants Start");

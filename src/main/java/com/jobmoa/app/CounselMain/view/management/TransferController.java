@@ -13,6 +13,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 
+/**
+ * 참여자 전담자 이관 페이지 컨트롤러.
+ * <p>지점 관리자 이상의 권한을 가진 사용자만 접근 가능하며,
+ * 해당 지점의 상담사 목록을 조회하여 참여자 이관 페이지에 전달한다.</p>
+ */
 @Slf4j
 @Controller
 public class TransferController {
@@ -20,6 +25,15 @@ public class TransferController {
     @Autowired
     private MemberServiceImpl memberService;
 
+    /**
+     * 참여자 전담자 이관 페이지를 표시한다.
+     * <p>지점 관리자 권한이 없으면 접근 권한 오류 페이지로 이동한다.
+     * 권한이 있으면 해당 지점의 상담사 목록을 조회하여 전달한다.</p>
+     * @param model Spring MVC Model
+     * @param session HTTP 세션 (로그인 및 권한 정보 확인용)
+     * @param memberDTO 상담사 조회용 DTO
+     * @return 이관 페이지(views/transferPage) 또는 알림 페이지(views/info)
+     */
     @GetMapping("/transfer.login")
     public String transfer(Model model, HttpSession session, MemberDTO memberDTO){
         log.info("-------------> Start Transfer.login");

@@ -57,6 +57,11 @@ import java.util.Map;
 //}
 
 
+/**
+ * JSON 변환 유틸리티 컴포넌트.
+ * <p>리스트, 객체, 배열, Map 등을 JSON 문자열로 변환하는 공통 기능을 제공한다.
+ * ObjectMapper를 이용한 직렬화와 커스텀 람다 기반 변환을 모두 지원한다.</p>
+ */
 @Slf4j
 @Component  // 유틸 클래스이므로 @Component가 더 적절
 public class ChangeJson {
@@ -65,7 +70,11 @@ public class ChangeJson {
     private ObjectMapper objectMapper;  // JSON 변환을 위한 ObjectMapper 추가
 
     /**
-     * 기존 메서드 - 주어진 리스트를 JSON 배열 형식의 문자열로 변환
+     * 주어진 리스트를 JSON 배열 형식의 문자열로 변환한다.
+     * <p>각 항목의 JSON 변환 방식은 호출자가 람다로 지정한다.</p>
+     * @param list 변환할 객체 리스트
+     * @param getJsonString 개별 항목을 JSON 문자열로 변환하는 람다 함수
+     * @return JSON 배열 문자열 (빈 리스트인 경우 "[]")
      */
     public String convertListToJsonArray(List<?> list, Function<Object, String> getJsonString) {
         if (list == null || list.isEmpty()) {
@@ -86,7 +95,9 @@ public class ChangeJson {
     }
 
     /**
-     * 객체를 JSON 문자열로 변환 (ObjectMapper 사용)
+     * 객체를 JSON 문자열로 변환한다 (ObjectMapper 사용).
+     * @param obj 변환할 객체
+     * @return JSON 문자열 (변환 실패 시 "{}")
      */
     public String toJson(Object obj) {
         try {
@@ -98,7 +109,9 @@ public class ChangeJson {
     }
 
     /**
-     * 배열을 JSON 문자열로 변환
+     * 정수 배열을 JSON 문자열로 변환한다.
+     * @param array 변환할 정수 배열
+     * @return JSON 배열 문자열 (변환 실패 시 "[]")
      */
     public String arrayToJson(int[] array) {
         try {
@@ -110,7 +123,9 @@ public class ChangeJson {
     }
 
     /**
-     * Map을 JSON 문자열로 변환
+     * Map을 JSON 문자열로 변환한다.
+     * @param map 변환할 Map 객체
+     * @return JSON 문자열 (변환 실패 시 "{}")
      */
     public String mapToJson(Map<String, Object> map) {
         try {

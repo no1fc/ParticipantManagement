@@ -20,6 +20,11 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * 비밀번호 변경 메일 발송 및 인증 코드 관련 비동기 REST API 컨트롤러.
+ * <p>이메일 존재 확인, 인증 코드 발송(MD5 기반 6자리), 인증 코드 검증 기능을 제공한다.
+ * 인증 코드는 Redis에 저장되며 30분간 유효하고, 최대 5회까지 요청 가능하다.</p>
+ */
 @Slf4j
 @RestController
 public class AsyncMailSend {
@@ -55,6 +60,12 @@ public class AsyncMailSend {
     }*/
 
 
+    /**
+     * 이메일 주소가 시스템에 등록된 회원인지 확인한다.
+     * @param mailDTO 확인할 이메일 주소를 담은 DTO
+     * @param memberDTO 회원 조회용 DTO
+     * @return 등록된 이메일이면 true, 미등록이면 400 오류 응답
+     */
     @PostMapping("/checkEmail.api")
     private ResponseEntity<?> asyncCheckEmail(@RequestBody MailDTO mailDTO, MemberDTO memberDTO){
         if(mailDTO == null || mailDTO.getFrom() == null){
@@ -76,6 +87,13 @@ public class AsyncMailSend {
         }
     }
 
+    /**
+     * 비밀번호 변경을 위한 인증 코드를 생성하고 이메일로 발송한다.
+     * <p>MD5 기반 6자리 인증 코드를 생성하여 Redis에 저장하고,
+     * 사용자 이메일(userId@jobmoa.com)로 발송한다. 인증 코드 유효 시간은 30분이다.</p>
+     * @param mailDTO 사용자 ID를 담은 DTO
+     * @return 메일 발송 성공/실패 여부를 담은 JSON 응답
+     */
     @PostMapping("/pwChangeSendEmail.api")
     private ResponseEntity<?> asyncChangePasswordSendEmail(@RequestBody MailDTO mailDTO) {
         if(mailDTO == null || mailDTO.getUserId() == null){
@@ -146,7 +164,12 @@ public class AsyncMailSend {
 
     }
 
-    //인증번호 확인 api
+    /**
+     * 사용자가 입력한 인증 코드를 Redis에 저장된 값과 비교하여 검증한다.
+     * <p>인증 성공 시 Redis에서 인증 코드를 삭제한다.</p>
+     * @param mailDTO 사용자 ID와 인증 코드를 담은 DTO
+     * @return 인증 성공/실패 여부를 담은 JSON 응답
+     */
     @PostMapping("/checkAuthCode.api")
     private ResponseEntity<?> asyncCheckAuthCode(@RequestBody MailDTO mailDTO) {
         log.info("mailDTO : [{}]", mailDTO);
@@ -205,7 +228,14 @@ public class AsyncMailSend {
 
     }
 
-    //인증번호 생성
+    /**
+     * MD5 해시를 이용하여 6자리 인증 코드를 생성한다.
+     * <p>입력 문자열에 랜덤 숫자를 추가하고 MD5 해시를 수행한 뒤,
+     * 결과 hex 문자열에서 랜덤하게 6자리를 추출하여 대문자로 반환한다.</p>
+     * @param str 인증 코드 생성의 시드 문자열 (이메일 주소 등)
+     * @return 대문자 6자리 인증 코드
+     * @throws NoSuchAlgorithmException MD5 알고리즘을 사용할 수 없는 경우
+     */
     private String md5Hex(String str) throws NoSuchAlgorithmException {
         //랜덤 함수 실행
         Random random = new Random();

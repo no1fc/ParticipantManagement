@@ -16,6 +16,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * 알선(취업연계) 페이지 컨트롤러.
+ * 참여자 알선 목록 조회 및 상세 정보 페이지를 렌더링한다.
+ * 로그인하지 않은 사용자나 타 상담사의 참여자 정보는 개인정보를 마스킹 처리한다.
+ */
 @Slf4j
 @Controller
 @RequestMapping("/jobPlacement")
@@ -35,6 +40,11 @@ public class JobPlacementController {
         return viewPage;
     }    */
 
+    /**
+     * 알선 모듈 인덱스 페이지 접근 시 알선 목록 페이지로 리다이렉트한다.
+     *
+     * @return 알선 목록 페이지로의 리다이렉트 경로
+     */
     @GetMapping("/")
     public String jobPlacementIndexPage(){
         log.info("jobPlacementIndexPage 메서드 호출됨");
@@ -45,6 +55,17 @@ public class JobPlacementController {
         return viewPage;
     }
 
+    /**
+     * 알선 참여자 목록 페이지를 표시한다.
+     * 페이지네이션, 키워드 검색, 나이/성별/직무 카테고리/주소 필터를 지원한다.
+     * 담당 상담사가 아닌 참여자의 개인정보는 마스킹 처리한다.
+     *
+     * @param model           뷰에 전달할 모델 객체
+     * @param session         HTTP 세션 (로그인 정보 조회용)
+     * @param jobPlacementDTO 검색/필터/페이지 조건 DTO
+     * @param paginationBean  페이지네이션 설정 Bean
+     * @return JSP 뷰 이름 ("jobPlacementView/company-list")
+     */
     @GetMapping("/placementList")
     public String jobPlacementListPage(Model model, HttpSession session, JobPlacementDTO jobPlacementDTO, PaginationBean paginationBean) {
         log.info("jobPlacementListPage Start");
@@ -154,6 +175,16 @@ public class JobPlacementController {
         return viewPage;
     }
 
+    /**
+     * 알선 참여자 상세 정보 페이지를 표시한다.
+     * 담당 상담사가 아닌 경우 개인정보를 마스킹 처리하며,
+     * 잘못된 구직번호 접근 시 안내 페이지를 반환한다.
+     *
+     * @param model           뷰에 전달할 모델 객체
+     * @param session         HTTP 세션 (로그인 정보 조회용)
+     * @param jobPlacementDTO 상세 조회 조건 DTO (구직번호 포함)
+     * @return JSP 뷰 이름 ("jobPlacementView/company-detail") 또는 안내 페이지
+     */
     @GetMapping("/placementDetail")
     public String jobPlacementDetailPage(Model model, HttpSession session, JobPlacementDTO jobPlacementDTO){
         log.info("jobPlacementDetailPage 메서드 호출됨");
@@ -215,7 +246,15 @@ public class JobPlacementController {
     }
 
 
-    //개인정보 숨기기(이름)
+    /**
+     * 참여자의 개인정보(이름, 주소, 나이)를 마스킹 처리한다.
+     * 이름은 첫 글자만 노출, 주소는 11자까지만 노출, 나이는 연령대 문자열로 변환한다.
+     *
+     * @param data            마스킹 대상 DTO
+     * @param originalName    원본 이름
+     * @param originalAddress 원본 주소
+     * @param age             원본 나이
+     */
     private void hideInfo(JobPlacementDTO data, String originalName, String originalAddress, int age){
         if (originalName != null && !originalName.isEmpty()) {
             // 첫 글자 제외하고 나머지를 "O"로 변환

@@ -7,6 +7,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+/**
+ * ChatGPT Assistants API와의 대화 흐름을 관리하는 서비스 클래스.
+ * <p>
+ * 메시지 생성, Run 실행, Run 상태 폴링, 응답 메시지 조회의 전체 흐름을 처리한다.
+ * OpenAI Assistants v2 API의 Thread-Message-Run 패턴을 따른다.
+ * </p>
+ *
+ * @see ChatBotFunction
+ * @see ChatRequest
+ */
 @Slf4j
 @Service
 public class ChatBotService {
@@ -16,6 +26,14 @@ public class ChatBotService {
 
     static final ObjectMapper objectMapper = new ObjectMapper();
 
+    /**
+     * ChatGPT에 사용자 메시지를 전달하고 응답을 반환한다.
+     * <p>메시지 생성 -> Run 실행 -> Run 완료 대기 -> 응답 메시지 조회 순서로 처리한다.</p>
+     *
+     * @param chatRequest 사용자 메시지, 스레드 ID, 어시스턴트 ID가 담긴 요청 객체
+     * @return ChatGPT의 응답 메시지를 담은 ResponseEntity
+     * @throws Exception API 호출 실패 시
+     */
     public ResponseEntity<String> getChatGPTResponse(ChatRequest chatRequest) throws Exception {
 
         //원래 있던(4o,3-5) ChatGPT 를 사용하려면 아래 함수를 사용
@@ -49,7 +67,12 @@ public class ChatBotService {
 //        return chatBotFunction.chatBotRequestJson(requestBodyJson,requestHttp);
 //    }
 
-    //어시스턴스에 메시지를 추가할 함수
+    /**
+     * OpenAI 어시스턴트 스레드에 사용자 메시지를 추가한다.
+     *
+     * @param chatRequest 사용자 메시지와 스레드 ID가 담긴 요청 객체
+     * @throws Exception API 호출 실패 시
+     */
     private void createMassage(ChatRequest chatRequest) throws Exception {
         String userMessage = chatRequest.getUserMessage();
         String threadId = chatRequest.getThreadId();
@@ -71,7 +94,13 @@ public class ChatBotService {
         chatBotFunction.chatBotRequestJson(requestBodyJson,requestHttp,true);
     }
 
-    //chatGPT에게 본문 내용과 사용할 챗봇 어시스턴스를 준비해달라고 요청할 함수
+    /**
+     * 지정된 어시스턴트로 스레드의 Run을 생성하고 Run ID를 반환한다.
+     *
+     * @param chatRequest 스레드 ID와 어시스턴트 ID가 담긴 요청 객체
+     * @return 생성된 Run ID
+     * @throws Exception API 호출 실패 시
+     */
     private String creatRun(ChatRequest chatRequest) throws Exception {
         String threadId = chatRequest.getThreadId();
         String assistantsId = chatRequest.getAssistantsId();
@@ -99,6 +128,13 @@ public class ChatBotService {
         return response;
     }
 
+    /**
+     * Run의 실행 상태를 폴링하여 완료를 대기한 후 응답 메시지를 조회한다.
+     * <p>4초 간격으로 상태를 확인하며, completed/failed/expired/cancelled 등의 상태가 되면 중단한다.</p>
+     *
+     * @param chatRequest Run ID와 스레드 ID가 담긴 요청 객체
+     * @return ChatGPT의 응답 메시지를 담은 ResponseEntity, 실패 시 500 에러
+     */
     private ResponseEntity<String> retrieveRun(ChatRequest chatRequest){
         String runId = chatRequest.getRunId();
         String threadId = chatRequest.getThreadId();

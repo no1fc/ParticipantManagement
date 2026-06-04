@@ -16,6 +16,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * AI 채용공고 추천 REST API 컨트롤러.
+ * <p>Gemini AI를 활용하여 참여자에게 적합한 채용공고를 추천한다.
+ * 추천 결과 조회, AI 추천 실행 및 저장, 채용공고 상세 조회 기능을 제공한다.
+ * 상담사당 동시 AI 추천 요청은 최대 5건으로 제한되며,
+ * 추천 완료 시 WebSocket을 통해 실시간 알림을 전송한다.</p>
+ *
+ * @see com.jobmoa.app.CounselMain.biz.recommend.ParticipantJobRecommendServiceImpl
+ * @see com.jobmoa.app.CounselMain.biz.recommend.RecommendConcurrencyManager
+ */
 @Slf4j
 @RestController
 @RequestMapping("/api/recommend")
@@ -30,6 +40,12 @@ public class recommendAjaxController {
     @Autowired
     private RecommendConcurrencyManager concurrencyManager;
 
+    /**
+     * 참여자의 AI 추천 결과를 조회한다.
+     * <p>구직번호를 기반으로 기존에 저장된 추천 결과를 반환한다.</p>
+     * @param request 구직번호를 포함한 추천 요청 DTO
+     * @return 추천 결과 데이터를 담은 JSON 응답
+     */
     @PostMapping(value = "/detail",
             consumes = "application/json; charset=UTF-8",
             produces = "application/json; charset=UTF-8")
@@ -78,6 +94,14 @@ public class recommendAjaxController {
         }
     }
 
+    /**
+     * AI 채용공고 추천을 실행하고 결과를 저장한다.
+     * <p>상담사당 동시 요청을 최대 5건으로 제한하며, 추천 완료 후 WebSocket을 통해
+     * 실시간 알림을 전송한다. forceRefresh 옵션으로 기존 추천 결과를 갱신할 수 있다.</p>
+     * @param request 구직번호와 강제 갱신 여부를 포함한 추천 요청 DTO
+     * @param session HTTP 세션 (상담사 ID 추출 및 동시 요청 제한용)
+     * @return AI 추천 처리 결과(저장 건수, 참여자명, 활성 추천 수 등)를 담은 JSON 응답
+     */
     @PostMapping(value = "/saveRecommendAI",
             consumes = "application/json; charset=UTF-8",
             produces = "application/json; charset=UTF-8")
@@ -189,10 +213,17 @@ public class recommendAjaxController {
         }
     }
 
-    // 응답시간 체크
+    /**
+     * 응답 시간 체크용 메서드 (현재 미구현).
+     */
     private void checkResponseTime() {
     }
 
+    /**
+     * 채용공고 상세 정보를 조회한다.
+     * @param request 구인인증번호(wantedAuthNo)를 포함한 요청 Map
+     * @return 채용공고 상세 데이터를 담은 JSON 응답
+     */
     @PostMapping(value = "/jobPostingDetail",
             consumes = "application/json; charset=UTF-8",
             produces = "application/json; charset=UTF-8")

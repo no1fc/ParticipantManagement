@@ -26,6 +26,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 참여자 정보 수정 컨트롤러.
+ * <p>참여자의 기본정보, 상담정보, 취업정보, 자격증정보, 교육정보를 한 페이지에서
+ * 조회하고 수정하는 기능을 제공한다. 지점 관리자는 관리자용 수정도 가능하다.</p>
+ */
 @Slf4j
 @Controller
 public class UpdateController {
@@ -355,6 +360,21 @@ public class UpdateController {
     }
 */
     //------------------------한 페이지 참여자 업데이트 시작----------------------------------
+    /**
+     * 참여자 정보 수정 페이지를 표시한다.
+     * <p>구직번호를 기반으로 기본정보, 상담정보, 취업정보, 자격증, 직업훈련, 희망직무 정보를
+     * 모두 조회하여 한 페이지에 표시한다. 권한이 없는 참여자는 접근이 차단된다.</p>
+     * @param model Spring MVC Model
+     * @param session HTTP 세션 (로그인 및 권한 정보 확인용)
+     * @param basicDTO 기본정보 DTO (구직번호 포함)
+     * @param employmentDTO 취업정보 DTO
+     * @param counselDTO 상담정보 DTO
+     * @param educationDTO 교육정보 DTO
+     * @param particcertifDTO 자격증정보 DTO
+     * @param searchBean 검색 조건 유지용 빈
+     * @param branchManagementPageFlag 지점 관리 페이지에서의 접근 여부
+     * @return 참여자 수정 JSP 뷰 이름 (views/UpdateParticipantsPage) 또는 알림 페이지
+     */
     @GetMapping("/participantUpdate.login")
     public String updateParticipantsPage(Model model, HttpSession session, BasicDTO basicDTO, EmploymentDTO employmentDTO,
                                          CounselDTO counselDTO, EducationDTO educationDTO, ParticcertifDTO particcertifDTO, SearchBean searchBean,
@@ -454,6 +474,22 @@ public class UpdateController {
     }
 
 
+    /**
+     * 참여자 정보를 일괄 업데이트한다.
+     * <p>기본정보, 상담정보, 취업정보, 자격증, 직업훈련 정보를 한 번에 수정한다.
+     * 지점 관리 페이지에서의 수정 요청 시 관리자용 업데이트 로직이 적용된다.
+     * 상담 진행단계가 '취소'인 경우 참여자 데이터 백업/삭제 처리가 수행된다.</p>
+     * @param model Spring MVC Model
+     * @param session HTTP 세션 (로그인 및 권한 정보 확인용)
+     * @param basicDTO 기본정보 DTO
+     * @param employmentDTO 취업정보 DTO
+     * @param counselDTO 상담정보 DTO
+     * @param educationDTO 교육정보 DTO
+     * @param particcertifDTO 자격증정보 DTO
+     * @param searchBean 검색 조건 유지용 빈
+     * @param branchManagementPageFlag 지점 관리 페이지에서의 수정 여부
+     * @return 알림 페이지 (views/info) - 업데이트 결과 표시 후 목록으로 이동
+     */
     @PostMapping("/participantUpdate.login")
     public String update(Model model, HttpSession session, BasicDTO basicDTO, EmploymentDTO employmentDTO,
                          CounselDTO counselDTO, EducationDTO educationDTO, ParticcertifDTO particcertifDTO, SearchBean searchBean,
@@ -526,6 +562,13 @@ public class UpdateController {
     //------------------------한 페이지 참여자 업데이트 끝----------------------------------
 
 
+    /**
+     * 세션의 로그인 정보와 구직번호를 기반으로 참여자의 유효한 구직번호를 조회한다.
+     * @param jobNo 확인할 구직번호
+     * @param basicDTO 기본정보 조회용 DTO
+     * @param session HTTP 세션 (로그인 정보 확인용)
+     * @return 유효한 구직번호 (조회 실패 시 입력값 그대로 반환)
+     */
     private int getJobNo(int jobNo, BasicDTO basicDTO, HttpSession session){
         LoginBean loginBean = (LoginBean)session.getAttribute("JOBMOA_LOGIN_DATA");
         String loginId = loginBean.getMemberUserID();

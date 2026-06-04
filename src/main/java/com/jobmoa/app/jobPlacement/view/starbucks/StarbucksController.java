@@ -14,6 +14,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * 스타벅스(외부 공개) 참여자 목록 페이지 컨트롤러.
+ * 외부에서 접근 가능한 참여자 목록을 페이지네이션과 함께 제공하며,
+ * 담당 상담사가 아닌 참여자의 개인정보는 마스킹 처리한다.
+ */
 @Slf4j
 @Controller
 public class StarbucksController {
@@ -21,6 +26,17 @@ public class StarbucksController {
     @Autowired
     private JobPlacementService jobPlacementService;
 
+    /**
+     * 스타벅스 참여자 목록 페이지를 표시한다.
+     * 페이지네이션을 적용하여 참여자 목록을 조회하고,
+     * 담당 상담사가 아닌 참여자의 이름/주소/나이를 마스킹 처리한다.
+     *
+     * @param model           뷰에 전달할 모델 객체
+     * @param session         HTTP 세션 (로그인 정보 조회용)
+     * @param jobPlacementDTO 검색/페이지 조건 DTO
+     * @param paginationBean  페이지네이션 설정 Bean
+     * @return JSP 뷰 이름 ("starbucksView/participant-list")
+     */
     @GetMapping("/Starbucks")
     public String starbucksPage(Model model, HttpSession session, JobPlacementDTO jobPlacementDTO, PaginationBean paginationBean) {
         log.info("starbucksPage Start");
@@ -73,6 +89,15 @@ public class StarbucksController {
         return "starbucksView/participant-list";
     }
 
+    /**
+     * 참여자의 개인정보(이름, 주소, 나이)를 마스킹 처리한다.
+     * 이름은 첫 글자만 노출, 주소는 11자까지만 노출, 나이는 연령대 문자열로 변환한다.
+     *
+     * @param data            마스킹 대상 DTO
+     * @param originalName    원본 이름
+     * @param originalAddress 원본 주소
+     * @param age             원본 나이
+     */
     private void hideInfo(JobPlacementDTO data, String originalName, String originalAddress, int age) {
         if (originalName != null && !originalName.isEmpty()) {
             String maskedName = originalName.charAt(0) + originalName.substring(1).replaceAll(".", "O");

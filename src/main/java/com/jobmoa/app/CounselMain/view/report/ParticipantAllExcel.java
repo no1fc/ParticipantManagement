@@ -26,6 +26,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * 전체 참여자 Excel 다운로드 컨트롤러.
+ * 상담사 본인 또는 지점 관리자 권한으로 참여자 전체 목록을 Excel 파일로 내보내는 기능을 제공한다.
+ * 기본정보, 희망직무, 자격증, 직업훈련 등 다중 시트를 포함한 Excel을 생성한다.
+ */
 @Slf4j
 @Controller
 public class ParticipantAllExcel {
@@ -37,7 +42,9 @@ public class ParticipantAllExcel {
 
     private byte[] templateBytes2;  // 템플릿 파일을 캐싱할 바이트 배열
 
-    // 서버 시작 시 템플릿 파일을 한 번만 읽어 캐싱
+    /**
+     * 서버 시작 시 Excel 템플릿 파일(template2.xlsx)을 메모리에 캐싱한다.
+     */
     @PostConstruct
     public void init() {
         log.info("Initializing Excel template...");
@@ -56,6 +63,15 @@ public class ParticipantAllExcel {
         }
     }
 
+    /**
+     * 참여자 전체 목록 Excel 파일을 다운로드한다.
+     * 관리자/지점장 권한 여부에 따라 지점 전체 또는 상담사 본인의 참여자 데이터를 조회한다.
+     *
+     * @param response                HTTP 응답 (Excel 파일 출력용)
+     * @param participantDTO          참여자 조회 조건 DTO
+     * @param session                 HTTP 세션 (로그인 및 권한 정보 조회용)
+     * @param branchManagementPageFlag 지점 관리 페이지에서 요청한 경우 true
+     */
     @GetMapping("/participantExcel.login")
     public void participantExcel(HttpServletResponse response, ParticipantDTO participantDTO, HttpSession session, boolean branchManagementPageFlag){
         //branchManagementPageFlag = 지점 관리자 페이지인지 확인
@@ -100,6 +116,14 @@ public class ParticipantAllExcel {
         }
     }
 
+    /**
+     * Excel 템플릿을 기반으로 참여자 데이터를 채워 넣고 다중 시트 Excel 파일을 생성하여 응답에 출력한다.
+     * 기본정보, 희망직무, 자격증, 직업훈련 시트를 포함한다.
+     *
+     * @param response                HTTP 응답 (Excel 파일 출력용)
+     * @param participantDTO          참여자 조회 조건 DTO
+     * @param branchManagementPageFlag 지점 관리 페이지 여부 (파일명 접두어 결정에 사용)
+     */
     private void createExcel(HttpServletResponse response,ParticipantDTO participantDTO, boolean branchManagementPageFlag){
         // 1. 캐싱된 템플릿을 메모리에서 로드
         try (XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(templateBytes2))) {
@@ -176,6 +200,13 @@ public class ParticipantAllExcel {
         }
     }
 
+    /**
+     * 참여자 기본정보 데이터를 시트의 지정된 시작 행부터 채워 넣는다.
+     *
+     * @param sheet    대상 시트
+     * @param startRow 데이터 시작 행 번호
+     * @param datas    참여자 데이터 목록
+     */
     private void createRow(Sheet sheet, int startRow, List<ParticipantDTO> datas) {
         // 2. startRow 데이터 시작 위치 설정 (템플릿에 따라 조정)
         // 3. 데이터 채우기
@@ -197,6 +228,13 @@ public class ParticipantAllExcel {
         }
     }
 
+    /**
+     * 시트에서 지정된 행을 반환하며, 존재하지 않으면 새로 생성한다.
+     *
+     * @param sheet    대상 시트
+     * @param startRow 행 번호
+     * @return 해당 행 객체
+     */
     private Row setRowValue(Sheet sheet, int startRow) {
         Row row = sheet.getRow(startRow); // 기존 행 가져오기
         if (row == null) {
@@ -205,7 +243,13 @@ public class ParticipantAllExcel {
         return row;
     }
 
-    // 셀 값을 설정하며 기존 스타일 유지
+    /**
+     * 셀 값을 설정하며 기존 스타일을 유지한다. null인 경우 0으로 설정한다.
+     *
+     * @param row         대상 행
+     * @param columnIndex 열 인덱스
+     * @param value       설정할 값 (String, Integer, Double 또는 null)
+     */
     private void setCellValue(Row row, int columnIndex, Object value) {
         Cell cell = row.getCell(columnIndex);
         if (cell == null) {
@@ -235,6 +279,14 @@ public class ParticipantAllExcel {
         }
     }
 
+    /**
+     * 참여자 전체 정보를 행에 설정한다.
+     * 구직번호부터 참여자 수정일까지 전체 컬럼을 순서대로 출력한다.
+     *
+     * @param row      대상 행
+     * @param colIndex 시작 열 인덱스
+     * @param data     참여자 데이터
+     */
     private void setProgress(Row row, int colIndex, ParticipantDTO data) {
         setCellValue(row, colIndex++, data.getParticipantJobNo());      // 구직번호
         setCellValue(row, colIndex++, data.getParticipantRegDate());    // 등록일

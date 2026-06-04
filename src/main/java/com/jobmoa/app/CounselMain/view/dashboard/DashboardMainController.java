@@ -17,6 +17,13 @@ import java.util.Calendar;
 import java.util.List;
 
 
+/**
+ * 메인 대시보드 페이지 컨트롤러.
+ * <p>
+ * 전담자의 개인 대시보드(성공금, 인센티브, 참여자 현황, 성과 점수, KPI),
+ * 성공금 상세 페이지, 성과 점수 상세 페이지, 지점별 평균 점수 페이지를 제공한다.
+ * </p>
+ */
 @Slf4j
 @Controller
 public class DashboardMainController {
@@ -30,7 +37,16 @@ public class DashboardMainController {
     //내 성과에 표기될 문자를 입력
     private static final String[] DASHBOARD_TEXT = {"잡모아 평균","지점 평균","전담자"};
 
-//    //FIXME 평가 실적 시작 종료일
+    /**
+     * 대시보드 조회 기간을 설정한다.
+     * <p>
+     * 배정인원은 해당 년도 기준(1월~12월), 실적 데이터는 전년 11월~당해 10월 기준으로 설정한다.
+     * 년도가 미지정이면 현재 년도를 기본값으로 사용한다.
+     * </p>
+     *
+     * @param dashboardDTO 기간을 설정할 대시보드 DTO
+     * @throws NullPointerException DTO가 {@code null}인 경우
+     */
     private static void failDate(DashboardDTO dashboardDTO) throws NullPointerException{
 
         // NullPointException 방지를 위해 오류를 반환
@@ -61,6 +77,18 @@ public class DashboardMainController {
     }
 
 
+    /**
+     * 전담자 메인 대시보드 페이지로 이동한다.
+     * <p>
+     * 세션에서 로그인 정보를 추출하고, 성공금, 인센티브, 일일 업무, 참여자 현황,
+     * 성과 점수, KPI 등 종합 대시보드 데이터를 조회하여 모델에 추가한다.
+     * </p>
+     *
+     * @param model        뷰에 전달할 데이터 모델
+     * @param session      HTTP 세션 (로그인 정보 추출용)
+     * @param dashboardDTO 검색 조건 (년도 등)
+     * @return {@code "views/DashBoardPage"} JSP 뷰
+     */
     @GetMapping("/dashboard.login")
     public String dashboardMain(Model model, HttpSession session, DashboardDTO dashboardDTO) {
 
@@ -98,6 +126,14 @@ public class DashboardMainController {
         return "views/DashBoardPage";
     }
 
+    /**
+     * 대시보드 DTO에 사용자 ID, 지점, 년도 및 조회 기간을 설정한다.
+     *
+     * @param dto    설정할 대시보드 DTO
+     * @param userID 로그인 사용자 ID
+     * @param branch 소속 지점명
+     * @param year   조회 년도
+     */
     private void setupDashboardDTO(DashboardDTO dto, String userID, String branch, String year) {
         dto.setDashboardUserID(userID);
         dto.setDashboardBranch(branch);
@@ -118,6 +154,18 @@ public class DashboardMainController {
 //        dto.setDashBoardEndDate(dashBoardEndDate);
     }
 
+    /**
+     * 대시보드에 표시할 전체 데이터를 조회하고 모델에 추가한다.
+     * <p>
+     * 지점/사용자 정보, 성공금, 일일 대시보드, 참여자 현황,
+     * 성과 점수, KPI, 취업자 인원 비율 등을 포함한다.
+     * </p>
+     *
+     * @param model          뷰에 전달할 데이터 모델
+     * @param dashboardDTO   검색 조건이 설정된 대시보드 DTO
+     * @param dashBoardYear  조회 년도
+     * @throws Exception 데이터 조회 실패 시
+     */
     private void processDashboardData(Model model, DashboardDTO dashboardDTO, String dashBoardYear)
             throws Exception {
 
@@ -165,6 +213,13 @@ public class DashboardMainController {
         model.addAttribute("employmentRate", employmentRate);
     }
 
+    /**
+     * 성공금 및 인센티브 데이터를 잡모아 평균/지점 평균/전담자 기준으로 계산하여 모델에 추가한다.
+     *
+     * @param model        뷰에 전달할 데이터 모델
+     * @param branchAndUser 지점 수 및 사용자 수 정보
+     * @param successMoney  성공금 및 인센티브 데이터
+     */
     private void processSuccessMoneyData(Model model, DashboardDTO branchAndUser,
                                          DashboardDTO successMoney) {
         int branchCount = branchAndUser.getDashboardCountBranch();
@@ -188,6 +243,12 @@ public class DashboardMainController {
         model.addAttribute("dashBoardSuccessMoneyIncentive", changeJson.arrayToJson(incentiveArray));
     }
 
+    /**
+     * 참여자 현황 데이터(전체/미취업사후/현재/현재년도)를 JSON으로 변환하여 모델에 추가한다.
+     *
+     * @param model        뷰에 전달할 데이터 모델
+     * @param dashboardDTO 검색 조건이 설정된 대시보드 DTO
+     */
     private void processParticipantData(Model model, DashboardDTO dashboardDTO) {
         // 전체 참여자
         dashboardDTO.setDashboardCondition("selectTotalParticipant");
@@ -246,6 +307,12 @@ public class DashboardMainController {
         log.info("nowParticipantJsonData : [{}]", nowParticipantJsonData);
     }
 
+    /**
+     * 성과 점수 및 순위 데이터를 JSON으로 변환하여 모델에 추가한다.
+     *
+     * @param model        뷰에 전달할 데이터 모델
+     * @param dashboardDTO 검색 조건이 설정된 대시보드 DTO
+     */
     private void processScoreData(Model model, DashboardDTO dashboardDTO) {
         dashboardDTO.setDashboardCondition("selectRankAndScore");
         List<DashboardDTO> testDatas = dashboardService.selectAll(dashboardDTO);
@@ -277,6 +344,15 @@ public class DashboardMainController {
     }
 
 
+    /**
+     * 성공금 상세 페이지로 이동한다.
+     * <p>월별 성공금 및 인센티브 데이터를 JSON으로 변환하여 차트에 제공한다.</p>
+     *
+     * @param model        뷰에 전달할 데이터 모델
+     * @param session      HTTP 세션 (로그인 정보 추출용)
+     * @param dashboardDTO 검색 조건 (년도 등)
+     * @return {@code "views/DashBoardSuccessMoneyPage"} JSP 뷰, 에러 시 {@code "views/info"}
+     */
     @GetMapping("/successMoney.login")
     public String successMoney(Model model, HttpSession session, DashboardDTO dashboardDTO) {
         //session 값에 저장된 login Data를 Bean class에 저장
@@ -336,6 +412,18 @@ public class DashboardMainController {
         return "views/DashBoardSuccessMoneyPage";
     }
 
+    /**
+     * 개인 성과 점수 상세 페이지로 이동한다.
+     * <p>
+     * 관리자가 아닌 경우 자신의 지점/아이디로 제한하여 조회하며,
+     * 취업/알선취업/조기취업/고용유지/나은일자리별 점수와 인원수를 제공한다.
+     * </p>
+     *
+     * @param model        뷰에 전달할 데이터 모델
+     * @param session      HTTP 세션 (로그인 정보 및 권한 확인용)
+     * @param dashboardDTO 검색 조건 (년도 등)
+     * @return {@code "views/DashBoardScoreAndSituation"} JSP 뷰, 에러 시 {@code "views/info"}
+     */
     @GetMapping("scoreDashboard.login")
     public String scoreDashboard(Model model, HttpSession session, DashboardDTO dashboardDTO){
         LoginBean loginBean = (LoginBean)session.getAttribute("JOBMOA_LOGIN_DATA");
@@ -411,6 +499,14 @@ public class DashboardMainController {
         return "views/DashBoardScoreAndSituation";
     }
 
+    /**
+     * 지점별 평균 점수 대시보드 페이지로 이동한다.
+     * <p>각 지점의 평균 성과 점수를 그래프로 표시하기 위한 데이터를 제공한다.</p>
+     *
+     * @param model        뷰에 전달할 데이터 모델
+     * @param dashboardDTO 검색 조건 (년도 등)
+     * @return {@code "views/DashBoardBranchScoreAndSituation"} JSP 뷰, 에러 시 {@code "views/info"}
+     */
     @GetMapping("scoreBranchDashboard.login")
     public String scoreBranchDashboard(Model model, DashboardDTO dashboardDTO){
         //내 지점 평균 그래프 클릭하면 DB에 사용자의 각 평가 현황별 % 점수를 반환

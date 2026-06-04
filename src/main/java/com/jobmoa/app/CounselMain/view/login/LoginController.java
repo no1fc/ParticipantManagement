@@ -15,6 +15,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+/**
+ * 로그인/로그아웃 페이지 컨트롤러.
+ * <p>사용자 인증(로그인), 세션 관리, 로그아웃 처리를 담당한다.
+ * BCrypt 해시와 평문 비밀번호를 동시에 지원하며(마이그레이션 과도기),
+ * 비밀번호 미설정 사용자에게는 비밀번호 설정 모달을 표시한다.</p>
+ */
 @Slf4j
 @Controller
 public class LoginController {
@@ -28,11 +34,25 @@ public class LoginController {
     @Autowired
     private InfoBean infoBean;
 
+    /**
+     * 루트 경로 접근 시 index.jsp로 리다이렉트한다.
+     * @return index.jsp 리다이렉트 경로
+     */
     @GetMapping("/")
     public String index(){
         return "redirect:index.jsp";
     }
 
+    /**
+     * 로그인 페이지를 표시한다.
+     * <p>이미 로그인된 사용자는 대시보드로 리다이렉트한다.
+     * setPassword 파라미터가 있으면 비밀번호 설정 모달을 표시한다.</p>
+     * @param session HTTP 세션
+     * @param model Spring MVC Model
+     * @param setPassword 비밀번호 설정 모달 표시 여부 ("true"이면 표시)
+     * @return 로그인 페이지(views/login) 또는 대시보드 리다이렉트 경로
+     * @throws Exception 예외 발생 시
+     */
     @GetMapping("/login.do")
     public String loginController(HttpSession session, Model model,
                                   @RequestParam(value = "setPassword", required = false) String setPassword) throws Exception {
@@ -62,6 +82,17 @@ public class LoginController {
         return page;
     }
 
+    /**
+     * 로그인 인증을 처리한다.
+     * <p>사용자 상태(승인대기, 사용, 비활성화) 확인 후 비밀번호를 검증한다.
+     * 인증 성공 시 세션에 로그인 정보, 권한 그룹, 관리자 여부 등을 저장한다.</p>
+     * @param model Spring MVC Model
+     * @param session HTTP 세션
+     * @param memberDTO 입력된 아이디/비밀번호를 담은 DTO
+     * @param loginBean 세션에 저장될 로그인 정보 빈
+     * @param memberRoleCheck 역할 권한 검증 유틸리티
+     * @return 알림 페이지(views/info) - 성공 시 대시보드, 실패 시 로그인 페이지로 이동
+     */
     @PostMapping("/login.do")
     public String loginController(Model model, HttpSession session, MemberDTO memberDTO, LoginBean loginBean, MemberRoleCheck memberRoleCheck){
         log.info("-----------------------------------");
@@ -162,6 +193,12 @@ public class LoginController {
         return "views/info";
     }
 
+    /**
+     * 로그아웃을 처리한다.
+     * <p>세션을 무효화하고 로그인 페이지로 리다이렉트한다.</p>
+     * @param session HTTP 세션
+     * @return 로그인 페이지 리다이렉트 경로
+     */
     @GetMapping("/logout.do")
     public String logoutController(HttpSession session){
         log.info("-----------------------------------");
