@@ -197,7 +197,6 @@ public class ParticipantController {
 
             //기본정보의 저장에 문제가 있다면 False 를 반환 받아 나머지 정보는 저장되지 않게 한다.
             if(!basicService.insert(basicDTO,counselDTO,employmentDTO,particcertifDTO,educationDTO)){
-//                log.error("basicService insert error [{}]",basicDTO);
                 message = "기본정보 등록에 실패하였습니다.";
                 icon = "error";
                 log.error(message);

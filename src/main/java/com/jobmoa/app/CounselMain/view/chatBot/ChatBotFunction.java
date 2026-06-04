@@ -43,9 +43,7 @@ public class ChatBotFunction {
             if (!response.isSuccessful()) {
                 throw new Exception("Failed: " + response.message());
             }
-            //log.info("response : [{}]",response);
             String bodystate = response.body().string();
-            //log.info("response body String : [{}]",bodystate);
             return bodystate; // 응답 반환
         }
     }
@@ -61,7 +59,6 @@ public class ChatBotFunction {
     private Request isRequestPost(String requestBodyJson, String requestHttp, boolean isPost){
         String url = OPENAI_API_URL+requestHttp;
         log.info("chatBotRequestJson url : [{}]",url);
-        //log.info("chatBotRequestJson openAiApiKey : [{}]",openAiApiKey);
 
         // HTTP 요청 생성
         RequestBody body = RequestBody.create(

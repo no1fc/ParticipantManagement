@@ -29,10 +29,8 @@ public class ParticipantDAO {
      * @return 참여자 목록
      */
     public List<ParticipantDTO> selectAll(ParticipantDTO participantDTO) {
-//        log.info("ParticipantDTO ParticipantDAO selectAll : [{}]", participantDTO);
         log.info("ParticipantDTO ParticipantDAO selectAll condition : [{}]",participantDTO.getParticipantCondition());
         List<ParticipantDTO> datas = sqlSession.selectList(ns+participantDTO.getParticipantCondition(), participantDTO);
-        //log.info("datas : [{}]",datas.toString());
         return datas;
     }
 
@@ -43,11 +41,9 @@ public class ParticipantDAO {
      * @return 참여자 단건 데이터, 없으면 null
      */
     public ParticipantDTO selectOne(ParticipantDTO participantDTO) {
-        //log.info("ParticipantDTO ParticipantDAO selectOne : [{}]",participantDTO);
         log.info("ParticipantDTO ParticipantDAO selectOne condition : [{}]",participantDTO.getParticipantCondition());
         ParticipantDTO data = sqlSession.selectOne(ns+participantDTO.getParticipantCondition(), participantDTO);
 
-        //log.info("ParticipantDTO ParticipantDAO data : [{}]",data);
         return data;
     }
 
@@ -82,7 +78,6 @@ public class ParticipantDAO {
      * @return 삭제 성공 여부
      */
     public boolean delete(ParticipantDTO participantDTO) {
-        //log.info("ParticipantDTO ParticipantDAO delete : [{}]",participantDTO);
         //쿼리가 실행되고 0이거나 작으면 false 0보다 크면 true 를 반환
         boolean flag = 0 < sqlSession.delete(ns+participantDTO.getParticipantCondition(), participantDTO);
         log.info("ParticipantDTO ParticipantDAO delete result : [{}]",flag);

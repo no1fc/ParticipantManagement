@@ -28,7 +28,6 @@ public class ChatController {
     @GetMapping("/chatgpt")
     public String chatBot(Model model) throws Exception{
 //        String threadId = ;
-//        log.info("createThread : [{}]",threadId);
 //        model.addAttribute("threadId", createThread());
 
         return "chatBot/ChatBot";

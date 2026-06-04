@@ -19,7 +19,6 @@ public class EmploymentServiceImpl implements EmploymentService {
 
     @Override
     public boolean insert(EmploymentDTO employmentDTO) {
-//        log.info("employment insert data : [{}]",employmentDTO);
         log.info("EmploymentServiceImpl insert Start");
         log.info("EmploymentServiceImpl insert End");
         return employmentDAO.insert(employmentDTO);
@@ -27,7 +26,6 @@ public class EmploymentServiceImpl implements EmploymentService {
 
     @Override
     public boolean update(EmploymentDTO employmentDTO) {
-//        log.info("employment update data : [{}]", employmentDTO);
         log.info("EmploymentServiceImpl update Start");
         log.info("EmploymentServiceImpl update End");
         return employmentDAO.update(employmentDTO);
@@ -40,7 +38,6 @@ public class EmploymentServiceImpl implements EmploymentService {
 
     @Override
     public EmploymentDTO selectOne(EmploymentDTO employmentDTO) {
-//        log.info("employment selectOne data : [{}]",employmentDTO);
         log.info("EmploymentServiceImpl selectOne Start");
         EmploymentDTO data = null;
         //DTO 가 null이 아니고 condition 이 null 이 아니면 selecone 함수 실행
@@ -49,7 +46,6 @@ public class EmploymentServiceImpl implements EmploymentService {
             data = employmentDAO.selectOne(employmentDTO);
             log.info("EmploymentServiceImpl EmploymentDTO Not null End SelectOne");
         }
-//        log.info("employment selectOne data : [{}]",data);
         log.info("EmploymentServiceImpl selectOne End");
         return data;
     }

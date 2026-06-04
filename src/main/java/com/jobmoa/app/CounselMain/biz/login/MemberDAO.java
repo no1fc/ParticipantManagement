@@ -30,10 +30,8 @@ public class MemberDAO {
      */
     public List<MemberDTO> selectAll(MemberDTO memberDTO) {
         log.info("MemberCondition selectAll: [{}]",memberDTO.getMemberCondition());
-//        log.info("memberDTO : [{}]",memberDTO);
         List<MemberDTO> datas = sqlSession.selectList(ns+memberDTO.getMemberCondition(), memberDTO);
         if(datas == null) datas = null;
-//        log.info("datas : [{}]",datas);
 //        return null;
         return datas;
     }
@@ -47,7 +45,6 @@ public class MemberDAO {
     public MemberDTO selectOne(MemberDTO memberDTO) {
         log.info("MemberCondition selectOne: [{}]",memberDTO.getMemberCondition());
         MemberDTO data = sqlSession.selectOne(ns+memberDTO.getMemberCondition(), memberDTO);
-//        log.info("Login data : [{}]",data);
         return data;
     }
 

@@ -42,7 +42,6 @@ public class ChatBotService {
         createMassage(chatRequest);
         chatRequest.setRunId(creatRun(chatRequest));
         ResponseEntity<String> response = retrieveRun(chatRequest);
-        //log.info("getChatGPTResponse response : [{}]",response.getBody());
         return response;
     }
 
@@ -63,7 +62,6 @@ public class ChatBotService {
 //                /chat/completions
 //                """;
 //
-//        log.info(" getChatGPTResponse requestBodyJson : [{}]",requestBodyJson);
 //        return chatBotFunction.chatBotRequestJson(requestBodyJson,requestHttp);
 //    }
 
@@ -89,8 +87,6 @@ public class ChatBotService {
                 /threads/%s/messages
                 """.formatted(threadId);
 
-        //log.info("createMassage threadId : [{}]",threadId);
-        //log.info(" createMassage requestBodyJson : [{}]",requestBodyJson);
         chatBotFunction.chatBotRequestJson(requestBodyJson,requestHttp,true);
     }
 
@@ -115,7 +111,6 @@ public class ChatBotService {
         String requestHttp = """
                 /threads/%s/runs
                 """.formatted(threadId);
-        //log.info(" creatRun requestBodyJson : [{}]",requestBodyJson);
 
         // OpenAI API에 요청을 전달하고 응답받기
         String response = chatBotFunction.chatBotRequestJson(requestBodyJson,requestHttp,true);
@@ -124,7 +119,6 @@ public class ChatBotService {
         JsonNode root = objectMapper.readTree(response);
         //반환받은 데이터의 id 값만 출력
         response = root.get("id").asText();
-        //log.info("creatRun response : [{}]",response);
         return response;
     }
 
@@ -159,7 +153,6 @@ public class ChatBotService {
 //            response = jsonNode.get("choices").get(0).get("message").get("content").asText();
                 //chatGPT 실행 여부를 확인한다.
                 response = jsonNode.get("status").asText();
-                //log.info("retrieveRun try { response : [{}]",response);
                 //실행 여부가
                 //cancelled,
                 //requires_action,
@@ -183,10 +176,8 @@ public class ChatBotService {
             """.formatted(threadId);
             response = chatBotFunction.chatBotRequestJson(requestBodyJson,requestHttp,false);
             jsonNode = objectMapper.readTree(response);
-            //log.info("retrieveRun jsonNode : [{}]",jsonNode);
             //불러온 메시지 목록에서 GPT 답변만 출력한다.
             response = jsonNode.get("data").get(0).get("content").get(0).get("text").get("value").asText();
-            //log.info("retrieveRun if( response : [{}]",response);
             return ResponseEntity.ok(response);
 
         }

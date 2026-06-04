@@ -120,8 +120,6 @@ public class DashboardMainController {
 
 //        long afterTime = System.currentTimeMillis();
 //
-//        log.info("End dashboardMain Controller(GetMapping) / beforeTime : [{}], afterTime : [{}]", beforeTime, afterTime);
-//        log.info("End dashboardMain Controller(GetMapping) / Check Time : [{}]", (afterTime - beforeTime) / 1000);
 
         return "views/DashBoardPage";
     }

@@ -44,7 +44,6 @@ public class ReportDAO {
         String condition = reportDTO.getReportCondition();
         log.info("Report selectAll SQL reportDTO : [{}]",condition);
         List<ReportDTO> datas = sqlSession.selectList(ns+condition, reportDTO);
-        //log.info("data : [{}]",datas);
         return datas;
     }
     /**

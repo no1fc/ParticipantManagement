@@ -19,7 +19,6 @@ public class EducationServiceImpl implements EducationService {
 
     @Override
     public EducationDTO selectOne(EducationDTO educationDTO) {
-//        log.info("EducationDTO selectOne : [{}]", educationDTO);
         EducationDTO data = null;
         if(educationDTO != null || educationDTO.getEducationCondition() != null) {
             log.info("selectOne educationDTO Not Null Start EducationDAO Start");
@@ -30,7 +29,6 @@ public class EducationServiceImpl implements EducationService {
 
     @Override
     public List<EducationDTO> selectAll(EducationDTO educationDTO) {
-//        log.info("EducationDTO selectAll : [{}]", educationDTO);
         List<EducationDTO> data = null;
         if(educationDTO != null || educationDTO.getEducationCondition() != null) {
             log.info("selectAll educationDTO Not Null Start EducationDAO Start");
@@ -81,7 +79,6 @@ public class EducationServiceImpl implements EducationService {
 
     @Override
     public boolean update(EducationDTO educationDTO) {
-//        log.info("EducationDTO update : [{}]", educationDTO);
         log.info("EducationDTO update Start");
         log.info("EducationDTO update End");
         return educationDAO.update(educationDTO);
@@ -89,7 +86,6 @@ public class EducationServiceImpl implements EducationService {
 
     @Override
     public boolean delete(EducationDTO educationDTO) {
-//        log.info("EducationDTO delete : [{}]", educationDTO);
         log.info("EducationDTO delete Start");
         log.info("EducationDTO delete End");
 //        return educationDAO.delete(educationDTO);

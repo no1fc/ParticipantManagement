@@ -240,7 +240,6 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
         String alsonDetail  = (referralInfo != null) ? referralInfo.getInfoAlsonDetail() : null;
         boolean hasAlsonDetail = (alsonDetail != null && !alsonDetail.trim().isEmpty());
 
-//        log.debug("알선상세정보 유무: {} , referralInfo: {}, alsonDetail: {}", hasAlsonDetail, referralInfo, alsonDetail);
 
         if (hasAlsonDetail) {
             saveWithGeminiJudgment(participant, categoryList, referralInfo, candidates, alsonDetail, searchCondition);
@@ -353,7 +352,6 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
         // RecommendCategoryDTO 희망순위 1순위 희망직무만 사용
         if (categoryList != null && !categoryList.isEmpty()) {
             RecommendCategoryDTO primary = categoryList.get(0);
-//            log.info("[추천저장] 카테고리 대/중분류 설정 jobSeekerNo={}, category={}", participant.getJobSeekerNo(), primary);
             // 카테고리 대/중분류는 J_참여자관리에 저장된 값 사용
             dto.setCategoryMajor(primary.getCategoryMain());
             dto.setCategoryMiddle(primary.getCategoryMiddle());

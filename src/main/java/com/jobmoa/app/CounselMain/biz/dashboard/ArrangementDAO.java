@@ -28,10 +28,8 @@ public class ArrangementDAO {
      * @return 배정 현황 목록
      */
     public List<ArrangementDTO> selectAll(ArrangementDTO arrangementDTO) {
-//        log.info("ArrangementDTO arrangementDTO selectAll : [{}]", arrangementDTO);
         log.info("ArrangementDTO ArrangementDTO selectAll condition : [{}]", arrangementDTO.getArrangementCondition());
         List<ArrangementDTO> datas = sqlSession.selectList(ns+ arrangementDTO.getArrangementCondition(), arrangementDTO);
-//        log.info("datas : [{}]",datas);
         return datas;
     }
 
@@ -42,11 +40,9 @@ public class ArrangementDAO {
      * @return 배정 현황 단건 데이터, 없으면 null
      */
     public ArrangementDTO selectOne(ArrangementDTO arrangementDTO) {
-        //log.info("ArrangementDAO ArrangementDAO selectOne : [{}]", arrangementDTO);
         log.info("ArrangementDAO ArrangementDAO selectOne condition : [{}]", arrangementDTO.getArrangementCondition());
         ArrangementDTO data = sqlSession.selectOne(ns+ arrangementDTO.getArrangementCondition(), arrangementDTO);
 
-        //log.info("ArrangementDAO ArrangementDAO data : [{}]",data);
         return data;
     }
 

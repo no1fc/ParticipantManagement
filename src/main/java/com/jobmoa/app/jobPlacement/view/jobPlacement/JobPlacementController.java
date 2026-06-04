@@ -137,7 +137,6 @@ public class JobPlacementController {
             jobPlacementDTO.setPageRows(pageRows);
             // DB(J_참여자관리)로부터 참여자 목록 조회
             jobPlacementDTO.setCondition("selectExternalAll");
-//            log.info("jobPlacementListPage jobPlacementDTO : [{}]", jobPlacementDTO);
             List<JobPlacementDTO> jobPlacementDatas = jobPlacementService.selectAll(jobPlacementDTO);
 
             // ParticipantDTO에서 이름 설정

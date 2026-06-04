@@ -31,7 +31,6 @@ public class JobPlacementDAO {
     public boolean insert(JobPlacementDTO jobPlacementDTO) {
         String condition = jobPlacementDTO.getCondition();
         log.info("JobPlacementDTO insert : [{}]",condition);
-//        log.error("JobPlacementDTO insert 사용 금지 : [{}]",false);
         return sqlSession.insert(ns+condition,jobPlacementDTO) > 0;
     }
 
@@ -44,7 +43,6 @@ public class JobPlacementDAO {
     public boolean update(JobPlacementDTO jobPlacementDTO) {
         String condition = jobPlacementDTO.getCondition();
         log.info("JobPlacementDTO update : [{}]",condition);
-//        log.error("JobPlacementDTO update 사용 금지 : [{}]",false);
         return sqlSession.update(ns+condition,jobPlacementDTO) > 0;
     }
 
@@ -57,7 +55,6 @@ public class JobPlacementDAO {
     public boolean delete(JobPlacementDTO jobPlacementDTO) {
         String condition = jobPlacementDTO.getCondition();
         log.info("JobPlacementDTO delete : [{}]",condition);
-//        log.error("JobPlacementDTO delete 사용 금지 : [{}]",false);
         return sqlSession.delete(ns+condition,jobPlacementDTO) > 0;
     }
 
@@ -71,7 +68,6 @@ public class JobPlacementDAO {
         String condition = jobPlacementDTO.getCondition();
         log.info("JobPlacementDTO selectOne : [{}]",condition);
         JobPlacementDTO data = sqlSession.selectOne(ns+condition,jobPlacementDTO);
-//        log.info("JobPlacementDTO selectOne jobPlacementDTO : [{}]",data);
         return data;
     }
 
@@ -87,7 +83,6 @@ public class JobPlacementDAO {
         log.info("JobPlacementDTO selectAll : [{}]",condition);
 
         List<JobPlacementDTO> datas = sqlSession.selectList(ns+condition,jobPlacementDTO);
-//        log.info("JobPlacementDTO selectAll jobPlacementDTO : [{}]",datas);
 
         return datas;
     }

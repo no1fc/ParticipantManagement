@@ -29,7 +29,6 @@ public class chatAjax {
     public ResponseEntity<String> chat(@RequestBody ChatRequest request) throws Exception {
         log.info("userMessage : [{}]",request);
         ResponseEntity<String> response = chatBotService.getChatGPTResponse(request);
-        //log.info("chat response : [{}]",response);
         return response;
     }
 }

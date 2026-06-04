@@ -24,7 +24,6 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public List<ParticipantDTO> selectAll(ParticipantDTO participantDTO) {
-        //log.info("ParticipantDTO ParticipantService selectOne : [{}]",participantDTO);
         if(participantDTO == null || participantDTO.getParticipantCondition() == null) {
             log.error("selectAll participantDTO null OR participantCondition null");
             return null;
@@ -48,7 +47,6 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public ParticipantDTO selectOne(ParticipantDTO participantDTO) {
-        //log.info("ParticipantDTO ParticipantService selectOne : [{}]",participantDTO);
         if(participantDTO == null || participantDTO.getParticipantCondition() == null) {
             log.error("selectOne participantDTO null OR participantCondition null");
             return null;
@@ -58,20 +56,17 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public boolean insert(ParticipantDTO participantDTO) {
-        //log.info("ParticipantDTO ParticipantService insert : [{}]",participantDTO);
         return participantDAO.insert(participantDTO);
     }
 
     @Override
     public boolean update(ParticipantDTO participantDTO) {
-        //log.info("ParticipantDTO ParticipantService update : [{}]",participantDTO);
         return participantDAO.update(participantDTO);
     }
 
     @Override
     @Transactional
     public boolean delete(ParticipantDTO participantDTO) {
-        //log.info("ParticipantDTO ParticipantService delete : [{}]",participantDTO);
         //반환용 boolean flag 변수
         boolean flag = false;
 

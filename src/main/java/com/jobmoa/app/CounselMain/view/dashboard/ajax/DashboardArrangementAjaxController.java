@@ -207,11 +207,6 @@ public class DashboardArrangementAjaxController {
             arrangementDTO.setArrangementPerformanceStartDate(firstYearDate(today, year, month));
         }
 
-//        log.info("arrangementDTO.arrangementStartDate : {}", arrangementDTO.getArrangementStartDate());
-//        log.info("arrangementDTO.arrangementEndDate : {}", arrangementDTO.getArrangementEndDate());
-//        log.info("arrangementDTO.arrangementPreviousMonthStartDate : {}", arrangementDTO.getArrangementPreviousMonthStartDate());
-//        log.info("arrangementDTO.arrangementPreviousMonthEndDate : {}", arrangementDTO.getArrangementPreviousMonthEndDate());
-//        log.info("arrangementDTO.arrangementPerformanceStartDate : {}", arrangementDTO.getArrangementPerformanceStartDate());
 
     }
 

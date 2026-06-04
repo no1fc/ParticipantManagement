@@ -121,7 +121,6 @@ public class BasicServiceImpl implements BasicService {
 
     @Override
     public boolean update(BasicDTO basicDTO) {
-//        log.info("basic update SQL basicDTO : [{}]",basicDTO);
         if(basicDTO == null || basicDTO.getBasicCondition() == null) {
             return false;
         }
@@ -197,7 +196,6 @@ public class BasicServiceImpl implements BasicService {
         if (basicDTO == null || basicDTO.getBasicCondition() == null){
             return data;
         }
-//        log.info("basic selectOne SQL basicDTO : [{}]",basicDTO);
         //기본 정보 DTO가 있고 condition 값이 있다면 select 를 진행
         data = basicDAO.selectOne(basicDTO);
         return data;

@@ -81,7 +81,6 @@ public class JobPlacementServiceImpl implements JobPlacementService{
             //자격증 추가
             jobPlacementDTO.setCondition("certificateInsert");
             certificateFlag = jobPlacementDAO.insert(jobPlacementDTO) ;
-//            log.info("JobPlacementDTO delete success certificateFlag : [{}]",certificateFlag);
         }
         else{
             certificateFlag = jobPlacementDAO.delete(jobPlacementDTO);
@@ -94,20 +93,17 @@ public class JobPlacementServiceImpl implements JobPlacementService{
             if(data == null) {
                 jobPlacementDTO.setCondition("insertPlacementDetail");
                 certificateFlag = certificateFlag && jobPlacementDAO.insert(jobPlacementDTO);
-//                log.info("JobPlacementDTO insert success certificateFlag : [{}]",certificateFlag);
             }
             else{
                 data.setCondition("updatePlacementDetail");
                 data.setPlacementDetail(placementDetail);
                 data.setJobNumber(jobNumber);
                 certificateFlag = certificateFlag && jobPlacementDAO.update(data);
-//                log.info("JobPlacementDTO update success certificateFlag : [{}]",certificateFlag);
             }
         }
         else{
             jobPlacementDTO.setCondition("deletePlacementDetail");
             certificateFlag = certificateFlag && jobPlacementDAO.delete(jobPlacementDTO);
-//            log.info("JobPlacementDTO delete success certificateFlag : [{}]",certificateFlag);
         }
 
         if(condition.equals("updateJobPlacementAsync")) {

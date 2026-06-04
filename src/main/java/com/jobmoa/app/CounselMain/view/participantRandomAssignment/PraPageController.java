@@ -70,7 +70,6 @@ public class PraPageController {
         praDTO.setBranch(branch); // 지점
         praDTO.setYearDate(Calendar.getInstance().get(Calendar.YEAR));
         List<ParticipantRandomAssignmentDTO> praDatas = praService.selectAll(praDTO);
-//        log.info("praMainPage select ALL Datas : [{}]",praDatas);
         log.info("praMainPage select ALL End");
         /*
             배열 객체 사용을 위해 {} 배열로 변환
@@ -84,11 +83,9 @@ public class PraPageController {
             if(praDatas.indexOf(dto) != praDatas.size()-1){
                 responseAssignData.append(",");
             }
-//            log.info("praMainPage responseAssignData : [{}]",item);
         }
         responseAssignData.append("}");
 
-//        log.info("praMainPage responseAssignData : [{}]",responseAssignData);
 
         model.addAttribute("assignData", responseAssignData);
         return "views/participantRandomAssignmentMain";

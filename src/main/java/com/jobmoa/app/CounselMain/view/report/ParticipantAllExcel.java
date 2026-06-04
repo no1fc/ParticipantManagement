@@ -144,7 +144,6 @@ public class ParticipantAllExcel {
                 datas = List.of(); // null 대신 빈 리스트 사용
             }
 
-            //log.info("createExcel datas : [{}]",datas);
             createRow(sheet,1,datas);
 
             // 희망직무 시트 생성

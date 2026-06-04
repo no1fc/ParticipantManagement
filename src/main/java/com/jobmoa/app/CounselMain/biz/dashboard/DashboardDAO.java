@@ -30,7 +30,6 @@ public class DashboardDAO {
      * @return 대시보드 데이터 목록
      */
     public List<DashboardDTO> selectAll(DashboardDTO dashboardDTO) {
-//        log.info("DashboardDTO DashboardDAO selectAll : [{}]", dashboardDTO);
         log.info("DashboardDTO DashboardDAO selectAll condition : [{}]", dashboardDTO.getDashboardCondition());
 
         // 데이터 형식 호환성 오류 방지를 위해 날짜 파라미터가 비어있는지 확인 로깅 추가
@@ -39,7 +38,6 @@ public class DashboardDAO {
         }
 
         List<DashboardDTO> datas = sqlSession.selectList(ns+ dashboardDTO.getDashboardCondition(), dashboardDTO);
-//        log.info("datas : [{}]",datas);
         return datas;
     }
 
@@ -50,11 +48,9 @@ public class DashboardDAO {
      * @return 대시보드 단건 데이터, 없으면 null
      */
     public DashboardDTO selectOne(DashboardDTO dashboardDTO) {
-        //log.info("DashboardDTO DashboardDAO selectOne : [{}]", dashboardDTO);
         log.info("DashboardDTO DashboardDAO selectOne condition : [{}]", dashboardDTO.getDashboardCondition());
         DashboardDTO data = sqlSession.selectOne(ns+ dashboardDTO.getDashboardCondition(), dashboardDTO);
 
-        //log.info("DashboardDTO DashboardDAO data : [{}]",data);
         return data;
     }
 

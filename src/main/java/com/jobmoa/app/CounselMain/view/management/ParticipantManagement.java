@@ -54,7 +54,6 @@ public class ParticipantManagement {
         // 게시글 개수
         ParticipantDTO participantTotalCountDTO = participantService.selectOne(participantDTO);
 
-//        log.info("ParticipantManagement participantTotalCountDTO : [{}]", participantTotalCountDTO);
 
         if(participantTotalCountDTO != null){
             int totalCount = participantTotalCountDTO.getTotalCount();

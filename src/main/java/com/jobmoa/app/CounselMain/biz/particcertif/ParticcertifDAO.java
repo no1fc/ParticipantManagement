@@ -28,7 +28,6 @@ public class ParticcertifDAO {
      * @return 등록 성공 여부
      */
     public boolean insert(ParticcertifDTO particcertifDTO) {
-//        log.info("particcertifDTO insert : [{}]",particcertifDTO);
         boolean flag = sqlSession.insert(ns+"particcertifInsert",particcertifDTO) > 0;
         log.info("particcertifDTO insert : [{}]",flag);
         return flag;
@@ -40,7 +39,6 @@ public class ParticcertifDAO {
      * @return 수정 성공 여부
      */
     public boolean update(ParticcertifDTO particcertifDTO) {
-//        log.info("particcertifDTO update : [{}]",particcertifDTO);
         boolean flag = sqlSession.update(ns+"particcertifUpdate",particcertifDTO) > 0;
         log.info("particcertifDTO update : [{}]",flag);
         return flag;
@@ -52,7 +50,6 @@ public class ParticcertifDAO {
      * @return 삭제 성공 여부
      */
     public boolean delete(ParticcertifDTO particcertifDTO) {
-//        log.info("particcertifDTO delete : [{}]",particcertifDTO);
         boolean flag = sqlSession.delete(ns+"particcertifDelete",particcertifDTO) > 0;
         log.info("particcertifDTO delete : [{}]",flag);
         return flag;
@@ -64,7 +61,6 @@ public class ParticcertifDAO {
      * @return 자격증 단건 데이터, 없으면 null
      */
     public ParticcertifDTO selectOne(ParticcertifDTO particcertifDTO) {
-//        log.info("particcertifDTO selectOne : [{}]",particcertifDTO);
         return sqlSession.selectOne(ns+particcertifDTO.getParticcertifCondition(),particcertifDTO);
     }
     /**
@@ -74,7 +70,6 @@ public class ParticcertifDAO {
      * @return 자격증 목록
      */
     public List<ParticcertifDTO> selectAll(ParticcertifDTO particcertifDTO) {
-//        log.info("particcertifDTO selectAll : [{}]",particcertifDTO);
         return sqlSession.selectList(ns+particcertifDTO.getParticcertifCondition(),particcertifDTO);
     }
 }

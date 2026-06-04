@@ -29,7 +29,6 @@ public class EducationDAO {
      * @return 등록 성공 여부
      */
     public boolean insert(EducationDTO educationDTO) {
-//        log.info("EducationDTO insert : [{}]", educationDTO);
         log.info("EducationDAO insert Start");
         boolean flag = sqlSession.insert(ns+"educationInsert", educationDTO) > 0;
         log.info("EducationDTO insert : [{}]",flag);
@@ -43,7 +42,6 @@ public class EducationDAO {
      * @return 수정 성공 여부
      */
     public boolean update(EducationDTO educationDTO) {
-//        log.info("EducationDTO update : [{}]", educationDTO);
         log.info("EducationDAO update Start");
         boolean flag = sqlSession.update(ns+educationDTO.getEducationCondition(), educationDTO) > 0;
         log.info("EducationDTO update : [{}]",flag);
@@ -57,7 +55,6 @@ public class EducationDAO {
      * @return 삭제 성공 여부
      */
     public boolean delete(EducationDTO educationDTO) {
-//        log.info("EducationDTO delete : [{}]", educationDTO);
         log.info("EducationDAO delete Start");
         boolean flag = sqlSession.delete(ns+"educationDelete", educationDTO) > 0;
         log.info("EducationDTO delete : [{}]",flag);
@@ -71,7 +68,6 @@ public class EducationDAO {
      * @return 교육 정보 단건 데이터, 없으면 null
      */
     public EducationDTO selectOne(EducationDTO educationDTO) {
-//        log.info("EducationDTO selectOne : [{}]", educationDTO);
         log.info("EducationDAO selectOne Start");
         log.info("EducationDTO selectOne Condition : [{}]", educationDTO.getEducationCondition());
         return sqlSession.selectOne(ns+ educationDTO.getEducationCondition(), educationDTO);
@@ -83,7 +79,6 @@ public class EducationDAO {
      * @return 교육 정보 목록
      */
     public List<EducationDTO> selectAll(EducationDTO educationDTO) {
-//        log.info("EducationDTO selectAll : [{}]", educationDTO);
         log.info("EducationDAO selectAll Start");
         log.info("EducationDTO selectAll Condition : [{}]", educationDTO.getEducationCondition());
         return sqlSession.selectList(ns+ educationDTO.getEducationCondition(), educationDTO);

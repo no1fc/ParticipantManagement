@@ -110,11 +110,6 @@ public class DashboardArrangementController {
         // 실적 기간 시작일 등록
         arrangementDTO.setArrangementPerformanceStartDate(startArrangementPerformanceStartDate());
 
-//        log.info("arrangementDTO.arrangementStartDate : {}", arrangementDTO.getArrangementStartDate());
-//        log.info("arrangementDTO.arrangementEndDate : {}", arrangementDTO.getArrangementEndDate());
-//        log.info("arrangementDTO.arrangementPreviousMonthStartDate : {}", arrangementDTO.getArrangementPreviousMonthStartDate());
-//        log.info("arrangementDTO.arrangementPreviousMonthEndDate : {}", arrangementDTO.getArrangementPreviousMonthEndDate());
-//        log.info("arrangementDTO.arrangementPerformanceStartDate : {}", arrangementDTO.getArrangementPerformanceStartDate());
 
 
         arrangementDTO.setArrangementCondition("arrangementCardData");
@@ -165,8 +160,6 @@ public class DashboardArrangementController {
         });
         model.addAttribute("arrangementChartData", arrangementChartJson);
 
-//        log.info("arrangementChartJson : [{}]",arrangementChartJson);
-//        log.info("arrangementCardData : [{}]",arrangementCardData);
 
         return "views/DashBoardArrangementPage";
     }

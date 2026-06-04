@@ -71,7 +71,6 @@ public class EmploymentDAO {
         String condition = employmentDTO.getEmploymentCondition();
         log.info("employment selectOne SQL employmentDTO : [{}]",condition);
         EmploymentDTO data = sqlSession.selectOne(ns+condition, employmentDTO);
-//        log.info("employment selectOne data : [{}]",data);
         return data;
     }
     /**

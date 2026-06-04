@@ -160,7 +160,6 @@ public class DashboardAjaxController {
         String branch = dashboardDTO.getDashboardBranch();
 
         boolean branchFlag = branch.equals(sessionBranch);
-//        log.info("consolScore branchFlag : [{}]",branch);
         if(!branchFlag && !isManager){
                 log.info("consolScore Fail:");
                 log.info("consolScore branch != sessionBranch : [{}]", branchFlag);
@@ -179,7 +178,6 @@ public class DashboardAjaxController {
         }
 //        else{
 //            //고용부 실적
-//            log.info("consolScore selectBranchConsolScorePerformance (고용부 실적) : [{}]", true);
 //        }
         dashboardDTO.setDashboardCondition(selectCondition);
 
@@ -243,8 +241,6 @@ public class DashboardAjaxController {
         });
         log.info("consolScore branchScore ChangeJson End");
 
-//        log.info("consolScore [{}]",branchUserScore);
-//        log.info("consolScore [{}]",branchScore);
 
 //      Code 실행 시간 확인을 위해 작성
         long afterTime = System.currentTimeMillis();
@@ -368,7 +364,6 @@ public class DashboardAjaxController {
         if(datas.isEmpty() || datas.size() == 0){
             return null;
         }
-//        log.info("scoreBranchPerformanceTableAjax datas : [{}]",datas);
         return datas;
     }
 
