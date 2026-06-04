@@ -4,6 +4,10 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 
+/**
+ * 페이지네이션 계산 객체.
+ * 전체 데이터 건수와 현재 페이지 정보를 받아 시작/끝 버튼 번호 및 페이지 범위를 산출한다.
+ */
 @Slf4j
 @Controller
 @Getter

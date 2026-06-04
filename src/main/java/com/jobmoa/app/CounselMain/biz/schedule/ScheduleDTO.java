@@ -2,6 +2,9 @@ package com.jobmoa.app.CounselMain.biz.schedule;
 
 import lombok.Data;
 
+/**
+ * 상담 일정 DTO. 상담사의 일정 등록/수정/조회 및 캘린더 드래그 앤 드롭, 관리자 통합 조회 시 사용된다.
+ */
 @Data
 public class ScheduleDTO {
     // 테이블 매핑

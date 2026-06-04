@@ -2,6 +2,10 @@ package com.jobmoa.app.CounselMain.biz.participantRandomAssignment;
 
 import lombok.Data;
 
+/**
+ * 참여자 배정 일일업무보고 데이터 전송 객체.
+ * 상담사별 유형 배정 건수 및 금일/주간/월간/연간 취업 실적 데이터를 전달한다.
+ */
 @Data
 public class PraDailyReportDTO {
     private String branch;

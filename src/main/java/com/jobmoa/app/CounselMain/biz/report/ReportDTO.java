@@ -4,6 +4,9 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * 실적 보고서 DTO. 상담사별/지점별 참여자 현황, 취업 실적, 각종 비율, 일일/주간/월간/연간 누적 실적 데이터를 담는다.
+ */
 @Data
 public class ReportDTO {
 

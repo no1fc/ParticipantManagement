@@ -3,6 +3,10 @@ package com.jobmoa.app.CounselMain.biz.dashboard;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
+/**
+ * 알선 현황 대시보드 데이터 전송 객체.
+ * 지점별 알선 건수, 순위, 점수 비율, 전월 대비 달성률 등 알선 현황 카드 및 차트 데이터를 전달한다.
+ */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ArrangementDTO {

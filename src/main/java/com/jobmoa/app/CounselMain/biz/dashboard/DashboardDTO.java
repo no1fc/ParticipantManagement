@@ -4,6 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+/**
+ * 메인 대시보드 데이터 전송 객체.
+ * 전담자/지점/전체 단위의 취업 실적, 성공금, 참여자 현황, KPI 점수, 고용유지율 등
+ * 대시보드 화면에 표시되는 모든 통계 데이터를 전달한다.
+ */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DashboardDTO {

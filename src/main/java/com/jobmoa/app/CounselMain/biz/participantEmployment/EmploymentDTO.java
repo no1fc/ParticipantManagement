@@ -2,6 +2,10 @@ package com.jobmoa.app.CounselMain.biz.participantEmployment;
 
 import lombok.Data;
 
+/**
+ * 참여자 취창업 정보 데이터 전송 객체.
+ * 취창업일, 취업유형, 취업처, 임금, 직무, 인센티브 구분 등 취업 탭의 등록/수정/조회에 사용된다.
+ */
 @Data
 public class EmploymentDTO {
 

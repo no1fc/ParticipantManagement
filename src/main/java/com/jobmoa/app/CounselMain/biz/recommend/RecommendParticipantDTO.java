@@ -4,6 +4,9 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * 추천 대상 참여자 DTO. AI 추천 시 참여자의 기본 정보, 희망직무 카테고리, 알선 정보를 포함하여 Gemini API에 전달한다.
+ */
 @Data
 public class RecommendParticipantDTO {
     private int jobSeekerNo; // 구직번호;

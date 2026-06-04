@@ -4,6 +4,11 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * 참여자 상담 정보 데이터 전송 객체.
+ * 취업역량, 상담일, 진행단계, IAP수료일, 희망직무, 알선상세정보, 연계 현황 등
+ * 상담 탭의 등록/수정/조회에 사용된다.
+ */
 @Data
 public class CounselDTO {
 

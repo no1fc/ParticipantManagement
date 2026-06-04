@@ -4,6 +4,10 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * 참여자 랜덤 배정 데이터 전송 객체.
+ * 상담사별 배정 현황, 유형별/성별/연령별 배정 통계, 인원 가중치 등 자동 배정 기능에서 사용된다.
+ */
 @Data
 public class ParticipantRandomAssignmentDTO {
     private int pkNumber; // PK 번호

@@ -2,6 +2,11 @@ package com.jobmoa.app.CounselMain.biz.adminpage;
 
 import lombok.Data;
 
+/**
+ * 관리자 페이지 통합 데이터 전송 객체.
+ * 사용자 관리, 지점 관리, 참여자 조회, 일일업무보고, 기준금액, 배정 히스토리,
+ * 알선 관리, 이력서 요청, 대시보드 KPI 등 관리자 기능 전반에서 사용된다.
+ */
 @Data
 public class AdminDTO {
     // 공통 검색/조건 파라미터

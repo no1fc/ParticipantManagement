@@ -2,6 +2,11 @@ package com.jobmoa.app.CounselMain.biz.recommend;
 
 import lombok.Data;
 
+/**
+ * 채용공고 후보 데이터 전송 객체.
+ * 워크넷 API에서 수집한 채용공고의 기업명, 채용제목, 급여, 학력, 경력, 직무내용 등을 전달하며,
+ * AI 일자리 추천 시 매칭 후보로 사용된다.
+ */
 @Data
 public class JobCandidateDTO {
 

@@ -4,6 +4,10 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * 전담자(상담사) 회원 정보 데이터 전송 객체.
+ * 로그인, 회원 관리, 비밀번호 변경, 일일업무보고 실적 등 전담자 관련 기능에서 사용된다.
+ */
 @Data
 public class MemberDTO {
     // DB 변수(컬럼)
