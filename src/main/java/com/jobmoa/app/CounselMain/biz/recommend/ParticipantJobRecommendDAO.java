@@ -87,6 +87,26 @@ public class ParticipantJobRecommendDAO {
     }
 
     /**
+     * 참여자의 보유 자격증 목록을 조회한다.
+     *
+     * @param jobSeekerNo 구직번호
+     * @return 자격증명 목록
+     */
+    public List<String> getParticipantCertificates(int jobSeekerNo) {
+        return sqlSession.selectList(ns + "selectParticipantCertificates", jobSeekerNo);
+    }
+
+    /**
+     * 참여자의 직업훈련 이력 목록을 조회한다.
+     *
+     * @param jobSeekerNo 구직번호
+     * @return 직업훈련명 목록
+     */
+    public List<String> getParticipantTrainings(int jobSeekerNo) {
+        return sqlSession.selectList(ns + "selectParticipantTrainings", jobSeekerNo);
+    }
+
+    /**
      * 참여자의 알선 정보를 조회한다.
      *
      * @param jobSeekerNo 구직번호

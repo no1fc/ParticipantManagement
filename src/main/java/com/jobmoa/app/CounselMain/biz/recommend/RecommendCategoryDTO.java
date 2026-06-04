@@ -12,4 +12,5 @@ public class RecommendCategoryDTO {
     private String categoryMiddle;//카테고리중분류;
     private String infoJob; //희망직무;
     private String infoRank; //희망순위;
+    private String recommendedKeywords; //추천키워드;
 }

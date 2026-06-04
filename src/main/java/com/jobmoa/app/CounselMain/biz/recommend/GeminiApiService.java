@@ -37,14 +37,18 @@ public class GeminiApiService {
      * @param referralInfo      참여자 알선 상세 정보
      * @param categoryList      참여자 희망직무 카테고리 목록
      * @param relatedCategories 관련 직종분류코드 목록
+     * @param certificates      참여자 보유 자격증 목록
+     * @param trainings         참여자 직업훈련 이력 목록
      * @return AI가 생성한 검색 조건 DTO
      */
     public SearchConditionDTO generateSearchCondition(
             RecommendParticipantDTO participant,
             RecommendReferralDTO referralInfo,
             List<RecommendCategoryDTO> categoryList,
-            List<JobCategoryDTO> relatedCategories) {
-        String prompt = buildSearchConditionPrompt(participant, referralInfo, categoryList, relatedCategories);
+            List<JobCategoryDTO> relatedCategories,
+            List<String> certificates,
+            List<String> trainings) {
+        String prompt = buildSearchConditionPrompt(participant, referralInfo, categoryList, relatedCategories, certificates, trainings);
         System.out.println("generateSearchCondition prompt: [" + prompt + "]");
         String response = callGeminiApiWithRetry(prompt);
         System.out.println("generateSearchCondition response: [" + response + "]");
@@ -56,7 +60,9 @@ public class GeminiApiService {
             RecommendParticipantDTO p,
             RecommendReferralDTO referralInfo,
             List<RecommendCategoryDTO> categoryList,
-            List<JobCategoryDTO> relatedCategories) {
+            List<JobCategoryDTO> relatedCategories,
+            List<String> certificates,
+            List<String> trainings) {
 
         // 희망직무 카테고리 정보 조립
         int listCount = 1;
@@ -88,19 +94,53 @@ public class GeminiApiService {
         sb.append("구직자의 프로필을 분석하여 고용24 채용정보 DB에서 가장 적합한 채용공고를 찾기 위한 검색 조건을 생성합니다.\n\n");
 
         // 구직자 정보
-        sb.append("■ 구직자 정보:\n");
+        sb.append("■ 구직자 기본정보:\n");
         sb.append("- 학력: ").append(nullSafe(p.getInfoEducation())).append("\n");
         sb.append("- 전공: ").append(nullSafe(p.getInfoMajor())).append("\n");
         sb.append("- 경력: ").append(nullSafe(p.getInfoCareer())).append("\n");
         sb.append("- 주소(거주지): ").append(nullSafe(p.getInfoAddress())).append("\n");
         sb.append("- 희망급여: ").append(nullSafe(p.getInfoDesiredSalary())).append("\n");
+        sb.append("- 특정계층: ").append(nullSafe(p.getSpecialClass())).append("\n");
+        sb.append("- 취업역량: ").append(nullSafe(p.getEmploymentCapacity())).append("\n");
         sb.append("- 알선상세정보: ").append(referralString).append("\n");
-        sb.append("- 상담사 추천사: ").append(additionalInfoString).append("\n\n");
+        sb.append("- 상담사 추천사: ").append(additionalInfoString).append("\n");
+
+        // 보유 자격증
+        sb.append("- 보유 자격증: ");
+        if (certificates != null && !certificates.isEmpty()) {
+            sb.append(String.join(", ", certificates));
+        } else {
+            sb.append("정보없음");
+        }
+        sb.append("\n");
+
+        // 직업훈련 이력
+        sb.append("- 직업훈련 이력: ");
+        if (trainings != null && !trainings.isEmpty()) {
+            sb.append(String.join(", ", trainings));
+        } else {
+            sb.append("정보없음");
+        }
+        sb.append("\n\n");
 
         // 희망직무
         sb.append("■ 희망직무 카테고리:\n");
         for (String cat : categoryArrayList) {
             sb.append(cat);
+        }
+
+        // 추천키워드 (상담사가 직접 입력한 키워드)
+        StringBuilder keywordsFromCounselor = new StringBuilder();
+        if (categoryList != null) {
+            for (RecommendCategoryDTO category : categoryList) {
+                if (category.getRecommendedKeywords() != null && !category.getRecommendedKeywords().trim().isEmpty()) {
+                    if (keywordsFromCounselor.length() > 0) keywordsFromCounselor.append(", ");
+                    keywordsFromCounselor.append(category.getRecommendedKeywords());
+                }
+            }
+        }
+        if (keywordsFromCounselor.length() > 0) {
+            sb.append("  상담사 추천키워드: ").append(keywordsFromCounselor).append(" (※ 이 키워드를 검색 조건에 최우선 반영하세요)\n");
         }
         sb.append("\n");
 
@@ -127,7 +167,9 @@ public class GeminiApiService {
         sb.append("\n■ 작업 지시:\n");
         sb.append("1. 위 직종분류코드를 참고하여 구직자에게 가장 적합한 직종분류코드를 추출하세요.\n");
         sb.append("2. 키워드는 직무명, 업종명, 기술명 위주로 3~7개 생성하세요.\n");
+        sb.append("   - 상담사 추천키워드가 있으면 이를 최우선으로 반영하세요.\n");
         sb.append("   - 추천사나 알선상세정보에 언급된 구체적 직무/기술을 우선 반영하세요.\n");
+        sb.append("   - 보유 자격증을 관련 직무 키워드로 변환하여 포함하세요 (예: 정보처리기사 → IT, 소프트웨어).\n");
         sb.append("   - '회사', '직원', '근무', '채용', '모집' 등 지나치게 일반적인 키워드는 제외하세요.\n");
 
         // 지역 지시 — 거주지 기반 기본 검색 포함
@@ -187,15 +229,19 @@ public class GeminiApiService {
      * @param participant     참여자 기본 정보
      * @param alsonDetail     알선 상세 정보 텍스트
      * @param additionalInfo  상담사 추천사 텍스트
+     * @param certificates    참여자 보유 자격증 목록
+     * @param trainings       참여자 직업훈련 이력 목록
      * @return 베스트 선별 결과 (최적 공고 번호 및 각 후보별 점수)
      */
     public BestSelectionResultDTO selectBestFromCandidates(
             List<JobCandidateDTO> candidates,
             RecommendParticipantDTO participant,
             String alsonDetail,
-            String additionalInfo) {
+            String additionalInfo,
+            List<String> certificates,
+            List<String> trainings) {
         System.out.println("------------ selectBestFromCandidates 시작 -------------");
-        String prompt = buildBestSelectionPrompt(candidates, participant, alsonDetail, additionalInfo);
+        String prompt = buildBestSelectionPrompt(candidates, participant, alsonDetail, additionalInfo, certificates, trainings);
         System.out.println("prompt: " + prompt);
         String response = callGeminiApiWithRetry(prompt);
         System.out.println("response: " + response);
@@ -203,12 +249,14 @@ public class GeminiApiService {
         return parseBestSelectionResponse(response);
     }
 
-    // 후보군 + 참여자정보 + 알선상세정보 + 추천사 전달로 최적 채용정보 선별 프롬프트 작성 메서드
+    // 후보군 + 참여자정보 + 알선상세정보 + 추천사 + 자격증/훈련 전달로 최적 채용정보 선별 프롬프트 작성 메서드
     private String buildBestSelectionPrompt(
             List<JobCandidateDTO> candidates,
             RecommendParticipantDTO participant,
             String alsonDetail,
-            String additionalInfo) {
+            String additionalInfo,
+            List<String> certificates,
+            List<String> trainings) {
         StringBuilder sb = new StringBuilder();
 
         // 역할 부여
@@ -223,7 +271,21 @@ public class GeminiApiService {
         sb.append("- 경력: ").append(nullSafe(participant.getInfoCareer())).append("\n");
         sb.append("- 희망급여: ").append(nullSafe(participant.getInfoDesiredSalary())).append("\n");
         sb.append("- 알선상세정보: ").append(nullSafe(alsonDetail)).append("\n");
-        sb.append("- 상담사 추천사: ").append(nullSafe(additionalInfo)).append("\n\n");
+        sb.append("- 상담사 추천사: ").append(nullSafe(additionalInfo)).append("\n");
+        sb.append("- 보유 자격증: ");
+        if (certificates != null && !certificates.isEmpty()) {
+            sb.append(String.join(", ", certificates));
+        } else {
+            sb.append("정보없음");
+        }
+        sb.append("\n");
+        sb.append("- 직업훈련 이력: ");
+        if (trainings != null && !trainings.isEmpty()) {
+            sb.append(String.join(", ", trainings));
+        } else {
+            sb.append("정보없음");
+        }
+        sb.append("\n\n");
 
         // 채용공고 후보군 상세정보
         sb.append("■ 채용공고 후보군:\n");
