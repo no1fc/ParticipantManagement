@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * {@link JobPlacementService} 구현체.
+ * DAO를 통해 알선 정보의 조회, 등록, 수정, 삭제 및 자격증/희망직무 관리를 처리한다.
+ */
 @Slf4j
 @Service("jobPlacementService")
 public class JobPlacementServiceImpl implements JobPlacementService{

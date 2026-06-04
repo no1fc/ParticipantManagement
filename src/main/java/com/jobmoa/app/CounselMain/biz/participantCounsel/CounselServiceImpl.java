@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * {@link CounselService} 구현체.
+ * CounselDAO를 통해 참여자 상담 정보를 처리한다.
+ */
 @Slf4j
 @Service("counselService")
 public class CounselServiceImpl implements CounselService {

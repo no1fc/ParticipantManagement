@@ -10,17 +10,32 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 
+/**
+ * Redis 캐시 관리 서비스.
+ * 문자열, 객체, Hash 저장/조회 및 인증번호 요청 횟수 제한 기능을 제공한다.
+ */
 @Slf4j
 @Service
 public class RedisService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    // 문자열 저장/조회
+    /**
+     * 문자열 값을 Redis에 저장한다.
+     *
+     * @param key   Redis 키
+     * @param value 저장할 문자열 값
+     */
     public void setString(String key, String value) {
         redisTemplate.opsForValue().set(key, value);
     }
 
+    /**
+     * Redis에서 문자열 값을 조회한다.
+     *
+     * @param key Redis 키
+     * @return 저장된 문자열 값, 없으면 {@code null}
+     */
     public String getString(String key) {
         Object value = redisTemplate.opsForValue().get(key);
         return value != null ? value.toString() : null;
@@ -56,35 +71,75 @@ public class RedisService {
 
     }
 
-    // 만료시간 설정
+    /**
+     * 만료시간을 지정하여 문자열 값을 Redis에 저장한다.
+     *
+     * @param key     Redis 키
+     * @param value   저장할 문자열 값
+     * @param timeout 만료 시간
+     * @param unit    만료 시간 단위
+     */
     public void setStringWithExpire(String key, String value, long timeout, TimeUnit unit) {
         redisTemplate.opsForValue().set(key, value, timeout, unit);
     }
 
-    // 객체 저장/조회
+    /**
+     * 객체를 Redis에 저장한다.
+     *
+     * @param key   Redis 키
+     * @param value 저장할 객체
+     */
     public void setObject(String key, Object value) {
         redisTemplate.opsForValue().set(key, value);
     }
 
+    /**
+     * Redis에서 객체를 조회한다.
+     *
+     * @param key Redis 키
+     * @return 저장된 객체, 없으면 {@code null}
+     */
     public Object getObject(String key) {
         return redisTemplate.opsForValue().get(key);
     }
 
-    // Hash 사용
+    /**
+     * Redis Hash에 값을 저장한다.
+     *
+     * @param key     Redis 키
+     * @param hashKey Hash 필드 키
+     * @param value   저장할 값
+     */
     public void setHash(String key, String hashKey, Object value) {
         redisTemplate.opsForHash().put(key, hashKey, value);
     }
 
+    /**
+     * Redis Hash에서 값을 조회한다.
+     *
+     * @param key     Redis 키
+     * @param hashKey Hash 필드 키
+     * @return 저장된 값, 없으면 {@code null}
+     */
     public Object getHash(String key, String hashKey) {
         return redisTemplate.opsForHash().get(key, hashKey);
     }
 
-    // 키 삭제
+    /**
+     * Redis에서 키를 삭제한다.
+     *
+     * @param key 삭제할 Redis 키
+     */
     public void delete(String key) {
         redisTemplate.delete(key);
     }
 
-    // 키 존재 확인
+    /**
+     * Redis에 해당 키가 존재하는지 확인한다.
+     *
+     * @param key 확인할 Redis 키
+     * @return 키 존재 여부
+     */
     public boolean exists(String key) {
         Boolean hasKey = redisTemplate.hasKey(key);
         return hasKey != null && hasKey;

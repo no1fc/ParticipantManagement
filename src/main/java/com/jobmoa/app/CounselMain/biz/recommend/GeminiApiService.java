@@ -13,6 +13,10 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Google Gemini AI API 연동 서비스.
+ * 참여자 정보를 기반으로 검색 조건을 생성하고, 채용정보 후보군에서 최적 공고를 선별한다.
+ */
 @Service
 public class GeminiApiService {
 
@@ -26,7 +30,15 @@ public class GeminiApiService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    // 참여자 기본정보를 Gemini에 전달하여 검색 조건을 생성하는 메서드
+    /**
+     * 참여자 기본정보를 Gemini AI에 전달하여 채용정보 검색 조건을 생성한다.
+     *
+     * @param participant       참여자 기본 정보
+     * @param referralInfo      참여자 알선 상세 정보
+     * @param categoryList      참여자 희망직무 카테고리 목록
+     * @param relatedCategories 관련 직종분류코드 목록
+     * @return AI가 생성한 검색 조건 DTO
+     */
     public SearchConditionDTO generateSearchCondition(
             RecommendParticipantDTO participant,
             RecommendReferralDTO referralInfo,
@@ -137,7 +149,14 @@ public class GeminiApiService {
         return (value != null && !value.trim().isEmpty()) ? value : "정보없음";
     }
 
-    // 후보군 + 참여자정보 + 알선상세정보 전달해서 최적 채용정보 선별 메서드
+    /**
+     * 채용정보 후보군과 참여자 정보를 Gemini AI에 전달하여 최적 채용공고를 선별한다.
+     *
+     * @param candidates  채용정보 후보군 목록
+     * @param participant 참여자 기본 정보
+     * @param alsonDetail 알선 상세 정보 텍스트
+     * @return 베스트 선별 결과 (최적 공고 번호 및 각 후보별 점수)
+     */
     public BestSelectionResultDTO selectBestFromCandidates(
             List<JobCandidateDTO> candidates,
             RecommendParticipantDTO participant,

@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * {@link DashboardService} 구현체.
+ * DashboardDAO를 통해 상담사 대시보드 데이터를 처리한다.
+ */
 @Slf4j
 @Service("Dashboard")
 public class DashboardServiceImpl implements DashboardService {

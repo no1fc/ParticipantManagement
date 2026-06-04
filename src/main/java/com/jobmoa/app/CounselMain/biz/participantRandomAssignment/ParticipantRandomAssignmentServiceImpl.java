@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * {@link ParticipantRandomAssignmentService} 구현체.
+ * DAO를 통해 참여자 랜덤 배정 정보의 조회, 등록, 수정, 삭제를 처리한다.
+ */
 @Slf4j
 @Service("praService")
 public class ParticipantRandomAssignmentServiceImpl implements ParticipantRandomAssignmentService {

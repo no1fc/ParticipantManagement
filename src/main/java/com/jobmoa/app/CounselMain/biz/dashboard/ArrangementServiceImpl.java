@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * {@link ArrangementService} 구현체.
+ * ArrangementDAO를 통해 참여자 배정 정보를 처리한다.
+ */
 @Slf4j
 @Service("Arrangement")
 public class ArrangementServiceImpl implements ArrangementService {

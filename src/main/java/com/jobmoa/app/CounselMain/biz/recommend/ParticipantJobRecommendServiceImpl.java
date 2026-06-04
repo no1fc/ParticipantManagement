@@ -12,6 +12,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * {@link ParticipantJobRecommendService} 구현체.
+ * DAO와 Gemini AI를 연동하여 참여자 맞춤 채용정보 추천 전체 흐름을 처리한다.
+ */
 @Slf4j
 @Service("recommendService")
 public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecommendService {

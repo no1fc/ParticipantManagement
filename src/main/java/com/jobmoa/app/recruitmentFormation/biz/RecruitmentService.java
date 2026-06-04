@@ -7,6 +7,10 @@ import com.jobmoa.app.recruitmentFormation.biz.dto.RecruitmentSyncResultDTO;
 
 import java.util.List;
 
+/**
+ * 고용24 채용공고 관리 서비스.
+ * 채용공고 검색, API 동기화, 상세정보 수집 기능을 제공한다.
+ */
 public interface RecruitmentService {
 
     /**

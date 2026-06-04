@@ -7,6 +7,10 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * {@link ParticcertifService} 구현체.
+ * ParticcertifDAO를 통해 참여자 자격증 정보를 처리한다.
+ */
 @Slf4j
 @Service
 public class ParticcertifServiceImpl implements ParticcertifService {

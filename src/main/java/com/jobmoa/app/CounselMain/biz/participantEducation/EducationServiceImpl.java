@@ -7,6 +7,10 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * {@link EducationService} 구현체.
+ * DAO를 통해 참여자 교육 이력의 조회, 등록, 수정, 삭제를 처리한다.
+ */
 @Slf4j
 @Service
 public class EducationServiceImpl implements EducationService {

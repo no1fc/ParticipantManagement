@@ -9,6 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * {@link ParticipantService} 구현체.
+ * ParticipantDAO를 통해 참여자 CRUD 및 연관 데이터 삭제를 처리한다.
+ * 매일 02시에 일주일 경과 취소자를 백업 및 삭제하는 스케줄러를 포함한다.
+ */
 @Slf4j
 @EnableScheduling
 @Service("participant")

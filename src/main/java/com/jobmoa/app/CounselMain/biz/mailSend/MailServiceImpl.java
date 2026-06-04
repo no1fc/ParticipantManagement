@@ -10,6 +10,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * {@link MailService} 구현체.
+ * JavaMailSender를 통해 MIME 형식의 HTML 메일을 발송한다.
+ */
 @Slf4j
 @Service
 public class MailServiceImpl implements MailService {

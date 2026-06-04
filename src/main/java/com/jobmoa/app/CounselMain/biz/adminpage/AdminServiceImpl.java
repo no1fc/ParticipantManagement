@@ -9,6 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * {@link AdminService} 구현체.
+ * AdminDAO를 통해 사용자, 지점, 참여자, 기준금액, 알선, 이력서 요청,
+ * 자격증, 직업훈련, 대시보드 KPI, Excel 출력 등 관리자 기능을 처리한다.
+ */
 @Slf4j
 @Service
 public class AdminServiceImpl implements AdminService {

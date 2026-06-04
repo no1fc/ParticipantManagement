@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * {@link ReportService} 구현체.
+ * DAO를 통해 상담일지 및 보고서의 조회, 등록, 수정, 삭제를 처리한다.
+ */
 @Slf4j
 @Service("reportService")
 public class ReportServiceImpl implements ReportService {

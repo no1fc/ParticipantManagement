@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * {@link EmploymentService} 구현체.
+ * DAO를 통해 참여자 취업 이력의 조회, 등록, 수정, 삭제를 처리한다.
+ */
 @Slf4j
 @Service("employmentService")
 public class EmploymentServiceImpl implements EmploymentService {
