@@ -236,16 +236,12 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
         int deleted = participantJobRecommendDAO.deleteRecommendByGujikNo(jobSeekerNo);
         log.debug("기존 추천 삭제 결과: {}", deleted > 0);
 
-        // 7. 알선상세정보 유무에 따라 분기 저장
-        String alsonDetail  = (referralInfo != null) ? referralInfo.getInfoAlsonDetail() : null;
-        boolean hasAlsonDetail = (alsonDetail != null && !alsonDetail.trim().isEmpty());
+        // 7. Gemini 2단계: 베스트 선별 및 점수 산출 (알선상세정보 유무 관계없이 항상 실행)
+        String alsonDetail = (referralInfo != null) ? referralInfo.getInfoAlsonDetail() : null;
+        String additionalInfo = (referralInfo != null) ? referralInfo.getInfoAdditionalInfo() : null;
 
-
-        if (hasAlsonDetail) {
-            saveWithGeminiJudgment(participant, categoryList, referralInfo, candidates, alsonDetail, searchCondition);
-        } else {
-            saveWithoutGeminiJudgment(participant, categoryList, referralInfo, candidates, searchCondition);
-        }
+        saveWithGeminiJudgment(participant, categoryList, referralInfo, candidates,
+                alsonDetail, additionalInfo, searchCondition);
 
         log.debug("[추천저장] 완료 jobSeekerNo={}, {}건", jobSeekerNo, candidates.size());
         result.setSuccess(true);
@@ -258,7 +254,7 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
     // =========================================================
 
     /**
-     * 알선상세정보 있는 경우: Gemini 2단계로 베스트 선별 후 저장
+     * Gemini 2단계로 베스트 선별 후 저장 (알선상세정보 유무 관계없이 실행)
      * bestJobInfo = "1" (베스트), "0" (일반)
      */
     private void saveWithGeminiJudgment(
@@ -267,11 +263,12 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
             RecommendReferralDTO referralInfo,
             List<JobCandidateDTO> candidates,
             String alsonDetail,
+            String additionalInfo,
             SearchConditionDTO searchCondition) {
 
         BestSelectionResultDTO judgment;
         try {
-            judgment = geminiApiService.selectBestFromCandidates(candidates, participant, alsonDetail);
+            judgment = geminiApiService.selectBestFromCandidates(candidates, participant, alsonDetail, additionalInfo);
             log.debug("[추천저장] Gemini 2단계 성공, 베스트 선택 결과: {}", judgment);
         } catch (Exception e) {
             log.warn("[추천저장] Gemini 2단계 실패, 베스트 없이 저장: {}", e.getMessage());
