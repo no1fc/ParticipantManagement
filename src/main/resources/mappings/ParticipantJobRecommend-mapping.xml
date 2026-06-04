@@ -159,8 +159,7 @@
             희망순위 AS infoRank,
             직무_카테고리_대 AS categoryMain,
             직무_카테고리_중 AS categoryMiddle,
-            희망직무 AS infoJob,
-            추천키워드 AS recommendedKeywords
+            희망직무 AS infoJob
         FROM J_참여자관리_희망직무
         WHERE 구직번호 = #{jobSeekerNo}
         ORDER BY 희망순위
@@ -279,7 +278,7 @@
                         OR ind_tp_nm LIKE '%' + #{jobCategory} + '%'
                     </if>
                     <!-- 지역 매칭: region_nm LIKE 부분매칭 (기존 basic_addr IN 정확매칭에서 변경) -->
-                    <if test="isAddress">
+                    <if test="isAddress != null and isAddress">
                         <if test="largescaleUnits != null and largescaleUnits.size() > 0">
                             <foreach collection="largescaleUnits" item="unit" separator="">
                                 OR region_nm LIKE '%' + #{unit} + '%'
@@ -295,24 +294,22 @@
             )
         </if>
         ORDER BY
-            <!-- 관련성 기반 정렬: 직종코드(3점) > 키워드(2점) > 지역(1점) -->
+            <!-- 관련성 기반 정렬: 직종코드(3점) + 키워드(2점) + 지역(1점) -->
             (
+                0
                 <if test="jobsCode != null and jobsCode.size() > 0">
-                    CASE WHEN jobs_cd IN
+                    + CASE WHEN jobs_cd IN
                     <foreach collection="jobsCode" item="code" open="(" separator="," close=")">
                         TRY_CAST(#{code} AS INT)
                     </foreach>
                     THEN 3 ELSE 0 END
-                </if>
-                <if test="jobsCode == null or jobsCode.size() == 0">
-                    0
                 </if>
                 <if test="keywords != null and keywords.size() > 0">
                     <foreach collection="keywords" item="kw">
                         + CASE WHEN recrut_title LIKE '%' + #{kw} + '%' THEN 2 ELSE 0 END
                     </foreach>
                 </if>
-                <if test="isAddress and localUnits != null and localUnits.size() > 0">
+                <if test="isAddress != null and isAddress and localUnits != null and localUnits.size() > 0">
                     <foreach collection="localUnits" item="unit">
                         + CASE WHEN region_nm LIKE '%' + #{unit} + '%' THEN 1 ELSE 0 END
                     </foreach>
