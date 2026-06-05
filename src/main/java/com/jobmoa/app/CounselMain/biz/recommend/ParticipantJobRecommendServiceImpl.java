@@ -311,13 +311,19 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
             for (RecommendationScoreDTO s : judgment.getScores()) {
                 if (s.getCertNo() != null) {
                     scoreMap.put(s.getCertNo(), s);
+                } else {
+                    log.warn("[추천저장] scores 항목에 certNo가 null: score={}, reason={}", s.getScore(), s.getReason());
                 }
             }
         }
+        log.info("[추천저장] scoreMap 크기: {}, 키목록: {}", scoreMap.size(), scoreMap.keySet());
 
         for (JobCandidateDTO candidate : candidates) {
             String certNo = candidate.getCertNo();
             RecommendationScoreDTO scoreInfo = scoreMap.get(certNo);
+            if (scoreInfo == null) {
+                log.warn("[추천저장] scoreMap에서 certNo={} 미발견 (후보 {}건 중 누락)", certNo, scoreMap.size());
+            }
 
             ParticipantJobRecommendDTO dto =
                 buildRecommendDto(participant, categoryList, referralInfo, candidate, searchCondition);

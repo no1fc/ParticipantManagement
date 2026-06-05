@@ -378,6 +378,7 @@ public class GeminiApiService {
                         "score", Schema.builder().type(Type.Known.INTEGER).build(),
                         "reason", Schema.builder().type(Type.Known.STRING).build()
                 ))
+                .required("구인인증번호", "score", "reason")
                 .build();
 
         return Schema.builder()
@@ -389,6 +390,7 @@ public class GeminiApiService {
                                 .items(scoreItemSchema)
                                 .build()
                 ))
+                .required("bestGujinNo", "scores")
                 .build();
     }
 
@@ -468,8 +470,22 @@ public class GeminiApiService {
     // 후보군 + 알선상세정보 전달로 최적 채용정보 선별 응답 파싱 메서드
     public BestSelectionResultDTO parseBestSelectionResponse(String responseText) {
         try {
-            return objectMapper.readValue(extractJsonFromResponse(responseText), BestSelectionResultDTO.class);
+            log.info("[Gemini 2단계] 응답 원문: {}", responseText);
+            String json = extractJsonFromResponse(responseText);
+            BestSelectionResultDTO result = objectMapper.readValue(json, BestSelectionResultDTO.class);
+            log.info("[Gemini 2단계] 파싱 결과 — bestGujinNo={}, scores={}건",
+                    result.getBestGujinNo(),
+                    result.getScores() != null ? result.getScores().size() : "null");
+            if (result.getScores() != null) {
+                for (RecommendationScoreDTO s : result.getScores()) {
+                    log.debug("[Gemini 2단계] score item — certNo={}, score={}, reason={}",
+                            s.getCertNo(), s.getScore(),
+                            s.getReason() != null ? s.getReason().substring(0, Math.min(30, s.getReason().length())) : "null");
+                }
+            }
+            return result;
         } catch (Exception e) {
+            log.error("[Gemini 2단계] 응답 파싱 실패 — responseText={}", responseText, e);
             return new BestSelectionResultDTO();
         }
     }

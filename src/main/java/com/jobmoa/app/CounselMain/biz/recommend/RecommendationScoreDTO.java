@@ -1,5 +1,6 @@
 package com.jobmoa.app.CounselMain.biz.recommend;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -12,9 +13,15 @@ import lombok.Data;
 public class RecommendationScoreDTO {
 
     @JsonProperty("구인인증번호")
+    @JsonAlias({"certNo", "gujinNo"})
     private String certNo;
 
-    private Integer score;
+    private Number score;
 
     private String reason;
+
+    /** 추천점수를 Integer로 반환 (Gemini가 float/int 어느 형식으로 반환해도 호환) */
+    public Integer getScore() {
+        return score != null ? score.intValue() : null;
+    }
 }

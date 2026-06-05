@@ -409,7 +409,10 @@ public class UpdateController {
         counselDTO.setCounselJobNo(basicDTO.getBasicJobNo());
         counselDTO.setCounselCondition("counselSelectOne");
         counselDTO = counselService.selectOne(counselDTO);
-//        List<CounselDTO> counselList = counselService.selectAll(counselDTO);
+        log.info("[희망직무 디버그] counselJobNo={}, wishJobList={}, wishJobListSize={}",
+                basicDTO.getBasicJobNo(),
+                counselDTO != null ? counselDTO.getWishJobList() : "counselDTO is null",
+                counselDTO != null && counselDTO.getWishJobList() != null ? counselDTO.getWishJobList().size() : "null");
 
 
         //직업훈련 정보

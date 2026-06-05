@@ -369,7 +369,12 @@ document.addEventListener('DOMContentLoaded', function () {
         //page 로딩시 알선 상세정보 입력란을 숨김
         JobPlacementDetail(hiddenDiv);
 
-        // 다중 희망직무 데이터 복원
+    });
+
+    // 다중 희망직무 데이터 복원
+    // defer 스크립트(jobWishListManager)의 $(document).ready() 콜백보다 뒤에 실행되도록
+    // window load 이벤트 사용 (키워드 초기화와 동일한 패턴)
+    window.addEventListener('load', function () {
         if (typeof initWishJobList === 'function') {
             let wishJobArr = [];
             try {
@@ -386,7 +391,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             initWishJobList(wishJobArr);
         }
-
     });
 
 
