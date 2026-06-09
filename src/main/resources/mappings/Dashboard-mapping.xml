@@ -860,10 +860,11 @@
         -- 참여자 데이터를 한 번에 집계하여 서브쿼리 제거
         SELECT
             지점,
-            SUM(CASE WHEN 등록년도 = YEAR(DATEADD(YEAR,-2,GETDATE())) THEN 1 ELSE 0 END) AS 참여자_2023,
-            SUM(CASE WHEN 등록년도 = YEAR(DATEADD(YEAR,-1,GETDATE())) THEN 1 ELSE 0 END) AS 참여자_2024,
-            SUM(CASE WHEN 등록년도 = YEAR(GETDATE()) THEN 1 ELSE 0 END) AS 참여자_2025,
-            SUM(CASE WHEN 등록년도 IN (YEAR(DATEADD(YEAR,-2,GETDATE())),YEAR(DATEADD(YEAR,-1,GETDATE())), YEAR(GETDATE())) THEN 1 ELSE 0 END) AS 참여자_합계
+            -- 실적 기간(종료일) 기준 연도로 3개년도 집계: -2=재작년, -1=작년, 기준=당해
+            SUM(CASE WHEN 등록년도 = #{dashBoardBaseYear} - 2 THEN 1 ELSE 0 END) AS 참여자_2023,
+            SUM(CASE WHEN 등록년도 = #{dashBoardBaseYear} - 1 THEN 1 ELSE 0 END) AS 참여자_2024,
+            SUM(CASE WHEN 등록년도 = #{dashBoardBaseYear}     THEN 1 ELSE 0 END) AS 참여자_2025,
+            SUM(CASE WHEN 등록년도 IN (#{dashBoardBaseYear} - 2, #{dashBoardBaseYear} - 1, #{dashBoardBaseYear}) THEN 1 ELSE 0 END) AS 참여자_합계
         FROM (
         SELECT
             지점,
@@ -960,10 +961,11 @@
         -- 참여자 데이터를 한 번에 집계하여 서브쿼리 제거
         SELECT
             전담자_계정,
-            SUM(CASE WHEN 등록년도 = YEAR(DATEADD(YEAR,-2,GETDATE())) THEN 1 ELSE 0 END) AS 참여자_2023,
-            SUM(CASE WHEN 등록년도 = YEAR(DATEADD(YEAR,-1,GETDATE())) THEN 1 ELSE 0 END) AS 참여자_2024,
-            SUM(CASE WHEN 등록년도 = YEAR(GETDATE()) THEN 1 ELSE 0 END) AS 참여자_2025,
-            SUM(CASE WHEN 등록년도 IN (YEAR(DATEADD(YEAR,-2,GETDATE())),YEAR(DATEADD(YEAR,-1,GETDATE())), YEAR(GETDATE())) THEN 1 ELSE 0 END) AS 참여자_합계
+            -- 실적 기간(종료일) 기준 연도로 3개년도 집계: -2=재작년, -1=작년, 기준=당해
+            SUM(CASE WHEN 등록년도 = #{dashBoardBaseYear} - 2 THEN 1 ELSE 0 END) AS 참여자_2023,
+            SUM(CASE WHEN 등록년도 = #{dashBoardBaseYear} - 1 THEN 1 ELSE 0 END) AS 참여자_2024,
+            SUM(CASE WHEN 등록년도 = #{dashBoardBaseYear}     THEN 1 ELSE 0 END) AS 참여자_2025,
+            SUM(CASE WHEN 등록년도 IN (#{dashBoardBaseYear} - 2, #{dashBoardBaseYear} - 1, #{dashBoardBaseYear}) THEN 1 ELSE 0 END) AS 참여자_합계
         FROM (
             SELECT
                 전담자_계정,

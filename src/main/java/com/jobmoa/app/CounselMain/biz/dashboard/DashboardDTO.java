@@ -101,6 +101,7 @@ public class DashboardDTO {
     private String dashBoardEndDate; // 대시보드 상세 현황 끝 날짜
     private String dashBoardPASD; //(Participant Assignment Start Date) 참여자 배정 시작일
     private String dashBoardPAED; //(Participant Assignment End Date) 참여자 배정 종료일
+    private int dashBoardBaseYear; // 실적 표 참여자 3개년도 기준 연도(= 실적 기간 종료일 연도, 당해년도)
     private int lastYearMoney; // 작년 성공금
     private int currentYearMoney; // 이번년도 성공금
     private int falseCaseNum; // 미해당 건수

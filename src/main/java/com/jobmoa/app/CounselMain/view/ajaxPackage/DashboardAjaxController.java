@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -359,6 +360,21 @@ public class DashboardAjaxController {
 
         dashboardDTO.setDashboardCondition(condition);
         log.info("scoreBranchPerformanceTableAjax (1년 미만 상담사) : [{}]", conditionFlag);
+
+        // 참여자 3개년도 기준 연도 = 실적 기간 종료일 연도(당해년도). 미지정/형식오류 시 현재 연도로 폴백.
+        String endDate = dashboardDTO.getDashBoardEndDate();
+        int baseYear;
+        if (endDate != null && endDate.length() >= 4) {
+            try {
+                baseYear = Integer.parseInt(endDate.substring(0, 4));
+            } catch (NumberFormatException e) {
+                baseYear = Calendar.getInstance().get(Calendar.YEAR);
+            }
+        } else {
+            baseYear = Calendar.getInstance().get(Calendar.YEAR);
+        }
+        dashboardDTO.setDashBoardBaseYear(baseYear);
+        log.info("scoreBranchPerformanceTableAjax dashBoardBaseYear : [{}]", baseYear);
 
         List<DashboardDTO> datas = dashboardService.selectAll(dashboardDTO);
         if(datas.isEmpty() || datas.size() == 0){
