@@ -1,3 +1,9 @@
+/**
+ * @file 관리자 알선 상세정보 관리 (목록 조회, 검색, 추가, 수정, 삭제)
+ * @version 0.0.3
+ * @requires jQuery, SweetAlert2, DataTables, Bootstrap
+ */
+
 let jobPlacementTable, jobPlacementModal;
 
 $(document).ready(function() {
@@ -28,7 +34,7 @@ function loadBranchOptions() {
         url: '/admin/api/branches',
         method: 'GET',
         success: function(data) {
-            var html = '<option value="">전체</option>';
+            let html = '<option value="">전체</option>';
             data.forEach(function(item) {
                 html += '<option value="' + item.branchName + '">' + item.branchName + '</option>';
             });
@@ -38,7 +44,7 @@ function loadBranchOptions() {
 }
 
 function loadCounselorOptions(branch) {
-    var params = {};
+    const params = {};
     if (branch) {
         params.searchBranch = branch;
     }
@@ -47,7 +53,7 @@ function loadCounselorOptions(branch) {
         method: 'GET',
         data: params,
         success: function(data) {
-            var html = '<option value="">전체</option>';
+            let html = '<option value="">전체</option>';
             data.forEach(function(item) {
                 html += '<option value="' + item.userId + '">' + item.memberName + ' (' + item.userId + ')</option>';
             });
@@ -57,7 +63,7 @@ function loadCounselorOptions(branch) {
 }
 
 function searchJobPlacements() {
-    var params = {
+    const params = {
         searchBranch: $('#searchBranch').val(),
         searchCounselor: $('#searchCounselor').val(),
         searchName: $('#searchName').val(),
@@ -151,16 +157,16 @@ function editJobPlacement(regNo) {
 }
 
 function saveJobPlacement() {
-    var formData = {
+    const formData = {
         registrationNo: $('#registrationNo').val(),
         placementJobNo: $('#jobNo').val(),
         detailInfo: $('#detailInfo').val(),
         recommendation: $('#recommendation').val()
     };
 
-    var isEdit = $('#registrationNo').prop('readonly');
-    var method = isEdit ? 'PUT' : 'POST';
-    var url = isEdit ? '/admin/api/job-placements/' + formData.registrationNo : '/admin/api/job-placements';
+    const isEdit = $('#registrationNo').prop('readonly');
+    const method = isEdit ? 'PUT' : 'POST';
+    const url = isEdit ? '/admin/api/job-placements/' + formData.registrationNo : '/admin/api/job-placements';
 
     $.ajax({
         url: url,
@@ -208,7 +214,7 @@ function deleteJobPlacement(regNo) {
 }
 
 // OverlayScrollbars 초기화
-var OverlayScrollbarsObj = OverlayScrollbarsGlobal.OverlayScrollbars;
+const OverlayScrollbarsObj = OverlayScrollbarsGlobal.OverlayScrollbars;
 if (document.querySelector('.app-sidebar-wrapper')) {
     OverlayScrollbarsObj(document.querySelector('.app-sidebar-wrapper'), {});
 }

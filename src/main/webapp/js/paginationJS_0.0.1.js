@@ -1,3 +1,8 @@
+/**
+ * @file 페이지네이션 UI 생성 유틸리티
+ * @version 0.0.1
+ * @requires jQuery
+ */
 function paginationAddItems(page, startButton, endButton, totalButton) {
     //페이지네이션 변수
     const pagination = $('.pagination');

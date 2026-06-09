@@ -6,6 +6,11 @@ import lombok.Setter;
 import java.util.List;
 
 
+/**
+ * 참여자 목록 검색 조건 객체.
+ * 검색어, 페이지, 정렬, 진행여부, 참여유형, 희망직무 등 다양한 필터 조건을 전달하며,
+ * toString()으로 쿼리스트링 직렬화를 지원한다.
+ */
 @Getter
 @Setter
 public class SearchBean {

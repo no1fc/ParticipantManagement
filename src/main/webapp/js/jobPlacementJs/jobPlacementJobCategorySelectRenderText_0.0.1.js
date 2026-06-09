@@ -1,3 +1,9 @@
+/**
+ * @file 직종 카테고리 대분류/중분류 셀렉트 박스 렌더링
+ * @version 0.0.1
+ * @requires jQuery
+ */
+
 // jQuery 버전
 $(jobCategorySelectRender);
 

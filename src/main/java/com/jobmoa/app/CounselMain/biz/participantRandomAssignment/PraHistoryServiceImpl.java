@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * {@link PraHistoryService} 구현체.
+ * DAO를 통해 배정 결과, 일일보고, 점수 설정, CSV 이력의 일괄 저장을 처리한다.
+ */
 @Slf4j
 @Service
 public class PraHistoryServiceImpl implements PraHistoryService {

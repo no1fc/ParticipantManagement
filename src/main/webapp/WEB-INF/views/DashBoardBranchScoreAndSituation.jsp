@@ -8,6 +8,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" pageEncoding="UTF-8" %>
 <%@ taglib tagdir="/WEB-INF/tags" prefix="mytag" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -239,9 +240,10 @@
                                 <th>연번</th>
                                 <th id="dashBoardUserName-th" class="d-none">상담사</th>
                                 <th id="dashboardBranch-th">지점명</th>
-                                <th id="dashboardByYearCount1-th">참여자(2023)</th>
-                                <th id="dashboardByYearCount2-th">참여자(2024)</th>
-                                <th id="dashboardByYearCount3-th">참여자(2025)</th>
+                                <c:set var="baseYear" value="${fn:substring(dashBoardEndDate, 0, 4)}" />
+                                <th id="dashboardByYearCount1-th">참여자(${baseYear - 2})</th>
+                                <th id="dashboardByYearCount2-th">참여자(${baseYear - 1})</th>
+                                <th id="dashboardByYearCount3-th">참여자(${baseYear})</th>
                                 <th id="dashboardTotalCount-th">참여자 합계</th>
                                 <th id="totalCompleted-th">종료자</th>
                                 <th id="totalEmployed-th">취업자</th>
@@ -933,6 +935,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // 초기 행 수 업데이트
         updateTableRowCount();
+
+        // 실적 기간(종료일) 연도에 맞춰 참여자 3개년도 헤더 갱신 (-2=재작년, -1=작년, 기준=당해)
+        function updateYearHeaders() {
+            const endDateVal = $('#dashBoardEndDate').val();
+            if (!endDateVal || endDateVal.length < 4) return;
+            const baseYear = parseInt(endDateVal.substring(0, 4), 10);
+            $('#dashboardByYearCount1-th').text('참여자(' + (baseYear - 2) + ')');
+            $('#dashboardByYearCount2-th').text('참여자(' + (baseYear - 1) + ')');
+            $('#dashboardByYearCount3-th').text('참여자(' + baseYear + ')');
+        }
+        // 실적 기간 변경 시 헤더 동기화 (표 데이터도 동일 종료일 기준으로 조회되므로 항상 일치)
+        $('#dashBoardStartDate, #dashBoardEndDate').on('change', updateYearHeaders);
 
         const excludeRadio = $('#excludeRadio'); //미포함
         const includeRadio = $('#includeRadio'); //포함

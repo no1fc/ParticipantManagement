@@ -1,3 +1,8 @@
+/**
+ * @file 자동완성 추천 리스트 및 XML 데이터 로드 유틸리티
+ * @version 0.0.1
+ * @requires jQuery
+ */
 //추천 리스트 출력 시작
 function recommendFunction(inputTag, listTag, autoData) {
     // 입력 필드

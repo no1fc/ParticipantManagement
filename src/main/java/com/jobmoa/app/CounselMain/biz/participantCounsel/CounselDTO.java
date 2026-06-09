@@ -4,6 +4,11 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * 참여자 상담 정보 데이터 전송 객체.
+ * 취업역량, 상담일, 진행단계, IAP수료일, 희망직무, 알선상세정보, 연계 현황 등
+ * 상담 탭의 등록/수정/조회에 사용된다.
+ */
 @Data
 public class CounselDTO {
 
@@ -35,6 +40,9 @@ public class CounselDTO {
     private boolean counselISIAP5Month; // IAP수료일 5개월 이후 여부
     private String counselAllowancePayment; // 수당지급
     private boolean counselFocusedPlacement; // 집중알선요청 여부 (DB 집중알선여부 bit(1), true=희망)
+    private String counselLinkDate; // 연계일
+    private String counselLinkType; // 연계유형
+    private String counselLinkNote; // 연계비고 (기타 유형 선택 시 상세 사유)
 
     //알선상세정보 조회 DB 정보
 //    private String placementJobNo; //알선상세정보 구직번호 (나중에 추가사용을 할 수 있으니 추가)

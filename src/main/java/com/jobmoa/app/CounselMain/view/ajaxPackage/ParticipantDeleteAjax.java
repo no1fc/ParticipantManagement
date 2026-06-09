@@ -14,6 +14,13 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 참여자 일괄 삭제를 위한 비동기 REST 컨트롤러.
+ * <p>
+ * 복수의 구직번호를 받아 해당 참여자들을 삭제하며,
+ * 관리자 권한에 따라 삭제 조건이 달라진다.
+ * </p>
+ */
 @Slf4j
 @RestController
 public class ParticipantDeleteAjax {
@@ -21,6 +28,19 @@ public class ParticipantDeleteAjax {
     @Autowired
     private ParticipantServiceImpl participantService;
 
+    /**
+     * 선택된 참여자들을 일괄 삭제한다.
+     * <p>
+     * 구직번호 배열을 받아 순차적으로 삭제를 수행하며,
+     * 삭제에 실패한 구직번호 목록을 반환한다.
+     * 관리자/지점관리자 계정이면 관리자용 삭제 로직이 적용된다.
+     * </p>
+     *
+     * @param basicDTO       구직번호 배열(basicJobNos)이 담긴 DTO
+     * @param participantDTO 삭제 조건 설정용 DTO
+     * @param session        HTTP 세션 (로그인 정보 및 권한 확인용)
+     * @return 삭제에 실패한 구직번호 목록 (전부 성공하면 빈 리스트)
+     */
     @PostMapping("/participantDelete.login")
     public List<Integer> ParticipantDelete(@RequestBody BasicDTO basicDTO, ParticipantDTO participantDTO, HttpSession session) {
         log.info("-----------------------------------");

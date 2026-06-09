@@ -1,3 +1,8 @@
+/**
+ * @file 대시보드 데이터 시각화 - 인센 현황 차트
+ * @version 0.0.1
+ * @requires jQuery, ApexCharts
+ */
 $(document).ready(function(){
     //임시데이터
     const Datas = initData;

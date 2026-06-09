@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * {@link MemberService} 구현체.
+ * MemberDAO를 통해 회원 인증 및 관리를 처리한다.
+ */
 @Service("loginService")
 public class MemberServiceImpl implements MemberService {
 

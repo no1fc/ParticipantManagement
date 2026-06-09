@@ -1,3 +1,8 @@
+<%--
+  footer.tag - 페이지 하단 푸터 태그
+  모든 페이지 하단에 표시되는 공통 푸터를 렌더링한다. 기업 전화번호,
+  사이트 관리자 연락처 등의 정보를 포함한다.
+--%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ tag language="java" pageEncoding="UTF-8" %>
 

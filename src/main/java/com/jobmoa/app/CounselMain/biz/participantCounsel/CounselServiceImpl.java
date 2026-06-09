@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * {@link CounselService} 구현체.
+ * CounselDAO를 통해 참여자 상담 정보를 처리한다.
+ */
 @Slf4j
 @Service("counselService")
 public class CounselServiceImpl implements CounselService {
@@ -14,7 +18,6 @@ public class CounselServiceImpl implements CounselService {
 
     @Override
     public CounselDTO selectOne(CounselDTO counselDTO) {
-//        log.info("counsel selectOne SQL counselDTO : [{}]",counselDTO);
         log.info("counsel selectOne SQL counselDTO : [{}]",counselDTO.getCounselCondition());
         // 데이터 초기화를 위해 선언
         CounselDTO data = null;
@@ -22,9 +25,7 @@ public class CounselServiceImpl implements CounselService {
         //만약 condition 값이 있고 DTO 데이터가 null이 아니면 selectOne 진행
         if(counselDTO != null && counselDTO.getCounselCondition() != null) {
             data = counselDAO.selectOne(counselDTO);
-//            log.info("counsel selectOne SQL counselDTO selectOne Success : [{}]",data);
         }
-//        log.info("data : [{}]",data);
         return data;
     }
 

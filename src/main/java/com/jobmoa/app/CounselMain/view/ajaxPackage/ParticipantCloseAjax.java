@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 참여자 마감 처리를 위한 비동기 REST 컨트롤러.
+ * <p>참여자의 마감 여부를 업데이트하고 변경된 마감 상태를 반환한다.</p>
+ */
 @Slf4j
 @RestController
 public class ParticipantCloseAjax {
@@ -17,6 +21,14 @@ public class ParticipantCloseAjax {
     @Autowired
     private BasicServiceImpl basicService;
 
+    /**
+     * 참여자의 마감 여부를 변경한다.
+     * <p>마감 상태를 업데이트한 후 변경된 마감 여부를 DB에서 다시 조회하여 반환한다.</p>
+     *
+     * @param basicDTO 마감 여부 및 구직번호 정보가 담긴 DTO
+     * @param session  HTTP 세션 (로그인 사용자 아이디 확인용)
+     * @return 변경된 마감 여부 ({@code true}: 마감, {@code false}: 미마감)
+     */
     @PostMapping("/ParticipantClose.login")
     public boolean ParticipantClose(@RequestBody BasicDTO basicDTO, HttpSession session){
         log.info("-----------------------------------");

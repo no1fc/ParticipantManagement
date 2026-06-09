@@ -2,6 +2,11 @@ package com.jobmoa.app.CounselMain.biz.adminpage;
 
 import lombok.Data;
 
+/**
+ * 관리자 페이지 통합 데이터 전송 객체.
+ * 사용자 관리, 지점 관리, 참여자 조회, 일일업무보고, 기준금액, 배정 히스토리,
+ * 알선 관리, 이력서 요청, 대시보드 KPI 등 관리자 기능 전반에서 사용된다.
+ */
 @Data
 public class AdminDTO {
     // 공통 검색/조건 파라미터
@@ -63,6 +68,9 @@ public class AdminDTO {
     private String desiredJob;
     private String desiredSalary;
     private String memo;
+    private String linkDate; // 연계일
+    private String linkType; // 연계유형
+    private String linkNote; // 연계비고
     private String searchJobNo;
     private String searchStatus;
     private String searchClosed;
@@ -209,6 +217,10 @@ public class AdminDTO {
     private int employedCount;
     private int placementEmployedCount;
 
+    // 연계 현황
+    private int linkageCount;
+    private String linkageType;
+
     // Excel 빌더 - 희망직무 시트
     private String excelCategoryLarge;
     private String excelCategoryMid;
@@ -226,4 +238,13 @@ public class AdminDTO {
 
     // Excel 빌더 - 컬럼 선택 파라미터
     private String excelColumns;
+
+    // 운영 현황 대시보드
+    private int assignedCount;          // 배정인원
+    private int selfRecruitCount;       // 자체모집인원수
+    private int activeParticipantCount; // 참여자수
+    private int canceledCount;          // 취소인원
+    private double counselorWeighted;   // 상담사수 (가중평균)
+    private double counselorLoad;       // 상담사 1명당 초기상담 인원
+    private String searchYear;          // 조회 연도
 }

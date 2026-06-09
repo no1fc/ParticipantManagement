@@ -77,7 +77,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
-    <script defer src="/js/drawChartCenterTextPlugin_0.0.1.js"></script>
+    <script defer src="/js/drawChartCenterTextPlugin_0.0.2.js"></script>
     <script defer src="/js/dashBoardJS_0.0.1.js"></script>
 
     <!-- ApexChart로 변경 -->
@@ -91,13 +91,12 @@
 <%--    <script defer src="/js/randomColorGenerator_0.0.1.js"></script>--%>
 
     <!-- 진행바 스타일 적용 -->
-    <link rel="stylesheet" href="/css/participantCss/dashboard_0.0.2.css">
+    <link rel="stylesheet" href="/css/participantCss/dashboard_0.0.3.css">
 
     <link rel="stylesheet" href="/css/participantCss/dashBoardUi_0.0.2.css">
     <!-- Modern Design System -->
     <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
-    <!-- 상담일정 위젯 -->
-    <link href="/css/scheduleCss/schedule_0.0.1.css" rel="stylesheet">
+    <!-- 상담일정 뱃지 스타일은 dashboard_0.0.3.css에 통합 -->
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 
@@ -167,6 +166,16 @@
                                             <div class="text-center py-4 text-muted fs-7">확인할 내역이 없습니다.</div>
                                         </c:otherwise>
                                     </c:choose>
+                                </div>
+
+                                <!-- 구분선 + 오늘 상담일정 -->
+                                <div class="daily-schedule-divider"></div>
+                                <div class="daily-schedule-header">
+                                    <h6><i class="fas fa-calendar-day me-1"></i>오늘 상담일정</h6>
+                                    <span class="count-badge" id="todayScheduleCount">0건</span>
+                                </div>
+                                <div class="daily-schedule-list" id="todayScheduleBody">
+                                    <div class="today-schedule-empty">로딩 중...</div>
                                 </div>
                             </div>
                         </div>
@@ -289,22 +298,6 @@
                                 <div class="h-100 d-flex flex-column justify-content-between">
                                     <canvas id="ex-chart-bar1" style="height:30vh; width:50vw;"></canvas>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 세 번째 줄: 금일 상담일정 위젯 -->
-                <div class="row g-4 mt-1">
-                    <!-- 금일 상담일정 위젯 -->
-                    <div class="col-lg-4">
-                        <div class="today-schedule-widget">
-                            <div class="today-schedule-header">
-                                <h6><i class="fas fa-calendar-day mr-1"></i>오늘 상담일정</h6>
-                                <span class="count-badge" id="todayScheduleCount">0건</span>
-                            </div>
-                            <div class="today-schedule-body" id="todayScheduleBody">
-                                <div class="today-schedule-empty">로딩 중...</div>
                             </div>
                         </div>
                     </div>

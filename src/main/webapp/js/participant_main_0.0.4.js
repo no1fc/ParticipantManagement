@@ -1,3 +1,8 @@
+/**
+ * @file 참여자 메인 목록 페이지 (검색, 정렬, 삭제, IAP 관리, 마감 처리)
+ * @version 0.0.4
+ * @requires jQuery, SweetAlert2, Bootstrap
+ */
 $(document).ready(function () {
 
     //table tr 개수 지정

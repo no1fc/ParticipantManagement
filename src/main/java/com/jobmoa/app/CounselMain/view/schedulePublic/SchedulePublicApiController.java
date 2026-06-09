@@ -12,6 +12,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 공개 상담 일정 REST API 컨트롤러.
+ * 로그인 없이 접근코드 인증을 통해 지점의 상담 일정을 조회할 수 있는 공개 API를 제공한다.
+ * 참여자 개인정보 보호를 위해 참여자명을 마스킹 처리하여 반환한다.
+ */
 @Slf4j
 @RestController
 @RequestMapping("/schedulePublic/api")
@@ -22,7 +27,14 @@ public class SchedulePublicApiController {
 
     private static final String SESSION_KEY = "SCHEDULE_PUBLIC_AUTH";
 
-    // ===== 인증 =====
+    /**
+     * 공개 일정 접근을 위한 접근코드 인증을 수행한다.
+     * 인증 성공 시 세션에 지점 정보를 저장하여 이후 API 호출 시 사용한다.
+     *
+     * @param request 인증 요청 데이터 (uniqueNumber: 접근코드, branch: 지점명)
+     * @param session HTTP 세션 (인증 정보 저장용)
+     * @return 인증 결과 JSON 응답
+     */
     @PostMapping("/verify")
     public ResponseEntity<Map<String, Object>> verify(@RequestBody Map<String, String> request, HttpSession session) {
         log.info("POST /schedulePublic/api/verify");
@@ -55,7 +67,13 @@ public class SchedulePublicApiController {
         return ResponseEntity.ok(result);
     }
 
-    // ===== 일정 목록 (참여자명 마스킹) =====
+    /**
+     * 인증된 지점의 일정 목록을 조회한다 (참여자명 마스킹 처리).
+     *
+     * @param dto     일정 검색 조건 DTO
+     * @param session HTTP 세션 (인증 지점 정보 조회용)
+     * @return 마스킹 처리된 일정 목록 JSON 응답
+     */
     @GetMapping("/schedule-list")
     public ResponseEntity<Map<String, Object>> getScheduleList(ScheduleDTO dto, HttpSession session) {
         log.info("GET /schedulePublic/api/schedule-list");
@@ -76,7 +94,13 @@ public class SchedulePublicApiController {
         return ResponseEntity.ok(result);
     }
 
-    // ===== 날짜별 시간표 (참여자명 마스킹) =====
+    /**
+     * 특정 날짜의 일정 상세 시간표를 조회한다 (참여자명 마스킹 처리).
+     *
+     * @param date    조회할 날짜 (yyyy-MM-dd 형식)
+     * @param session HTTP 세션 (인증 지점 정보 조회용)
+     * @return 해당 날짜의 일정 목록 JSON 응답
+     */
     @GetMapping("/day-detail")
     public ResponseEntity<Map<String, Object>> getDayDetail(@RequestParam String date, HttpSession session) {
         log.info("GET /schedulePublic/api/day-detail?date={}", date);
@@ -100,7 +124,12 @@ public class SchedulePublicApiController {
         return ResponseEntity.ok(result);
     }
 
-    // ===== 상담사 목록 =====
+    /**
+     * 인증된 지점의 상담사 목록을 조회한다.
+     *
+     * @param session HTTP 세션 (인증 지점 정보 조회용)
+     * @return 상담사 목록 JSON 응답
+     */
     @GetMapping("/counselors")
     public ResponseEntity<Map<String, Object>> getCounselors(HttpSession session) {
         log.info("GET /schedulePublic/api/counselors");
@@ -117,12 +146,21 @@ public class SchedulePublicApiController {
         return ResponseEntity.ok(result);
     }
 
-    // ===== 내부 유틸 =====
-
+    /**
+     * 세션에서 인증된 지점명을 조회한다.
+     *
+     * @param session HTTP 세션
+     * @return 인증된 지점명 (인증되지 않은 경우 null)
+     */
     private String getAuthBranch(HttpSession session) {
         return (String) session.getAttribute(SESSION_KEY);
     }
 
+    /**
+     * 공개 API 인증 실패 시 401 응답을 반환한다.
+     *
+     * @return 401 상태 코드와 인증 필요 메시지를 담은 응답
+     */
     private ResponseEntity<Map<String, Object>> unauthorizedPublic() {
         Map<String, Object> result = new HashMap<>();
         result.put("success", false);
@@ -130,6 +168,13 @@ public class SchedulePublicApiController {
         return ResponseEntity.status(401).body(result);
     }
 
+    /**
+     * 참여자명을 마스킹 처리한다.
+     * 첫 글자만 노출하고 나머지는 '*'로 대체한다.
+     *
+     * @param name 원본 이름
+     * @return 마스킹된 이름 (예: "홍**")
+     */
     private String maskName(String name) {
         if (name == null || name.isEmpty()) return "(미정)";
         if (name.length() <= 1) return name;

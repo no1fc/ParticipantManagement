@@ -11,6 +11,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 로그인 관련 비동기 REST API 컨트롤러.
+ * <p>비밀번호 변경 및 비밀번호 초기화 API를 제공한다.</p>
+ */
 @Slf4j
 @RestController
 public class LoginAsyncController {
@@ -21,6 +25,12 @@ public class LoginAsyncController {
     @Autowired
     BCryptPasswordEncoder passwordEncoder;
 
+    /**
+     * 비밀번호를 변경한다.
+     * <p>입력된 비밀번호와 확인 비밀번호의 일치 여부를 검증한 후 BCrypt 해싱하여 저장한다.</p>
+     * @param memberDTO 사용자 ID, 비밀번호, 변경 비밀번호를 담은 DTO
+     * @return 비밀번호 변경 결과 메시지를 담은 JSON 응답
+     */
     @PostMapping("changePW.api")
     public ResponseEntity<?> changePW(@RequestBody MemberDTO memberDTO){
         String memberUserID = memberDTO.getMemberUserID();
@@ -62,6 +72,13 @@ public class LoginAsyncController {
 
     }
 
+    /**
+     * 비밀번호를 초기화한다.
+     * <p>관리자가 특정 사용자의 비밀번호를 빈 값으로 초기화하여,
+     * 다음 로그인 시 비밀번호를 새로 설정하도록 유도한다.</p>
+     * @param memberDTO 초기화 대상 사용자 ID를 담은 DTO
+     * @return 비밀번호 초기화 결과 메시지를 담은 JSON 응답
+     */
     @PostMapping("clearPassword.api")
     public ResponseEntity<?> clearPassword(@RequestBody MemberDTO memberDTO) {
         String memberUserID = memberDTO.getMemberUserID();

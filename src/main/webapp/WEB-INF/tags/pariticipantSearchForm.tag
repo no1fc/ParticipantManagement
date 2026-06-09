@@ -1,3 +1,8 @@
+<%--
+  pariticipantSearchForm.tag - 참여자 검색 폼 태그
+  참여자 목록 페이지 상단에 표시되는 통합 검색 폼을 렌더링한다. 참여자명/전담자/구직번호 검색,
+  종료일/참여유형/검색유형 필터, 엑셀 다운로드 버튼 등을 포함하며, actionURL 속성으로 폼 제출 경로를 지정한다.
+--%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ tag language="java" pageEncoding="UTF-8" %>

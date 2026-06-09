@@ -1,6 +1,7 @@
 /**
- * 이력서 요청 목록 페이지 JavaScript
- * CounselMain 패키지용 버전
+ * @file 이력서 요청 목록 관리 (상태 변경, 필터링, 토스트 알림)
+ * @version 0.0.1
+ * @requires jQuery, Bootstrap
  */
 
 $(document).ready(function() {

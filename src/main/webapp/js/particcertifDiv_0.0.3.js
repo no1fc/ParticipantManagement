@@ -1,4 +1,10 @@
 /**
+ * @file 자격증 동적 추가/삭제 모듈 (SortableJS 드래그 정렬 지원)
+ * @version 0.0.3
+ * @requires jQuery, SortableJS
+ */
+
+/**
  * 자격증 동적 추가/삭제 모듈 (희망직무와 동일 패턴)
  * - 항목 단위 [핸들][입력][삭제] 구조
  * - 추가 버튼: #addCertBtn
@@ -17,7 +23,7 @@ function _certEscapeHtml(str) {
 
 // 자격증 항목 카운트 갱신
 function _updateCertCount() {
-    var $count = $("#certCount");
+    const $count = $("#certCount");
     if ($count.length) {
         $count.text($("#particcertifCertif").children('.cert-item').length);
     }
@@ -25,12 +31,12 @@ function _updateCertCount() {
 
 // 자격증 항목 추가 (data: { particcertif, particcertifPartNo })
 function addCertItem(data) {
-    var $container = $("#particcertifCertif");
+    const $container = $("#particcertifCertif");
     if (!$container.length) return;
-    var value = (data && data.particcertif) || '';
-    var pk = (data && data.particcertifPartNo) || 0;
+    const value = (data && data.particcertif) || '';
+    const pk = (data && data.particcertifPartNo) || 0;
 
-    var $item = $(
+    const $item = $(
         '<div class="cert-item">' +
         '  <span class="cert-handle" title="드래그로 순서 변경"><i class="bi bi-grip-vertical"></i></span>' +
         '  <input type="text" class="form-control particcertifCertif" name="particcertifCertifs" value="' + _certEscapeHtml(value) + '" placeholder="자격증 입력">' +
@@ -49,7 +55,7 @@ function removeCertItem($item) {
 }
 
 $(document).ready(function () {
-    var $container = $("#particcertifCertif");
+    const $container = $("#particcertifCertif");
     // 진단 로그: 캐시/타이밍 이슈 추적용 (문제 해결 후 제거 가능)
     console.log('[particcertifDiv] ready - container:', $container.length, 'btn:', $("#addCertBtn").length);
     if (!$container.length) return;
@@ -85,7 +91,7 @@ $(document).ready(function () {
 
 // 기존 호환: 수정 페이지에서 호출되는 초기화 함수 (배열 → 항목 렌더링)
 function specialty(specialtyArr) {
-    var $container = $("#particcertifCertif");
+    const $container = $("#particcertifCertif");
     if (!$container.length) return;
     $container.empty();
     if (specialtyArr && specialtyArr.length > 0) {

@@ -1,3 +1,9 @@
+/**
+ * @file SweetAlert2 공통 알림/확인 함수 모음
+ * @version 0.0.1
+ * @requires SweetAlert2
+ */
+
 /** sweetAlert_0.0.1.js 사용방법
  *     <!-- sweetalert2 -->
  *     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.css">

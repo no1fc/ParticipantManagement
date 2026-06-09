@@ -1,12 +1,7 @@
 /**
- * 마이페이지 JavaScript (탭 분리 버전)
- *
- * 탭 구성:
- * - 계정 정보: 읽기 전용 정보 + 연락처(이메일/전화번호) 수정
- * - 일일보고: 취업 실적 입력/저장
- * - 보안 설정: 비밀번호 변경
- *
+ * @file 마이페이지 JavaScript (계정 정보, 일일보고, 비밀번호 변경)
  * @version 0.0.3
+ * @requires jQuery, SweetAlert2
  */
 $(document).ready(function () {
 

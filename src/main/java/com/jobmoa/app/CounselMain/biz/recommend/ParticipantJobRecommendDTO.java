@@ -2,6 +2,9 @@ package com.jobmoa.app.CounselMain.biz.recommend;
 
 import lombok.Data;
 
+/**
+ * 참여자별 AI 채용 추천 결과 DTO. 추천된 채용공고 정보, 추천 점수, 추천 사유 등을 담으며 추천 목록 조회 시 사용된다.
+ */
 @Data
 public class ParticipantJobRecommendDTO {
     private int pk; // PK of the recommendation record
@@ -26,4 +29,6 @@ public class ParticipantJobRecommendDTO {
     private String createdAt; // 저장일시
     private String updatedAt; // 수정일시
     private Boolean isActive; // 공고 활성 여부 (JOB_POSTING JOIN)
+    private String career;    // 경력 (JOB_POSTING JOIN)
+    private String regionNm;  // 근무지역 (JOB_POSTING JOIN)
 }

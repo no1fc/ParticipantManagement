@@ -30,6 +30,14 @@ public class PasswordMigrationRunner implements CommandLineRunner {
     @Value("${password.migration.enabled:false}")
     private boolean migrationEnabled;
 
+    /**
+     * 애플리케이션 기동 시 평문 비밀번호를 BCrypt 해시로 일괄 변환한다.
+     *
+     * <p>{@code password.migration.enabled} 속성이 {@code false}이면 즉시 종료한다.
+     * 이미 BCrypt 해시({@code $2a$} 접두사)인 행은 건너뛴다.
+     *
+     * @param args 커맨드 라인 인자 (사용하지 않음)
+     */
     @Override
     public void run(String... args) {
         if (!migrationEnabled) {

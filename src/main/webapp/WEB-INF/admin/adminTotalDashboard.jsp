@@ -271,7 +271,7 @@
 <script defer src="/js/adminlte.js"></script>
 
 <!-- 대시보드 전용 JS -->
-<script defer src="/js/adminJs/adminTotalDashboard_0.0.2.js"></script>
+<script defer src="/js/adminJs/adminTotalDashboard_0.0.3.js"></script>
 <!--end::Script-->
 
 </body>

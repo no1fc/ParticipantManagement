@@ -9,6 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * {@link AdminService} 구현체.
+ * AdminDAO를 통해 사용자, 지점, 참여자, 기준금액, 알선, 이력서 요청,
+ * 자격증, 직업훈련, 대시보드 KPI, Excel 출력 등 관리자 기능을 처리한다.
+ */
 @Slf4j
 @Service
 public class AdminServiceImpl implements AdminService {
@@ -321,5 +326,37 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<AdminDTO> getExcelTrainingList(AdminDTO dto) {
         return adminDAO.selectExcelTrainingList(dto);
+    }
+
+    // ===== 연계 현황 =====
+    @Override
+    public Map<String, Object> getLinkageStats(AdminDTO dto) {
+        Map<String, Object> result = new HashMap<>();
+        List<AdminDTO> branchStats = adminDAO.selectLinkageStatsByBranch(dto);
+        List<AdminDTO> typeStats = adminDAO.selectLinkageStatsByType(dto);
+        int totalCount = branchStats.stream().mapToInt(AdminDTO::getLinkageCount).sum();
+        result.put("branchStats", branchStats);
+        result.put("typeStats", typeStats);
+        result.put("totalCount", totalCount);
+        return result;
+    }
+
+    @Override
+    public List<AdminDTO> getLinkageByCounselor(AdminDTO dto) {
+        return adminDAO.selectLinkageStatsByCounselor(dto);
+    }
+
+    @Override
+    public List<AdminDTO> getLinkageByType(AdminDTO dto) {
+        return adminDAO.selectLinkageStatsByType(dto);
+    }
+
+    // ===== 운영 현황 대시보드 =====
+    @Override
+    public List<AdminDTO> getManagementDashboardData(AdminDTO dto) {
+        if (dto.getSearchYear() == null || dto.getSearchYear().isEmpty()) {
+            dto.setSearchYear(String.valueOf(java.time.Year.now().getValue()));
+        }
+        return adminDAO.selectManagementDashboardData(dto);
     }
 }

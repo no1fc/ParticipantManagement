@@ -1,4 +1,4 @@
-/* recommend-modal_0.0.1.css */
+/* recommend-modal_0.0.5.css */
 
 /* =========================
    모달 오버레이
@@ -19,7 +19,7 @@
    모달 본체
    ========================= */
 #recommendModal .modal-container {
-    width: min(1120px, 96vw);
+    width: min(1400px, 96vw);
     max-height: 92vh;
     background: #fff;
     border-radius: 18px;

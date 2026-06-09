@@ -16,6 +16,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * {@link BasicService} 구현체.
+ * BasicDAO를 통해 참여자 기본정보를 처리하며, 신규 등록 시 상담/취업/자격증/직업훈련 정보를 함께 저장한다.
+ */
 @Slf4j
 @Service("basicService")
 public class BasicServiceImpl implements BasicService {
@@ -117,7 +121,6 @@ public class BasicServiceImpl implements BasicService {
 
     @Override
     public boolean update(BasicDTO basicDTO) {
-//        log.info("basic update SQL basicDTO : [{}]",basicDTO);
         if(basicDTO == null || basicDTO.getBasicCondition() == null) {
             return false;
         }
@@ -193,7 +196,6 @@ public class BasicServiceImpl implements BasicService {
         if (basicDTO == null || basicDTO.getBasicCondition() == null){
             return data;
         }
-//        log.info("basic selectOne SQL basicDTO : [{}]",basicDTO);
         //기본 정보 DTO가 있고 condition 값이 있다면 select 를 진행
         data = basicDAO.selectOne(basicDTO);
         return data;

@@ -2,6 +2,10 @@ package com.jobmoa.app.CounselMain.biz.participantRandomAssignment;
 
 import lombok.Data;
 
+/**
+ * 참여자 배정 CSV 업로드 히스토리 데이터 전송 객체.
+ * CSV 파일을 통해 일괄 등록된 참여자 배정 이력의 각 행 데이터를 전달한다.
+ */
 @Data
 public class PraCsvHistoryDTO {
     private int rowNumber;

@@ -28,7 +28,10 @@
             희망급여 = #{counselSalWant},
             알선요청 = #{counselPlacement},
             간접고용서비스 = #{counselEmploymentService},
-            집중알선여부 = #{counselFocusedPlacement}
+            집중알선여부 = #{counselFocusedPlacement},
+            연계일 = CONVERT(date, #{counselLinkDate}, 120),
+            연계유형 = #{counselLinkType},
+            연계비고 = #{counselLinkNote}
         WHERE
             구직번호 = #{counselJobNo}
     </update>
@@ -72,6 +75,9 @@
         <result property="placementDetail" column="placementDetail"/>
         <result property="suggestionDetail" column="suggestionDetail"/>
         <result property="counselFocusedPlacement" column="counselFocusedPlacement"/>
+        <result property="counselLinkDate" column="counselLinkDate"/>
+        <result property="counselLinkType" column="counselLinkType"/>
+        <result property="counselLinkNote" column="counselLinkNote"/>
 
         <!-- 키워드 리스트: 부모의 counselJobNo를 파라미터로 넘겨 별도 조회 -->
         <collection property="recommendedKeywords"
@@ -134,7 +140,12 @@
             A.간접고용서비스 AS counselEmploymentService,
             B.상세정보 AS placementDetail,
             B.추천사 AS suggestionDetail,
-            A.집중알선여부 AS counselFocusedPlacement
+            A.집중알선여부 AS counselFocusedPlacement,
+            CASE
+                WHEN A.연계일 >= DATEADD(YEAR, -100, GETDATE()) THEN A.연계일
+                END AS counselLinkDate,
+            A.연계유형 AS counselLinkType,
+            A.연계비고 AS counselLinkNote
         FROM
             J_참여자관리 A
         LEFT JOIN

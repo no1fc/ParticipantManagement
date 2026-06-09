@@ -1,3 +1,8 @@
+/**
+ * @file 챗봇 비동기 통신 스크립트 (ChatGPT API 연동)
+ * @version 0.0.1
+ * @requires jQuery, marked.js
+ */
 $('document').ready(function () {
     const userInput = $("#userInput"); // 사용자 입력 요소
     const charCount = $("#charCount"); // 글자 수 출력 요소

@@ -16,6 +16,19 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Spring MVC 웹 계층 설정.
+ *
+ * <p>컨트롤러(view) 패키지의 컴포넌트 스캔, 인터셉터, 메시지 컨버터,
+ * 정적 리소스 핸들러를 등록한다.
+ * <ul>
+ *   <li>{@link com.jobmoa.app.CounselMain.biz.interceptor.LoginInterceptor} — 로그인 인증 인터셉터</li>
+ *   <li>Jackson {@code MappingJackson2HttpMessageConverter} — JSON 직렬화</li>
+ *   <li>CSS/JS/이미지 정적 리소스 캐시 (1일 + must-revalidate)</li>
+ * </ul>
+ *
+ * @see RootConfig 서비스(biz) 계층 및 인프라 빈 설정
+ */
 @Configuration
 // @EnableWebMvc  // Spring Boot 사용 시 주석 처리 (자동 설정 사용)
 @ComponentScan(basePackages = {

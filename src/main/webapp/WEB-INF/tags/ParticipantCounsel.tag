@@ -1,3 +1,8 @@
+<%--
+  ParticipantCounsel.tag - 참여자 상담정보 입력 폼 태그
+  최근상담일, 진행단계, 취업역량 등 상담 관련 정보를 입력하는 6컬럼 테이블 폼을 렌더링한다.
+  CounselDTO를 속성으로 받아 수정 시 기존 데이터를 표시하며, 참여자 등록/수정 페이지에서 사용된다.
+--%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ tag language="java" pageEncoding="UTF-8" %>
 <%@ attribute name="counsel" type="com.jobmoa.app.CounselMain.biz.participantCounsel.CounselDTO" %>
@@ -147,7 +152,33 @@
                 <th></th>
                 <td></td>
             </tr>
-            <%-- 행6: 다중 희망직무 (colspan=5, 6칸 중 th1칸 + td5칸) --%>
+            <%-- 행6: 연계일 / 연계유형 / 연계비고 --%>
+            <tr>
+                <th><label for="counselLinkDate">연계일</label></th>
+                <td>
+                    <div class="input-group">
+                        <i class="bi bi-calendar-date input-group-text"></i>
+                        <input type="text" class="form-control datepicker_on" id="counselLinkDate" name="counselLinkDate" placeholder="yyyy-mm-dd" aria-label="연계일" value="${not empty counsel ? counsel.counselLinkDate:""}" autocomplete="off">
+                    </div>
+                </td>
+                <th><label for="counselLinkType">연계유형</label></th>
+                <td>
+                    <select class="form-select" aria-label="연계유형" id="counselLinkType" name="counselLinkType">
+                        <option value="">선택</option>
+                        <option value="미래내일일경험">미래내일일경험</option>
+                        <option value="지자체일경험">지자체일경험</option>
+                        <option value="심리안정(정신건강복지센터)">심리안정(정신건강복지센터)</option>
+                        <option value="복지ㆍ금용ㆍ연계">복지ㆍ금용ㆍ연계</option>
+                        <option value="기타 일경험">기타 일경험</option>
+                        <option value="기타">기타</option>
+                    </select>
+                </td>
+                <th><label for="counselLinkNote" id="counselLinkNoteLabel" style="display:none;">연계비고</label></th>
+                <td>
+                    <input type="text" class="form-control" id="counselLinkNote" name="counselLinkNote" placeholder="기타 상세 사유 입력" value="${not empty counsel ? counsel.counselLinkNote:""}" style="display:none;">
+                </td>
+            </tr>
+            <%-- 행7: 다중 희망직무 (colspan=5, 6칸 중 th1칸 + td5칸) --%>
             <tr>
                 <th>
                     희망직무<span class="text-danger">*</span>

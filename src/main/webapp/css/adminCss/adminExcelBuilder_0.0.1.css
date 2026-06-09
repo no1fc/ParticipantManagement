@@ -1,3 +1,7 @@
+/* ========================================
+ * 관리자 엑셀 빌더 페이지 스타일
+ * ======================================== */
+
 /* Excel builder specific styles */
 .filter-summary {
     background: var(--admin-surface-muted);

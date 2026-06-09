@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 대시보드 지점 관련 Ajax 컨트롤러.
+ * <p>일일보고 저장 및 상담사 순서 변경 등 지점 대시보드에서 사용하는 비동기 API를 제공한다.</p>
+ */
 @Slf4j
 @RestController
 public class DashboardBranchAjaxController {
@@ -25,7 +29,14 @@ public class DashboardBranchAjaxController {
     MemberService memberService;
 
 
-    // dailyWorkSave mapping.xml SQL 문법
+    /**
+     * 지점 일일보고를 저장한다.
+     * <p>세션의 로그인 정보에서 지점을 가져와 해당 지점의 일일보고를 업데이트한다.
+     * 알선현황(assignmentStatusUpdate)도 함께 업데이트된다.</p>
+     * @param session HTTP 세션 (로그인 정보 확인용)
+     * @param reportDTO 일일보고 데이터
+     * @return 저장 성공/실패 여부를 담은 JSON 응답
+     */
     @PostMapping(value = "/dashboard/branchReportUpdate.login",
             consumes = "application/json; charset=utf-8",
             produces = "application/json; charset=utf-8")
@@ -84,6 +95,12 @@ public class DashboardBranchAjaxController {
 
 
 
+    /**
+     * 대시보드 상담사 표시 순서를 변경한다.
+     * @param session HTTP 세션 (로그인 정보 확인용)
+     * @param memberDTO 순서 변경 대상 상담사 정보
+     * @return 순서 저장 성공/실패 여부를 담은 JSON 응답
+     */
     @PostMapping(value = "/dashboard/memberOrderUpdate.login",
             consumes = "application/json; charset=utf-8",
             produces = "application/json; charset=utf-8")

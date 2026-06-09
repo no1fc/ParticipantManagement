@@ -15,6 +15,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 
+/**
+ * 이력서 요청 관리 컨트롤러.
+ * <p>참여자의 이력서 요청 목록을 페이지네이션과 함께 조회하여 표시한다.
+ * /resumeRequest 경로 하위에 매핑된다.</p>
+ */
 @Slf4j
 @Controller
 @RequestMapping("/resumeRequest")
@@ -23,6 +28,16 @@ public class ResumeRequestController {
     @Autowired
     private ParticipantService participantService;
 
+    /**
+     * 이력서 요청 목록 페이지를 표시한다.
+     * <p>로그인 여부를 확인하고, 사용자 권한에 따라 이력서 요청 목록을
+     * 페이지네이션 적용하여 조회한다. 상태값의 공백을 제거하여 JSP에 전달한다.</p>
+     * @param model Spring MVC Model
+     * @param session HTTP 세션 (로그인 및 권한 정보 확인용)
+     * @param participantDTO 검색 조건 및 페이지 정보를 담은 DTO
+     * @param paginationBean 페이지네이션 계산용 빈
+     * @return 이력서 요청 목록 JSP 뷰 이름 (views/resumeRequestListPage) 또는 알림 페이지
+     */
     @GetMapping("/list.login")
     public String resumeRequestListPage(Model model, HttpSession session, ParticipantDTO participantDTO, PaginationBean paginationBean) {
         log.info("resumeRequestListPage Start");

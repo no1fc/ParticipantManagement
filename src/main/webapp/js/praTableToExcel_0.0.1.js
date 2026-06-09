@@ -1,3 +1,8 @@
+/**
+ * @file 참여자 랜덤 배정 테이블 엑셀 내보내기
+ * @version 0.0.1
+ * @requires jQuery, table2excel
+ */
 function exportToExcel(e) {
     if(e) e.preventDefault();
 

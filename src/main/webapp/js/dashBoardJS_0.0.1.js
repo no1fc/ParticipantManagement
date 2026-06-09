@@ -1,3 +1,8 @@
+/**
+ * @file 대시보드 Chart.js 차트 데이터 설정 (도넛, 바 차트)
+ * @version 0.0.1
+ * @requires jQuery, Chart.js, chartjs-plugin-datalabels
+ */
 //dashBoard chart data js 파일
 //dashBoard Doughnut chart data
 function chart_doughnut_data(id,data,drawCenterText_text,denominator){

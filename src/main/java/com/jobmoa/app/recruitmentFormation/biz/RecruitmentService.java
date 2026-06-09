@@ -7,6 +7,10 @@ import com.jobmoa.app.recruitmentFormation.biz.dto.RecruitmentSyncResultDTO;
 
 import java.util.List;
 
+/**
+ * 고용24 채용공고 관리 서비스.
+ * 채용공고 검색, API 동기화, 상세정보 수집 기능을 제공한다.
+ */
 public interface RecruitmentService {
 
     /**
@@ -29,7 +33,7 @@ public interface RecruitmentService {
 
     /**
      * detail_fetched=0 인 신규 공고만 상세 API 호출 후 DB 업데이트 (스케줄러 전용)
-     * 최대 500건 처리 / 100건당 1초 딜레이로 고용24 API Rate Limit 방지
+     * 최대 5,000건 처리 / 3스레드 병렬 + 100건 배치당 1초 딜레이로 고용24 API Rate Limit 방지
      */
     void fetchDetailForNewPostings();
 }

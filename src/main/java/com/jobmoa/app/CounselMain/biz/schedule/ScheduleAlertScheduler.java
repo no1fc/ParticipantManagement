@@ -10,6 +10,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 상담 일정 알림 스케줄러.
+ *
+ * <p>매 분(cron: {@code 0 * * * * *})마다 실행되어 알림 대상 일정을 조회하고,
+ * WebSocket을 통해 해당 상담사에게 실시간 알림을 전송한다.
+ */
 @Component
 @Slf4j
 public class ScheduleAlertScheduler {
@@ -20,6 +26,12 @@ public class ScheduleAlertScheduler {
     @Autowired
     private WebSocketService webSocketService;
 
+    /**
+     * 알림 대상 상담 일정을 조회하여 WebSocket으로 상담사에게 전송한다.
+     *
+     * <p>매 분 실행되며, {@code /topic/schedule-alert} 토픽으로
+     * 일정 유형, 참여자명, 시작 시각 등의 알림 메시지를 발송한다.
+     */
     @Scheduled(cron = "0 * * * * *")
     public void checkScheduleAlerts() {
         try {

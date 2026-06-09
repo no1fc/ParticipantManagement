@@ -2,6 +2,9 @@ package com.jobmoa.app.CounselMain.biz.recommend;
 
 import lombok.Data;
 
+/**
+ * 직무 카테고리 DTO. 대분류/중분류/소분류 직종 카테고리 정보를 담으며, 참여자 희망직무 매핑 시 사용된다.
+ */
 @Data
 public class JobCategoryDTO {
     private int pk;

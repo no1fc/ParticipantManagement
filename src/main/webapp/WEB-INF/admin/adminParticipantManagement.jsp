@@ -266,6 +266,9 @@
             <h6><i class="bi bi-chat-dots"></i> 상담 정보</h6>
             <div class="detail-row"><span class="detail-label">상담사</span><span class="detail-value" id="detailCounselor"></span></div>
             <div class="detail-row"><span class="detail-label">진행단계</span><span class="detail-value" id="detailProgressStage"></span></div>
+            <div class="detail-row"><span class="detail-label">연계일</span><span class="detail-value" id="detailLinkDate"></span></div>
+            <div class="detail-row"><span class="detail-label">연계유형</span><span class="detail-value" id="detailLinkType"></span></div>
+            <div class="detail-row" id="detailLinkNoteRow" style="display:none;"><span class="detail-label">연계비고</span><span class="detail-value" id="detailLinkNote"></span></div>
         </div>
         <!-- 희망 정보 -->
         <div class="participant-detail-section">
@@ -290,7 +293,7 @@
         integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
 <script defer src="/js/adminlte.js"></script>
 
-<script defer src="/js/adminJs/adminParticipantManagement_0.0.3.js"></script>
+<script defer src="/js/adminJs/adminParticipantManagement_0.0.4.js"></script>
 <!--end::Script-->
 
 <script>

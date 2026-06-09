@@ -1,7 +1,7 @@
 /**
- * 참여자 관리 페이지 JavaScript
- * Version: 0.0.3
- * Description: 참여자 목록 조회, 검색, 상세 오프캔버스, 엑셀 다운로드
+ * @file 참여자 관리 페이지 (목록 조회, 검색, 상세 오프캔버스, 엑셀 다운로드)
+ * @version 0.0.4
+ * @requires jQuery, SweetAlert2, DataTables, Bootstrap
  */
 
 let participantTable;
@@ -36,7 +36,7 @@ $(document).ready(function() {
 
     // 고급검색 토글
     $('#btnToggleAdvanced').on('click', function() {
-        var $adv = $('#advancedFilters');
+        const $adv = $('#advancedFilters');
         $adv.toggleClass('show');
         $(this).html($adv.hasClass('show') ? '<i class="bi bi-chevron-up"></i> 접기' : '<i class="bi bi-chevron-down"></i> 고급검색');
     });
@@ -47,7 +47,7 @@ function loadBranchOptions() {
         url: '/admin/api/branches',
         method: 'GET',
         success: function(data) {
-            var html = '<option value="">전체</option>';
+            let html = '<option value="">전체</option>';
             data.forEach(function(item) {
                 html += '<option value="' + item.branchName + '">' + item.branchName + '</option>';
             });
@@ -61,7 +61,7 @@ function loadCounselorOptions(branch) {
         url: '/admin/api/counselors',
         data: { searchBranch: branch || '' },
         success: function(data) {
-            var html = '<option value="">전체</option>';
+            let html = '<option value="">전체</option>';
             data.forEach(function(item) {
                 html += '<option value="' + item.userId + '">' + item.memberName + ' (' + item.userId + ')</option>';
             });
@@ -108,11 +108,11 @@ function loadParticipants(params) {
         success: function(data) {
             participantTable.clear();
             data.forEach(function(item) {
-                var closedBadge = item.closed
+                const closedBadge = item.closed
                     ? '<span class="admin-status-badge badge-closed">마감</span>'
                     : '<span class="admin-status-badge badge-active">진행중</span>';
 
-                var stageBadge = '';
+                let stageBadge = '';
                 if (item.progressStage === '취업') {
                     stageBadge = '<span class="admin-status-badge badge-employed">' + item.progressStage + '</span>';
                 } else if (item.progressStage === 'IAP후') {
@@ -123,7 +123,7 @@ function loadParticipants(params) {
                     stageBadge = '<span class="admin-status-badge badge-active">' + (item.progressStage || '') + '</span>';
                 }
 
-                var counselorDisplay = (item.counselorName || '') + (item.counselorAccount ? ' (' + item.counselorAccount + ')' : '');
+                const counselorDisplay = (item.counselorName || '') + (item.counselorAccount ? ' (' + item.counselorAccount + ')' : '');
 
                 participantTable.row.add([
                     '<input type="checkbox" class="form-check-input row-check" value="' + item.jobNo + '">',
@@ -149,16 +149,16 @@ function loadParticipants(params) {
 }
 
 function updateParticipantMetrics(data) {
-    var total = data.length;
-    var active = 0, closed = 0, employed = 0, recent = 0;
-    var now = new Date();
-    var sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const total = data.length;
+    let active = 0, closed = 0, employed = 0, recent = 0;
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     data.forEach(function(item) {
         if (item.closed) { closed++; } else { active++; }
         if (item.progressStage === '취업') { employed++; }
         if (item.participantRegDate) {
-            var regDate = new Date(item.participantRegDate);
+            const regDate = new Date(item.participantRegDate);
             if (regDate >= sevenDaysAgo) { recent++; }
         }
     });
@@ -193,6 +193,14 @@ function openParticipantDetail(jobNo) {
             // 상담 정보
             $('#detailCounselor').text((data.counselorName || '') + (data.counselorAccount ? ' (' + data.counselorAccount + ')' : ''));
             $('#detailProgressStage').text(data.progressStage || '');
+            $('#detailLinkDate').text(data.linkDate || '');
+            $('#detailLinkType').text(data.linkType || '');
+            if (data.linkNote) {
+                $('#detailLinkNote').text(data.linkNote);
+                $('#detailLinkNoteRow').show();
+            } else {
+                $('#detailLinkNoteRow').hide();
+            }
 
             // 희망 정보
             $('#detailDesiredJob').text(data.desiredJob || '');
@@ -215,7 +223,7 @@ function openParticipantDetail(jobNo) {
 function exportToExcel() {
     showLoading('엑셀 파일을 준비하는 중입니다...');
     try {
-        var params = $.param({
+        const params = $.param({
             searchJobNo: $('#searchJobNo').val() || '',
             searchName: $('#searchName').val() || '',
             searchBranch: $('#searchBranch').val() || '',
@@ -235,7 +243,7 @@ function exportToExcel() {
 
 function showLoading(message) {
     hideLoading();
-    var html = '<div id="admin-loading" class="admin-loading-overlay">' +
+    const html = '<div id="admin-loading" class="admin-loading-overlay">' +
         '<div class="admin-loading-box">' +
         '<div class="admin-loading-spinner"></div>' +
         '<p class="admin-loading-message">' + (message || '처리 중...') + '</p>' +

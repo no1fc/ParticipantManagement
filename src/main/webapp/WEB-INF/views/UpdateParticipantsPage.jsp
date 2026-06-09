@@ -89,10 +89,10 @@
     <script defer src="/js/educationDiv_0.0.2.js"></script>
 
     <!-- particcertifDiv JS -->
-    <script defer src="/js/particcertifDiv_0.0.2.js"></script>
+    <script defer src="/js/particcertifDiv_0.0.3.js"></script>
 
-    <!-- participants_insert_update_CommonnessJS_0.1.1.js  -->
-    <script defer src="/js/participants_insert_update_CommonnessJS_0.1.1.js"></script>
+    <!-- participants_insert_update_CommonnessJS_0.1.2.js  -->
+    <script defer src="/js/participants_insert_update_CommonnessJS_0.1.2.js"></script>
 
     <!-- selectOption JS -->
     <script defer src="/js/selectOptionJS_0.0.1.js"></script>
@@ -333,6 +333,26 @@ document.addEventListener('DOMContentLoaded', function () {
         //간접고용서비스 목록 내용 변경
         selectOption($("#counselEmploymentService"),"${counsel.counselEmploymentService}");
 
+        //연계유형 목록 내용 변경
+        selectOption($("#counselLinkType"),"${counsel.counselLinkType}");
+
+        // 연계비고: 기타 유형 선택 시에만 표시
+        (function () {
+            const $linkType = $("#counselLinkType");
+            const $linkNote = $("#counselLinkNote");
+            const $linkNoteLabel = $("#counselLinkNoteLabel");
+            const LINK_NOTE_TYPES = new Set(["기타 일경험", "기타"]);
+
+            function toggleLinkNote() {
+                const show = LINK_NOTE_TYPES.has($linkType.val());
+                $linkNote.toggle(show);
+                $linkNoteLabel.toggle(show);
+                if (!show) { $linkNote.val(""); }
+            }
+            $linkType.on("change", toggleLinkNote);
+            toggleLinkNote(); // 페이지 로드 시 초기 상태
+        })();
+
         <%-- 직무 카테고리(대/중)는 hidden input으로 전환됨. 다중 희망직무 UI에서 렌더링 --%>
         <%-- 목록 내용 변경 끝 --%>
 
@@ -349,7 +369,12 @@ document.addEventListener('DOMContentLoaded', function () {
         //page 로딩시 알선 상세정보 입력란을 숨김
         JobPlacementDetail(hiddenDiv);
 
-        // 다중 희망직무 데이터 복원
+    });
+
+    // 다중 희망직무 데이터 복원
+    // defer 스크립트(jobWishListManager)의 $(document).ready() 콜백보다 뒤에 실행되도록
+    // window load 이벤트 사용 (키워드 초기화와 동일한 패턴)
+    window.addEventListener('load', function () {
         if (typeof initWishJobList === 'function') {
             let wishJobArr = [];
             try {
@@ -366,7 +391,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             initWishJobList(wishJobArr);
         }
-
     });
 
 

@@ -4,6 +4,11 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * 참여자 통합 정보 데이터 전송 객체.
+ * 기본정보, 상담, 취업, 알선, 검색/페이지네이션/정렬 조건, 이력서 요청, Excel 내보내기 등
+ * 참여자 관련 화면 전반에서 사용되는 범용 DTO이다.
+ */
 @Data
 public class ParticipantDTO {
     

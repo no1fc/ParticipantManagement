@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * {@link DashboardService} 구현체.
+ * DashboardDAO를 통해 상담사 대시보드 데이터를 처리한다.
+ */
 @Slf4j
 @Service("Dashboard")
 public class DashboardServiceImpl implements DashboardService {
@@ -16,7 +20,6 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public List<DashboardDTO> selectAll(DashboardDTO dashboardDTO) {
         log.info("DashboardServiceImpl selectAll Start");
-        //log.info("List<DashboardDTO> DashboardService selectAll : [{}]", dashboardDTO);
         if(dashboardDTO == null || dashboardDTO.getDashboardCondition() == null) {
             log.info("List<DashboardDTO> DashboardService selectAll DashboardDTO null OR DashboardCondition null");
             log.error("selectAll DashboardDTO null OR DashboardCondition null");
@@ -29,7 +32,6 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public DashboardDTO selectOne(DashboardDTO dashboardDTO) {
         log.info("DashboardServiceImpl selectOne Start");
-        log.info("DashboardDTO DashboardService selectOne : [{}]", dashboardDTO);
         if(dashboardDTO == null || dashboardDTO.getDashboardCondition() == null) {
             log.info("DashboardDTO DashboardService selectOne DashboardDTO null OR DashboardCondition null");
             log.error("selectOne DashboardDTO null OR DashboardCondition null");

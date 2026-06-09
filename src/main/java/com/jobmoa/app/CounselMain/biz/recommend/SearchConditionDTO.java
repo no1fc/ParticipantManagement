@@ -6,6 +6,9 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * AI 생성 검색 조건 DTO. Gemini API가 참여자 정보를 분석하여 생성한 키워드, 직종코드, 지역 등의 검색 조건을 담는다.
+ */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SearchConditionDTO {

@@ -1,3 +1,9 @@
+/**
+ * @file 관리자 이력서 요청 관리 (목록 조회, 검색, 상세 조회, 상태 변경)
+ * @version 0.0.3
+ * @requires jQuery, SweetAlert2, DataTables, Bootstrap
+ */
+
 let resumeRequestTable, resumeRequestModal;
 
 $(document).ready(function() {
@@ -28,7 +34,7 @@ function loadBranchOptions() {
         url: '/admin/api/branches',
         method: 'GET',
         success: function(data) {
-            var html = '<option value="">전체</option>';
+            let html = '<option value="">전체</option>';
             data.forEach(function(item) {
                 html += '<option value="' + item.branchName + '">' + item.branchName + '</option>';
             });
@@ -38,7 +44,7 @@ function loadBranchOptions() {
 }
 
 function loadCounselorOptions(branch) {
-    var params = {};
+    const params = {};
     if (branch) {
         params.searchBranch = branch;
     }
@@ -47,7 +53,7 @@ function loadCounselorOptions(branch) {
         method: 'GET',
         data: params,
         success: function(data) {
-            var html = '<option value="">전체</option>';
+            let html = '<option value="">전체</option>';
             data.forEach(function(item) {
                 html += '<option value="' + item.userId + '">' + item.memberName + ' (' + item.userId + ')</option>';
             });
@@ -57,7 +63,7 @@ function loadCounselorOptions(branch) {
 }
 
 function searchResumeRequests() {
-    var params = {
+    const params = {
         searchBranch: $('#searchBranch').val(),
         searchCounselor: $('#searchCounselor').val(),
         searchName: $('#searchName').val(),
@@ -86,7 +92,7 @@ function loadResumeRequests(params) {
         success: function(data) {
             resumeRequestTable.clear();
             data.forEach(function(item) {
-                var statusClass = item.requestStatus == '완료' ? 'success' : (item.requestStatus == '거절' ? 'danger' : 'warning');
+                const statusClass = item.requestStatus == '완료' ? 'success' : (item.requestStatus == '거절' ? 'danger' : 'warning');
                 resumeRequestTable.row.add([
                     item.resumeRegNo,
                     item.participantName || '',
@@ -165,7 +171,7 @@ function updateStatus(regNo, newStatus) {
 }
 
 // OverlayScrollbars 초기화
-var OverlayScrollbarsObj = OverlayScrollbarsGlobal.OverlayScrollbars;
+const OverlayScrollbarsObj = OverlayScrollbarsGlobal.OverlayScrollbars;
 if (document.querySelector('.app-sidebar-wrapper')) {
     OverlayScrollbarsObj(document.querySelector('.app-sidebar-wrapper'), {});
 }

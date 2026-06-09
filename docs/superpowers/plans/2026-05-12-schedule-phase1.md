@@ -26,7 +26,7 @@
 | `src/main/java/com/jobmoa/app/CounselMain/view/schedule/ScheduleApiController.java` | REST API 컨트롤러 |
 | `src/main/resources/mappings/Schedule-mapping.xml`                                  | MyBatis SQL 매퍼 |
 | `src/main/webapp/WEB-INF/views/schedule/schedulePage.jsp`                           | 상담사 일정 페이지 |
-| `src/main/webapp/js/schedule_0.0.2.js`                                              | 캘린더 초기화, CRUD AJAX, 드래그, 모달 |
+| `src/main/webapp/js/schedule_0.0.3.js`                                              | 캘린더 초기화, CRUD AJAX, 드래그, 모달 |
 | `src/main/webapp/css/scheduleCss/schedule_0.0.1.css`                                | 캘린더/모달/위젯 스타일 |
 
 ### 수정
@@ -1381,7 +1381,7 @@ Run: `mkdir -p src/main/webapp/WEB-INF/views/schedule`
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-<script src="/js/schedule_0.0.2.js"></script>
+<script src="/js/schedule_0.0.3.js"></script>
 </body>
 </html>
 ```
@@ -1398,9 +1398,9 @@ git commit -m "feat: J_참여자관리_상담일정 JSP 뷰 추가"
 ## Task 11: JavaScript 작성
 
 **Files:**
-- Create: `src/main/webapp/js/schedule_0.0.2.js`
+- Create: `src/main/webapp/js/schedule_0.0.3.js`
 
-- [ ] **Step 1: schedule_0.0.2.js 작성**
+- [ ] **Step 1: schedule_0.0.3.js 작성**
 
 ```javascript
 $(document).ready(function () {
@@ -1820,7 +1820,7 @@ $(document).ready(function () {
 - [ ] **Step 2: 커밋**
 
 ```bash
-git add src/main/webapp/js/schedule_0.0.2.js
+git add src/main/webapp/js/schedule_0.0.3.js
 git commit -m "feat: J_참여자관리_상담일정 JavaScript 추가 (캘린더, CRUD, 드래그, 자동완성)"
 ```
 

@@ -126,10 +126,10 @@
     <script defer src="/js/educationDiv_0.0.2.js"></script>
 
     <!-- particcertifDiv JS -->
-    <script defer src="/js/particcertifDiv_0.0.2.js"></script>
+    <script defer src="/js/particcertifDiv_0.0.3.js"></script>
 
-    <!-- participants_insert_update_CommonnessJS_0.1.1.js  -->
-    <script defer src="/js/participants_insert_update_CommonnessJS_0.1.1.js"></script>
+    <!-- participants_insert_update_CommonnessJS_0.1.2.js  -->
+    <script defer src="/js/participants_insert_update_CommonnessJS_0.1.2.js"></script>
 
     <!-- selectOption JS -->
     <script defer src="/js/selectOptionJS_0.0.1.js"></script>
@@ -278,6 +278,23 @@ document.addEventListener('DOMContentLoaded', function () {
         const hiddenDiv = $("#hiddenDiv");
         //page 로딩시 알선 상세정보 입력란을 숨김
         JobPlacementDetail(hiddenDiv);
+
+        // 연계비고: 기타 유형 선택 시에만 표시
+        (function () {
+            const $linkType = $("#counselLinkType");
+            const $linkNote = $("#counselLinkNote");
+            const $linkNoteLabel = $("#counselLinkNoteLabel");
+            const LINK_NOTE_TYPES = new Set(["기타 일경험", "기타"]);
+
+            function toggleLinkNote() {
+                const show = LINK_NOTE_TYPES.has($linkType.val());
+                $linkNote.toggle(show);
+                $linkNoteLabel.toggle(show);
+                if (!show) { $linkNote.val(""); }
+            }
+            $linkType.on("change", toggleLinkNote);
+            toggleLinkNote();
+        })();
 
     });
 </script>

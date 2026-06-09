@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * {@link ScheduleService} 구현체.
+ * DAO를 통해 상담 일정의 CRUD, 중복 검증, 지점별 통합 조회, 공개 일정 인증을 처리한다.
+ */
 @Slf4j
 @Service("schedule")
 public class ScheduleServiceImpl implements ScheduleService {

@@ -1,3 +1,8 @@
+/**
+ * @file 일일업무보고 페이지 스크립트 (실적 입력, 날짜 관리, datepicker)
+ * @version 0.0.1
+ * @requires jQuery, Bootstrap Datepicker
+ */
 let year = $('#year');
 let today = new Date();
 year.val(today.getFullYear());

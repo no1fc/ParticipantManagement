@@ -1,3 +1,8 @@
+/**
+ * @file 셀렉트 옵션 동적 변경 유틸리티 (취업유형 연동)
+ * @version 0.0.1
+ * @requires jQuery
+ */
 function selectOption(selectID, data){
     selectID.val(data);
 

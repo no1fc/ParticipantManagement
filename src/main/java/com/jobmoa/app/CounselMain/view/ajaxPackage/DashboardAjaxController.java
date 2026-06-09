@@ -13,8 +13,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Calendar;
 import java.util.List;
 
+/**
+ * 대시보드 관련 비동기 데이터 조회 REST 컨트롤러.
+ * <p>
+ * 지점별 성공금, 인센티브 미해당 현황, 지점/개인별 성과 점수,
+ * 미서비스 참여자 조회, 지점 실적 그래프/테이블 데이터 등을 AJAX로 제공한다.
+ * </p>
+ */
 @Slf4j
 @RestController
 public class DashboardAjaxController {
@@ -28,6 +36,12 @@ public class DashboardAjaxController {
     @Autowired
     private ChangeJson changeJson;
 
+    /**
+     * 지점별 상담사 성공금 현황을 JSON 형식으로 조회한다.
+     *
+     * @param dashboardDTO 검색 조건 (지점, 시작일, 종료일)
+     * @return 상담사별 성공금 JSON 배열 문자열, 실패 시 에러 메시지
+     */
     @PostMapping(value = "/dashBoardSuccess.login",
             consumes = "application/json; charset=utf-8",
             produces = "application/json; charset=utf-8")
@@ -69,6 +83,13 @@ public class DashboardAjaxController {
         return branchDataChangeJson;
     }
 
+    /**
+     * 지점별 인센티브 미해당 현황을 JSON 형식으로 조회한다.
+     * <p>미서비스, 1개월 미만, 파견업체, IAP 7일, 30시간 미만, 최저임금 미만, 기타 항목을 포함한다.</p>
+     *
+     * @param dashboardDTO 검색 조건 (시작일, 종료일)
+     * @return 지점별 인센티브 미해당 현황 JSON 배열 문자열
+     */
     @PostMapping(value = "/dashBoardInventive.login",
             consumes = "application/json; charset=utf-8",
             produces = "application/json; charset=utf-8")
@@ -112,6 +133,14 @@ public class DashboardAjaxController {
         return branchDataChangeJson;
     }
 
+    /**
+     * 지점별/상담사별 성과 점수(총점, 취업, 알선취업, 조기취업, 고용유지, 나은일자리)를 비동기 조회한다.
+     * <p>관리자/지점관리자 권한에 따라 조회 범위가 달라지며, 잡모아 실적과 고용부 실적을 구분하여 조회한다.</p>
+     *
+     * @param dashboardDTO 검색 조건 (지점, 기간, 실적 구분)
+     * @param session      HTTP 세션
+     * @return 상담사별 점수(branchUserScore)와 지점 최고점(branchScore)을 포함한 JSON 문자열
+     */
     //총점, 취업자, 알선취업자, 고용유지, 조기취업자, 나은일자리 비동기 조회
     @PostMapping(value = "dashBoardAjaxBranchScore.login",
             consumes = "application/json; charset=utf-8",
@@ -132,7 +161,6 @@ public class DashboardAjaxController {
         String branch = dashboardDTO.getDashboardBranch();
 
         boolean branchFlag = branch.equals(sessionBranch);
-//        log.info("consolScore branchFlag : [{}]",branch);
         if(!branchFlag && !isManager){
                 log.info("consolScore Fail:");
                 log.info("consolScore branch != sessionBranch : [{}]", branchFlag);
@@ -151,7 +179,6 @@ public class DashboardAjaxController {
         }
 //        else{
 //            //고용부 실적
-//            log.info("consolScore selectBranchConsolScorePerformance (고용부 실적) : [{}]", true);
 //        }
         dashboardDTO.setDashboardCondition(selectCondition);
 
@@ -215,8 +242,6 @@ public class DashboardAjaxController {
         });
         log.info("consolScore branchScore ChangeJson End");
 
-//        log.info("consolScore [{}]",branchUserScore);
-//        log.info("consolScore [{}]",branchScore);
 
 //      Code 실행 시간 확인을 위해 작성
         long afterTime = System.currentTimeMillis();
@@ -229,6 +254,13 @@ public class DashboardAjaxController {
         );
     }
 
+    /**
+     * 미서비스 참여자 목록을 비동기 조회한다. (관리자 전용)
+     *
+     * @param participantDTO 검색 조건 (지점 정보)
+     * @param session        HTTP 세션
+     * @return 미서비스 참여자 DTO 목록, 권한 없으면 {@code null}
+     */
     @PostMapping(value = "noServiceAjax.login",
             consumes = "application/json; charset=utf-8",
             produces = "application/json; charset=utf-8")
@@ -258,6 +290,12 @@ public class DashboardAjaxController {
         return datas;
     }
 
+    /**
+     * 지점별 실적 평균 그래프 데이터를 비동기 조회한다.
+     *
+     * @param dashboardDTO 검색 조건 (기간, 1년 미만 상담사 포함 여부, 고용유지 포함 여부)
+     * @return 지점별 평균 점수 JSON 배열 문자열, 데이터 없으면 {@code null}
+     */
     @PostMapping(value = "scoreBranchPerformanceGraphAjax.login",
             consumes = "application/json; charset=utf-8",
             produces = "application/json; charset=utf-8")
@@ -289,6 +327,13 @@ public class DashboardAjaxController {
         return responseJson;
     }
 
+    /**
+     * 지점별/상담사별 실적 테이블 데이터를 비동기 조회한다.
+     * <p>정렬 조건(컬럼, 방향)과 지점/개인 구분에 따라 테이블 데이터를 반환한다.</p>
+     *
+     * @param dashboardDTO 검색 조건 (기간, 정렬, 지점/개인 구분)
+     * @return 실적 테이블 DTO 목록, 데이터 없으면 {@code null}
+     */
     @PostMapping(value ="scoreBranchPerformanceTableAjax.login",
             consumes = "application/json; charset=utf-8",
             produces = "application/json; charset=utf-8")
@@ -316,11 +361,25 @@ public class DashboardAjaxController {
         dashboardDTO.setDashboardCondition(condition);
         log.info("scoreBranchPerformanceTableAjax (1년 미만 상담사) : [{}]", conditionFlag);
 
+        // 참여자 3개년도 기준 연도 = 실적 기간 종료일 연도(당해년도). 미지정/형식오류 시 현재 연도로 폴백.
+        String endDate = dashboardDTO.getDashBoardEndDate();
+        int baseYear;
+        if (endDate != null && endDate.length() >= 4) {
+            try {
+                baseYear = Integer.parseInt(endDate.substring(0, 4));
+            } catch (NumberFormatException e) {
+                baseYear = Calendar.getInstance().get(Calendar.YEAR);
+            }
+        } else {
+            baseYear = Calendar.getInstance().get(Calendar.YEAR);
+        }
+        dashboardDTO.setDashBoardBaseYear(baseYear);
+        log.info("scoreBranchPerformanceTableAjax dashBoardBaseYear : [{}]", baseYear);
+
         List<DashboardDTO> datas = dashboardService.selectAll(dashboardDTO);
         if(datas.isEmpty() || datas.size() == 0){
             return null;
         }
-//        log.info("scoreBranchPerformanceTableAjax datas : [{}]",datas);
         return datas;
     }
 

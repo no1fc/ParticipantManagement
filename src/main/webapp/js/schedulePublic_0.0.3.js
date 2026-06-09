@@ -1,6 +1,7 @@
 /**
- * 공개 일정 조회 (메인 데스크용) JS
+ * @file 공개 일정 조회 (메인 데스크용, 접근코드 인증, 자동 새로고침)
  * @version 0.0.3
+ * @requires jQuery, FullCalendar
  */
 $(function () {
     'use strict';

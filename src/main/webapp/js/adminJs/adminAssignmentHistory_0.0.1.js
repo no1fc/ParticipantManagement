@@ -1,3 +1,9 @@
+/**
+ * @file 배정 히스토리 관리 (CSV 히스토리, 산정식 히스토리 조회)
+ * @version 0.0.1
+ * @requires jQuery, SweetAlert2, DataTables, OverlayScrollbars
+ */
+
 let csvHistoryTable, formulaHistoryTable;
 
 $(document).ready(function() {

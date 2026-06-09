@@ -1,6 +1,7 @@
 /**
- * schedule_0.0.2.js - 상담 일정 관리
- * FullCalendar 6.1.11 + jQuery + SweetAlert2
+ * @file 상담 일정 관리 (등록/수정/삭제, 드래그 이동, 시간 콤보박스)
+ * @version 0.0.3
+ * @requires jQuery, FullCalendar, SweetAlert2, Bootstrap
  */
 $(document).ready(function () {
 
@@ -23,8 +24,164 @@ $(document).ready(function () {
 
     let searchTimer = null;
 
+    // 허용 값 목록
+    let VALID_HOURS = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'];
+    let VALID_MINUTES = ['00', '10', '20', '30', '40', '50'];
+
+    // 자동 포커스 이동 순서
+    let FOCUS_ORDER = ['startHourInput', 'startMinuteInput', 'endHourInput', 'endMinuteInput'];
+
     // =============================================
-    // 2. FullCalendar 초기화
+    // 2. 시간 콤보박스 (드롭다운 + 직접입력)
+    // =============================================
+
+    // input 포커스 → 드롭다운 열기
+    $('.time-input').on('focus', function () {
+        // 다른 열린 드롭다운 모두 닫기
+        $('.time-dropdown').removeClass('show');
+        let $combo = $(this).closest('.time-combo');
+        let $dropdown = $combo.find('.time-dropdown');
+        $dropdown.addClass('show');
+
+        // 현재 값에 해당하는 옵션 활성화 표시
+        let currentVal = $(this).val();
+        $dropdown.find('.time-option').removeClass('active');
+        if (currentVal) {
+            $dropdown.find('.time-option[data-value="' + currentVal + '"]').addClass('active');
+        }
+
+        $(this).select();
+    });
+
+    // 드롭다운 영역 클릭 시 input blur 방지 (스크롤바 포함)
+    $(document).on('mousedown', '.time-dropdown', function (e) {
+        e.preventDefault();
+    });
+
+    // 드롭다운 옵션 클릭 → 값 선택
+    $(document).on('mousedown', '.time-option', function (e) {
+        e.preventDefault();
+        let val = $(this).data('value');
+        let $combo = $(this).closest('.time-combo');
+        let $input = $combo.find('.time-input');
+        let $hidden = $combo.find('input[type="hidden"]');
+
+        $input.val(val).removeClass('is-invalid');
+        $hidden.val(val);
+
+        // 활성 표시 갱신
+        $(this).closest('.time-dropdown').find('.time-option').removeClass('active');
+        $(this).addClass('active');
+
+        // 드롭다운 닫기
+        $(this).closest('.time-dropdown').removeClass('show');
+
+        // 다음 필드로 이동
+        let inputId = $input.attr('id');
+        moveToNextField(inputId);
+    });
+
+    // input 직접 입력 → 숫자만 허용 + 2자리 완성 시 검증
+    $('.time-input').on('input', function () {
+        let raw = $(this).val().replace(/[^0-9]/g, '');
+        $(this).val(raw);
+
+        let $combo = $(this).closest('.time-combo');
+        let type = $combo.data('type');
+        let $hidden = $combo.find('input[type="hidden"]');
+        let $dropdown = $combo.find('.time-dropdown');
+        let inputId = $(this).attr('id');
+
+        if (raw.length === 2) {
+            let padded = raw.padStart(2, '0');
+            let validList = (type === 'hour') ? VALID_HOURS : VALID_MINUTES;
+
+            if (validList.indexOf(padded) !== -1) {
+                // 유효한 값: hidden 동기화 + 드롭다운 닫기 + 다음 필드로 이동
+                $(this).val(padded).removeClass('is-invalid');
+                $hidden.val(padded);
+                $dropdown.removeClass('show');
+                moveToNextField(inputId);
+            } else {
+                // 유효하지 않은 값: 초기화 + 흔들기 효과
+                $(this).val('').addClass('is-invalid');
+                $hidden.val('');
+                $dropdown.find('.time-option').removeClass('active');
+                setTimeout(function () {
+                    $('#' + inputId).removeClass('is-invalid');
+                }, 1000);
+            }
+        } else if (raw.length === 0) {
+            $hidden.val('');
+            $(this).removeClass('is-invalid');
+            $dropdown.find('.time-option').removeClass('active');
+        } else {
+            // 1자리 입력 중: 매칭되는 옵션 하이라이트
+            $dropdown.find('.time-option').removeClass('active');
+            $dropdown.find('.time-option').each(function () {
+                let optVal = String($(this).data('value'));
+                if (optVal.indexOf(raw) === 0) {
+                    $(this).addClass('active');
+                }
+            });
+        }
+    });
+
+    // input에서 숫자 외 키 방지 (화살표, 백스페이스 등은 허용)
+    $('.time-input').on('keydown', function (e) {
+        let allowedKeys = [8, 9, 37, 39, 46]; // Backspace, Tab, Left, Right, Delete
+        if (allowedKeys.indexOf(e.keyCode) !== -1) {
+            return true;
+        }
+        if (e.keyCode >= 48 && e.keyCode <= 57) {
+            return true; // 숫자 0-9
+        }
+        if (e.keyCode >= 96 && e.keyCode <= 105) {
+            return true; // 넘패드 0-9
+        }
+        e.preventDefault();
+    });
+
+    // input blur → 드롭다운 닫기
+    $('.time-input').on('blur', function () {
+        let $combo = $(this).closest('.time-combo');
+        $combo.find('.time-dropdown').removeClass('show');
+    });
+
+    // 외부 클릭 시 모든 시간 드롭다운 닫기
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('.time-combo').length) {
+            $('.time-dropdown').removeClass('show');
+        }
+    });
+
+    // 다음 필드로 포커스 이동
+    function moveToNextField(currentInputId) {
+        let currentIndex = FOCUS_ORDER.indexOf(currentInputId);
+        if (currentIndex !== -1 && currentIndex < FOCUS_ORDER.length - 1) {
+            let nextInputId = FOCUS_ORDER[currentIndex + 1];
+            setTimeout(function () {
+                $('#' + nextInputId).focus();
+            }, 50);
+        }
+    }
+
+    // hidden + input 동시 초기화
+    function clearTimeFields() {
+        $('#startHour, #startMinute, #endHour, #endMinute').val('');
+        $('#startHourInput, #startMinuteInput, #endHourInput, #endMinuteInput')
+            .val('').removeClass('is-invalid');
+        $('.time-dropdown').removeClass('show');
+    }
+
+    // hidden + input 값 동시 설정
+    function setTimeField(hiddenId, value) {
+        $('#' + hiddenId).val(value);
+        $('#' + hiddenId + 'Input').val(value).removeClass('is-invalid');
+    }
+
+    // =============================================
+    // 3. FullCalendar 초기화
     // =============================================
     let calendarEl = document.getElementById('calendar');
     let calendar = new FullCalendar.Calendar(calendarEl, {
@@ -107,7 +264,7 @@ $(document).ready(function () {
     calendar.render();
 
     // =============================================
-    // 3. 등록 버튼 클릭
+    // 4. 등록 버튼 클릭
     // =============================================
     $('#btnRegister').on('click', function () {
         let today = new Date().toISOString().substring(0, 10);
@@ -115,16 +272,13 @@ $(document).ready(function () {
     });
 
     // =============================================
-    // 4. 등록 모달 열기
+    // 5. 등록 모달 열기
     // =============================================
     function openRegisterModal(dateStr) {
         $('#modalTitle').html('<i class="bi bi-calendar-plus me-2"></i>상담 일정 등록');
         $('#editScheduleId').val('');
         $('#scheduleDate').val(dateStr);
-        $('#startHour').val('');
-        $('#startMinute').val('');
-        $('#endHour').val('');
-        $('#endMinute').val('');
+        clearTimeFields();
         $('#participantSearch').val('');
         $('#participantJobNo').val('');
         $('#scheduleType').val('대면상담');
@@ -138,7 +292,7 @@ $(document).ready(function () {
     }
 
     // =============================================
-    // 5. 참여자 검색 (debounce 300ms)
+    // 6. 참여자 검색 (debounce 300ms)
     // =============================================
     $('#participantSearch').on('input', function () {
         let keyword = $(this).val().trim();
@@ -197,7 +351,7 @@ $(document).ready(function () {
     });
 
     // =============================================
-    // 6. 알림 설정
+    // 7. 알림 설정
     // =============================================
     $('#alertSelect').on('change', function () {
         let val = $(this).val();
@@ -212,14 +366,14 @@ $(document).ready(function () {
     });
 
     // =============================================
-    // 7. 메모 글자 수 카운터
+    // 8. 메모 글자 수 카운터
     // =============================================
     $('#scheduleMemo').on('input', function () {
         $('#memoCount').text($(this).val().length);
     });
 
     // =============================================
-    // 8. 저장 (등록/수정)
+    // 9. 저장 (등록/수정)
     // =============================================
     $('#btnSave').on('click', function () {
         let scheduleDate = $('#scheduleDate').val();
@@ -308,7 +462,7 @@ $(document).ready(function () {
     });
 
     // =============================================
-    // 9. 상세 모달 열기
+    // 10. 상세 모달 열기
     // =============================================
     function openDetailModal(props) {
         $('#detailScheduleId').val(props.scheduleId);
@@ -345,7 +499,7 @@ $(document).ready(function () {
     }
 
     // =============================================
-    // 10. 수정 버튼 (상세 → 등록 모달 전환)
+    // 11. 수정 버튼 (상세 → 등록 모달 전환)
     // =============================================
     $('#btnEdit').on('click', function () {
         let scheduleId = $('#detailScheduleId').val();
@@ -364,19 +518,17 @@ $(document).ready(function () {
                     $('#editScheduleId').val(data.scheduleId);
                     $('#scheduleDate').val(data.scheduleDate);
 
-                    // 시간 파싱
+                    // 시간 파싱 (hidden + input 동시 설정)
+                    clearTimeFields();
                     if (data.startTime) {
                         let startParts = data.startTime.split(':');
-                        $('#startHour').val(startParts[0]);
-                        $('#startMinute').val(startParts[1]);
+                        setTimeField('startHour', startParts[0]);
+                        setTimeField('startMinute', startParts[1]);
                     }
                     if (data.endTime) {
                         let endParts = data.endTime.split(':');
-                        $('#endHour').val(endParts[0]);
-                        $('#endMinute').val(endParts[1]);
-                    } else {
-                        $('#endHour').val('');
-                        $('#endMinute').val('');
+                        setTimeField('endHour', endParts[0]);
+                        setTimeField('endMinute', endParts[1]);
                     }
 
                     $('#participantSearch').val(data.participantName || '');
@@ -431,7 +583,7 @@ $(document).ready(function () {
     }
 
     // =============================================
-    // 11. 삭제 버튼
+    // 12. 삭제 버튼
     // =============================================
     $('#btnDelete').on('click', function () {
         let scheduleId = $('#detailScheduleId').val();
@@ -469,7 +621,7 @@ $(document).ready(function () {
     });
 
     // =============================================
-    // 12. 상담일지 작성 버튼
+    // 13. 상담일지 작성 버튼
     // =============================================
     $('#btnCounselNote').on('click', function () {
         let scheduleId = $('#detailScheduleId').val();
@@ -478,7 +630,7 @@ $(document).ready(function () {
     });
 
     // =============================================
-    // 13. 드래그 핸들러 (eventDrop / eventResize)
+    // 14. 드래그 핸들러 (eventDrop / eventResize)
     // =============================================
     function handleDrag(info) {
         let event = info.event;

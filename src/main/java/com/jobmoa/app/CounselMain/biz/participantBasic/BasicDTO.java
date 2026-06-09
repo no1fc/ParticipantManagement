@@ -2,6 +2,10 @@ package com.jobmoa.app.CounselMain.biz.participantBasic;
 
 import lombok.Data;
 
+/**
+ * 참여자 기본정보 데이터 전송 객체.
+ * 구직번호, 지점, 등록일, 전담자, 참여유형, 학력, 경력 등 참여자 기초 데이터의 등록 및 조회 시 사용된다.
+ */
 @Data
 public class BasicDTO {
     //DB 변수

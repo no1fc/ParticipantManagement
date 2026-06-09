@@ -1,3 +1,9 @@
+/**
+ * @file 관리자 엑셀 빌더 (시트 선택, 컬럼 선택, 필터, 엑셀 다운로드)
+ * @version 0.0.2
+ * @requires jQuery, SweetAlert2
+ */
+
 $(document).ready(function() {
     loadBranchOptions();
     loadCounselorOptions('');
@@ -7,7 +13,7 @@ $(document).ready(function() {
     });
 
     $('.admin-sheet-option').on('click', function() {
-        var $cb = $(this).find('input[type="checkbox"]');
+        const $cb = $(this).find('input[type="checkbox"]');
         $cb.prop('checked', !$cb.is(':checked'));
         $(this).toggleClass('checked', $cb.is(':checked'));
         updateColumnPanel();
@@ -23,7 +29,7 @@ function loadBranchOptions() {
         url: '/admin/api/branches',
         method: 'GET',
         success: function(data) {
-            var html = '<option value="">전체</option>';
+            let html = '<option value="">전체</option>';
             data.forEach(function(item) {
                 html += '<option value="' + item.branchName + '">' + item.branchName + '</option>';
             });
@@ -37,7 +43,7 @@ function loadCounselorOptions(branch) {
         url: '/admin/api/counselors',
         data: { searchBranch: branch || '' },
         success: function(data) {
-            var html = '<option value="">전체</option>';
+            let html = '<option value="">전체</option>';
             data.forEach(function(item) {
                 html += '<option value="' + item.userId + '">' + item.memberName + ' (' + item.userId + ')</option>';
             });
@@ -47,7 +53,7 @@ function loadCounselorOptions(branch) {
 }
 
 function updateColumnPanel() {
-    var mainChecked = $('input[name="excelSheet"][value="main"]').is(':checked');
+    const mainChecked = $('input[name="excelSheet"][value="main"]').is(':checked');
     $('#columnSelectionPanel').toggle(mainChecked);
 }
 
@@ -63,7 +69,7 @@ function toggleGroup(groupName, checked) {
 }
 
 function getSelectedSheets() {
-    var sheets = [];
+    const sheets = [];
     $('input[name="excelSheet"]:checked').each(function() {
         sheets.push($(this).val());
     });
@@ -71,7 +77,7 @@ function getSelectedSheets() {
 }
 
 function getSelectedColumns() {
-    var columns = [];
+    const columns = [];
     $('input[name="excelColumn"]:checked').each(function() {
         columns.push($(this).val());
     });
@@ -101,13 +107,13 @@ function resetFilters() {
 }
 
 function updateSummary() {
-    var sheets = [];
+    const sheets = [];
     $('input[name="excelSheet"]:checked').each(function() {
         sheets.push($(this).closest('.admin-sheet-option').find('.sheet-name').text());
     });
 
-    var filters = getFilterParams();
-    var activeFilters = [];
+    const filters = getFilterParams();
+    const activeFilters = [];
     if (filters.searchBranch) activeFilters.push('지점: ' + filters.searchBranch);
     if (filters.searchCounselor) activeFilters.push('상담사: ' + $('#excelSearchCounselor option:selected').text());
     if (filters.searchStatus) activeFilters.push('진행단계: ' + filters.searchStatus);
@@ -115,17 +121,17 @@ function updateSummary() {
     if (filters.searchEndDate) activeFilters.push('종료일: ' + filters.searchEndDate);
     if (filters.searchClosed) activeFilters.push('마감: ' + (filters.searchClosed === '0' ? '진행중' : '마감'));
 
-    var sheetHtml = sheets.length > 0
+    let sheetHtml = sheets.length > 0
         ? sheets.map(function(s) { return '<span class="summary-item">' + s + '</span>'; }).join('')
         : '<span class="summary-empty">선택된 시트가 없습니다.</span>';
 
     if ($('input[name="excelSheet"][value="main"]').is(':checked')) {
-        var colCount = $('input[name="excelColumn"]:checked').length;
-        var totalCols = $('input[name="excelColumn"]').length;
+        const colCount = $('input[name="excelColumn"]:checked').length;
+        const totalCols = $('input[name="excelColumn"]').length;
         sheetHtml += ' <span class="summary-item">컬럼: ' + colCount + '/' + totalCols + '개</span>';
     }
 
-    var filterHtml = activeFilters.length > 0
+    const filterHtml = activeFilters.length > 0
         ? activeFilters.map(function(f) { return '<span class="summary-item">' + f + '</span>'; }).join('')
         : '<span class="summary-empty">전체 데이터</span>';
 
@@ -134,14 +140,14 @@ function updateSummary() {
 }
 
 function downloadExcel() {
-    var sheets = getSelectedSheets();
+    const sheets = getSelectedSheets();
     if (!sheets) {
         Swal.fire('알림', '다운로드할 시트를 1개 이상 선택해주세요.', 'warning');
         return;
     }
 
     if (sheets.indexOf('main') !== -1) {
-        var cols = getSelectedColumns();
+        const cols = getSelectedColumns();
         if (!cols) {
             Swal.fire('알림', '참여자 기본정보 시트의 컬럼을 1개 이상 선택해주세요.', 'warning');
             return;
@@ -150,9 +156,9 @@ function downloadExcel() {
 
     showLoading('엑셀 파일을 생성하는 중입니다...');
     try {
-        var params = getFilterParams();
+        const params = getFilterParams();
         params.excelSheets = sheets;
-        var queryString = $.param(params);
+        let queryString = $.param(params);
         if (sheets.indexOf('main') !== -1) {
             queryString += '&excelColumns=' + encodeURIComponent(getSelectedColumns());
         }
@@ -166,7 +172,7 @@ function downloadExcel() {
 
 function showLoading(message) {
     hideLoading();
-    var html = '<div id="admin-loading" class="admin-loading-overlay">' +
+    const html = '<div id="admin-loading" class="admin-loading-overlay">' +
         '<div class="admin-loading-box">' +
         '<div class="admin-loading-spinner"></div>' +
         '<p class="admin-loading-message">' + (message || '처리 중...') + '</p>' +

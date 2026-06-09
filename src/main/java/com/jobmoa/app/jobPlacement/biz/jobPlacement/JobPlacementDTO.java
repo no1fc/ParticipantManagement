@@ -4,6 +4,9 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * 알선 관리 DTO. 참여자 알선 정보, 검색/필터 조건, 페이지네이션, 이력서 요청 폼 데이터를 통합적으로 담는다.
+ */
 @Data
 public class JobPlacementDTO {
     /**

@@ -13,6 +13,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 
+/**
+ * 지점 전체 참여자 조회 페이지 컨트롤러.
+ * <p>
+ * 관리자 또는 지점관리자 권한을 가진 사용자가 소속 지점의 전체 참여자 목록을
+ * 페이지네이션과 검색 기능을 통해 조회할 수 있는 페이지를 제공한다.
+ * </p>
+ */
 @Slf4j
 @Controller
 public class BranchManagement {
@@ -20,6 +27,19 @@ public class BranchManagement {
     @Autowired
     private ParticipantServiceImpl participantService;
 
+    /**
+     * 지점 전체 참여자 목록 페이지로 이동한다.
+     * <p>
+     * 관리자 또는 지점관리자 권한이 필요하며, 페이지네이션과 검색 조건을 처리하여
+     * 소속 지점의 참여자 목록을 조회한다.
+     * </p>
+     *
+     * @param model          뷰에 전달할 데이터 모델
+     * @param session        HTTP 세션 (로그인 정보 및 권한 확인용)
+     * @param participantDTO 검색 조건 및 페이지 정보 DTO
+     * @param paginationBean 페이지네이션 처리 빈
+     * @return 권한 없으면 대시보드로 리다이렉트, 있으면 {@code "views/BranchPariticipant"} JSP 뷰
+     */
     @GetMapping("/branchParitic.login")
     public String branchManagement(Model model, HttpSession session, ParticipantDTO participantDTO, PaginationBean paginationBean){
         log.info("-----------------------------------");

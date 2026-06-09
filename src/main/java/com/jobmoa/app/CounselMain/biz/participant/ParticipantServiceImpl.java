@@ -9,6 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * {@link ParticipantService} 구현체.
+ * ParticipantDAO를 통해 참여자 CRUD 및 연관 데이터 삭제를 처리한다.
+ * 매일 02시에 일주일 경과 취소자를 백업 및 삭제하는 스케줄러를 포함한다.
+ */
 @Slf4j
 @EnableScheduling
 @Service("participant")
@@ -19,7 +24,6 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public List<ParticipantDTO> selectAll(ParticipantDTO participantDTO) {
-        //log.info("ParticipantDTO ParticipantService selectOne : [{}]",participantDTO);
         if(participantDTO == null || participantDTO.getParticipantCondition() == null) {
             log.error("selectAll participantDTO null OR participantCondition null");
             return null;
@@ -43,7 +47,6 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public ParticipantDTO selectOne(ParticipantDTO participantDTO) {
-        //log.info("ParticipantDTO ParticipantService selectOne : [{}]",participantDTO);
         if(participantDTO == null || participantDTO.getParticipantCondition() == null) {
             log.error("selectOne participantDTO null OR participantCondition null");
             return null;
@@ -53,20 +56,17 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public boolean insert(ParticipantDTO participantDTO) {
-        //log.info("ParticipantDTO ParticipantService insert : [{}]",participantDTO);
         return participantDAO.insert(participantDTO);
     }
 
     @Override
     public boolean update(ParticipantDTO participantDTO) {
-        //log.info("ParticipantDTO ParticipantService update : [{}]",participantDTO);
         return participantDAO.update(participantDTO);
     }
 
     @Override
     @Transactional
     public boolean delete(ParticipantDTO participantDTO) {
-        //log.info("ParticipantDTO ParticipantService delete : [{}]",participantDTO);
         //반환용 boolean flag 변수
         boolean flag = false;
 
@@ -117,7 +117,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     // 매일 00시 00분 (오전 12시)에 Spring 스케줄러를 통해 데이터를 확인한다.
     // 확인을 진행할때 일주일이 지난 취소자를 제거 및 백업 데이터로 이전한다.
     @Transactional(rollbackFor = Exception.class)
-    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 02 * * *", zone = "Asia/Seoul")
     public void canselParticipantBackup(){
         log.info("=== 일주일 경과 취소자 백업 및 삭제 배치 시작 ===");
 

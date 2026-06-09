@@ -17,6 +17,11 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * 마이페이지 비동기 REST API 컨트롤러.
+ * <p>비밀번호 확인, 연락처 수정, 일일보고 저장, 비밀번호 변경, 계정 정보 업데이트 등
+ * 마이페이지에서 사용하는 비동기 API를 제공한다.</p>
+ */
 @Slf4j
 @RestController
 public class AsyncMyPage {
@@ -27,6 +32,14 @@ public class AsyncMyPage {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    /**
+     * 마이페이지 접근을 위한 비밀번호 확인을 수행한다.
+     * <p>BCrypt 해시와 평문 비밀번호를 동시에 지원한다. 비밀번호 미설정 사용자에게는
+     * 비밀번호 설정을 안내한다. 인증 성공 시 마이페이지 데이터를 함께 반환한다.</p>
+     * @param memberDTO 입력된 비밀번호를 담은 DTO
+     * @param session HTTP 세션 (로그인 정보 확인용)
+     * @return 비밀번호 확인 결과 및 회원 데이터를 담은 JSON 응답
+     */
     @PostMapping(value = "/checkPassword.api", produces = "application/json;charset=UTF-8")
     public ResponseEntity<?> checkPassword(@RequestBody MemberDTO memberDTO, HttpSession session) {
         log.info("Start checkPassword.api");
@@ -90,6 +103,12 @@ public class AsyncMyPage {
         }
     }
 
+    /**
+     * 회원 연락처 정보를 수정한다.
+     * @param memberDTO 수정할 연락처 정보를 담은 DTO
+     * @param session HTTP 세션 (로그인 정보 확인용)
+     * @return 수정 성공/실패 여부를 담은 JSON 응답
+     */
     @PostMapping(value = "/updateContact.api", produces = "application/json;charset=UTF-8")
     public ResponseEntity<?> updateContact(@RequestBody MemberDTO memberDTO, HttpSession session) {
         log.info("Start updateContact.api");
@@ -109,6 +128,12 @@ public class AsyncMyPage {
         }
     }
 
+    /**
+     * 일일보고를 저장한다.
+     * @param memberDTO 일일보고 데이터를 담은 DTO
+     * @param session HTTP 세션 (로그인 정보 확인용)
+     * @return 저장 성공/실패 여부를 담은 JSON 응답
+     */
     @PostMapping(value = "/updateDailyReport.api", produces = "application/json;charset=UTF-8")
     public ResponseEntity<?> updateDailyReport(@RequestBody MemberDTO memberDTO, HttpSession session) {
         log.info("Start updateDailyReport.api");
@@ -129,6 +154,13 @@ public class AsyncMyPage {
         }
     }
 
+    /**
+     * 마이페이지에서 비밀번호를 변경한다.
+     * <p>새 비밀번호를 BCrypt로 해싱하여 저장한다.</p>
+     * @param memberDTO 새 비밀번호를 담은 DTO
+     * @param session HTTP 세션 (로그인 정보 확인용)
+     * @return 변경 성공/실패 여부를 담은 JSON 응답
+     */
     @PostMapping(value = "/changeMyPassword.api", produces = "application/json;charset=UTF-8")
     public ResponseEntity<?> changeMyPassword(@RequestBody MemberDTO memberDTO, HttpSession session) {
         log.info("Start changeMyPassword.api");
@@ -156,6 +188,13 @@ public class AsyncMyPage {
     }
 
 
+    /**
+     * 계정 정보(입사일, 발령일, 근속구분 등)를 업데이트한다.
+     * <p>업데이트 성공 시 최신 회원 데이터를 다시 조회하여 반환한다.</p>
+     * @param memberDTO 업데이트할 계정 정보를 담은 DTO
+     * @param session HTTP 세션 (로그인 정보 확인용)
+     * @return 업데이트 결과 및 최신 회원 데이터를 담은 JSON 응답
+     */
     @PostMapping(value = "/changeAccount.api", produces = "application/json;charset=UTF-8")
     public ResponseEntity<?> changeAccount(@RequestBody MemberDTO memberDTO, HttpSession session){
         log.info("Start changeAccount.api");
@@ -197,6 +236,12 @@ public class AsyncMyPage {
 
 
 
+    /**
+     * 회원 데이터를 포함한 성공 응답 Map을 생성한다.
+     * @param checkMemberDTO 조회된 회원 정보 DTO
+     * @param returnMessage 응답 메시지
+     * @return 회원 데이터와 성공 상태를 포함한 응답 Map
+     */
     @NotNull
     private static Map<String, Object> getResponse(MemberDTO checkMemberDTO, String returnMessage) {
         // 회원 데이터 객체 생성
@@ -212,6 +257,12 @@ public class AsyncMyPage {
         return response;
     }
 
+    /**
+     * 회원 DTO를 프론트엔드 표시용 필드 Map 구조로 변환한다.
+     * <p>각 필드는 {name, val, type} 형태의 Map으로 구성된다.</p>
+     * @param checkMemberDTO 변환할 회원 정보 DTO
+     * @return 필드별 메타데이터를 포함한 회원 데이터 Map
+     */
     @NotNull
     private static Map<String, Object> createMemberDataMap(MemberDTO checkMemberDTO) {
         Map<String, Object> memberData = new LinkedHashMap<>();
@@ -287,6 +338,13 @@ public class AsyncMyPage {
         return memberData;
     }
 
+    /**
+     * 개별 필드의 메타데이터 Map을 생성한다.
+     * @param name 필드 표시명
+     * @param value 필드 값
+     * @param type 필드 유형 (text, number, date, phone, email 등)
+     * @return {name, val, type}을 포함한 필드 Map
+     */
     @NotNull
     private static Map<String, Object> createFieldMap(String name, Object value, String type) {
         Map<String, Object> fieldMap = new HashMap<>();
@@ -296,6 +354,12 @@ public class AsyncMyPage {
         return fieldMap;
     }
 
+    /**
+     * 오류 응답 Map을 생성한다.
+     * @param message 오류 메시지
+     * @param status HTTP 상태 코드 문자열
+     * @return 오류 정보를 포함한 응답 Map
+     */
     @NotNull
     private static Map<String, Object> createErrorResponse(String message, String status) {
         Map<String, Object> response = new HashMap<>();

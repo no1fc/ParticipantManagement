@@ -13,6 +13,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * 지점별 종합 관리 대시보드 페이지 컨트롤러.
+ * <p>
+ * 지점별 성공금 현황(당해/전년), 인센티브 해당/미해당 현황,
+ * 인센티브 미해당 사유별 현황 데이터를 JSON으로 변환하여 대시보드 페이지에 제공한다.
+ * </p>
+ */
 @Slf4j
 @Controller
 public class DashboardBranchController {
@@ -25,6 +32,18 @@ public class DashboardBranchController {
 
     private static final LocalDate DATE = LocalDate.now();
 
+    /**
+     * 지점별 종합 관리 대시보드 페이지로 이동한다.
+     * <p>
+     * 지점별 성공금 현황, 인센티브 해당/미해당 현황, 인센티브 미해당 사유별 현황을
+     * JSON으로 변환하여 모델에 추가한다. 기간이 미지정이면 올해 전체를 기본값으로 설정한다.
+     * </p>
+     *
+     * @param model        뷰에 전달할 데이터 모델
+     * @param session      HTTP 세션
+     * @param dashboardDTO 검색 조건 (시작일, 종료일)
+     * @return {@code "views/DashBoardTotalManagement"} JSP 뷰
+     */
     @GetMapping("/branchDashboard.login")
     public String dashboardBranchSuccessMoney(Model model, HttpSession session, DashboardDTO dashboardDTO){
         String startDate = dashboardDTO.getDashBoardStartDate();
@@ -129,7 +148,12 @@ public class DashboardBranchController {
         return "views/DashBoardTotalManagement";
     }
 
-    // JSON 문자열 이스케이프 처리를 위한 유틸리티 메서드
+    /**
+     * JSON 문자열에 포함될 수 없는 특수문자를 이스케이프 처리한다.
+     *
+     * @param input 이스케이프 처리할 문자열
+     * @return 이스케이프 처리된 문자열, {@code null}이면 빈 문자열
+     */
     private String escapeJsonString(String input) {
         if (input == null) return "";
         return input.replace("\"", "\\\"")

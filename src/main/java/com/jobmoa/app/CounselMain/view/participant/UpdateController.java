@@ -26,6 +26,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 참여자 정보 수정 컨트롤러.
+ * <p>참여자의 기본정보, 상담정보, 취업정보, 자격증정보, 교육정보를 한 페이지에서
+ * 조회하고 수정하는 기능을 제공한다. 지점 관리자는 관리자용 수정도 가능하다.</p>
+ */
 @Slf4j
 @Controller
 public class UpdateController {
@@ -68,7 +73,6 @@ public class UpdateController {
         log.info("loginBean : [{}]", loginBean); // login 정보 로그
         // 구직번호와 맞는 기본정보 하나를 받아온다.
         basicDTO = basicService.selectOne(basicDTO);
-//        log.info("basicDTO : [{}]", basicDTO);
 
         //받아온 기본 정보의 jobno(구직번호)를 particcertif에 추가한다.
         int jobno = basicDTO.getBasicJobNo();
@@ -78,8 +82,6 @@ public class UpdateController {
 
         //구직번호를 추가한 자격증 데이터를 불러오고
         List<ParticcertifDTO> datas = particcertifService.selectAll(particcertifDTO);
-//        log.info("datas : [{}]", datas);
-//        log.info("particcertifDTO : [{}]", particcertifDTO);
 
         //자격증을 JSON배열로 변경하여 전달
         String particcertifArr = changeJson.convertListToJsonArray(datas, item -> {
@@ -103,7 +105,6 @@ public class UpdateController {
         //상담 정보를 불러온다.
         counselDTO.setCounselCondition("counselSelectOne");
         counselDTO = counselService.selectOne(counselDTO);
-//        log.info("counselDTO : [{}]", counselDTO);
 
         //검색할 DB를 확인하기 위해 condition 값을 추가.
         educationDTO.setEducationCondition("educationSelectALLOne");
@@ -111,8 +112,6 @@ public class UpdateController {
 
         //구직번호를 추가한 자격증 데이터를 불러오고
         List<EducationDTO> datas = educationService.selectAll(educationDTO);
-//        log.info("education datas : [{}]", datas);
-//        log.info("update Counsel educationDTO : [{}]", educationDTO);
 
         //직업훈련정보를 JSON배열로 변경하여 전달
         String educationArr = changeJson.convertListToJsonArray(datas, item -> {
@@ -133,7 +132,6 @@ public class UpdateController {
         //취업 정보를 불러온다.
         employmentDTO.setEmploymentCondition("employmentSelectOne");
         employmentDTO = employmentService.selectOne(employmentDTO);
-//        log.info("updateEmploymentPage employmentDTO : [{}]", employmentDTO);
 
         //상담정보에서 진행단계를 불러오기 위해 counselDTO 에서 jobno(구직번호)로 검색
         counselDTO.setCounselCondition("counselSelectOneEmployment");
@@ -149,7 +147,6 @@ public class UpdateController {
         }
 
         //DTO 확인용 로그
-//        log.info("updateEmploymentPage counselDTO : [{}]", counselDTO);
         //만약 counselDTO 가 null 이라면 "" 공백
         //아니라면 counselProgress 를 반환
         String counselProgress = counselDTO == null ? "" : counselDTO.getCounselProgress();
@@ -355,6 +352,21 @@ public class UpdateController {
     }
 */
     //------------------------한 페이지 참여자 업데이트 시작----------------------------------
+    /**
+     * 참여자 정보 수정 페이지를 표시한다.
+     * <p>구직번호를 기반으로 기본정보, 상담정보, 취업정보, 자격증, 직업훈련, 희망직무 정보를
+     * 모두 조회하여 한 페이지에 표시한다. 권한이 없는 참여자는 접근이 차단된다.</p>
+     * @param model Spring MVC Model
+     * @param session HTTP 세션 (로그인 및 권한 정보 확인용)
+     * @param basicDTO 기본정보 DTO (구직번호 포함)
+     * @param employmentDTO 취업정보 DTO
+     * @param counselDTO 상담정보 DTO
+     * @param educationDTO 교육정보 DTO
+     * @param particcertifDTO 자격증정보 DTO
+     * @param searchBean 검색 조건 유지용 빈
+     * @param branchManagementPageFlag 지점 관리 페이지에서의 접근 여부
+     * @return 참여자 수정 JSP 뷰 이름 (views/UpdateParticipantsPage) 또는 알림 페이지
+     */
     @GetMapping("/participantUpdate.login")
     public String updateParticipantsPage(Model model, HttpSession session, BasicDTO basicDTO, EmploymentDTO employmentDTO,
                                          CounselDTO counselDTO, EducationDTO educationDTO, ParticcertifDTO particcertifDTO, SearchBean searchBean,
@@ -374,7 +386,6 @@ public class UpdateController {
         basicDTO.setBasicManagement(adminFlag);
         basicDTO.setBasicCondition("basicSelectPKONE");
         basicDTO = basicService.selectOne(basicDTO);
-//        log.info("조회된 기본정로 basicDTO : [{}]", basicDTO);
 
         //기본 정보 데이터가 이때 조회 되지 않는 참여자 혹은 전담자라면
         //조회 불가 메시지를 띄운 후 참여자 조회 페이지로 전달
@@ -398,7 +409,10 @@ public class UpdateController {
         counselDTO.setCounselJobNo(basicDTO.getBasicJobNo());
         counselDTO.setCounselCondition("counselSelectOne");
         counselDTO = counselService.selectOne(counselDTO);
-//        List<CounselDTO> counselList = counselService.selectAll(counselDTO);
+        log.info("[희망직무 디버그] counselJobNo={}, wishJobList={}, wishJobListSize={}",
+                basicDTO.getBasicJobNo(),
+                counselDTO != null ? counselDTO.getWishJobList() : "counselDTO is null",
+                counselDTO != null && counselDTO.getWishJobList() != null ? counselDTO.getWishJobList().size() : "null");
 
 
         //직업훈련 정보
@@ -454,6 +468,22 @@ public class UpdateController {
     }
 
 
+    /**
+     * 참여자 정보를 일괄 업데이트한다.
+     * <p>기본정보, 상담정보, 취업정보, 자격증, 직업훈련 정보를 한 번에 수정한다.
+     * 지점 관리 페이지에서의 수정 요청 시 관리자용 업데이트 로직이 적용된다.
+     * 상담 진행단계가 '취소'인 경우 참여자 데이터 백업/삭제 처리가 수행된다.</p>
+     * @param model Spring MVC Model
+     * @param session HTTP 세션 (로그인 및 권한 정보 확인용)
+     * @param basicDTO 기본정보 DTO
+     * @param employmentDTO 취업정보 DTO
+     * @param counselDTO 상담정보 DTO
+     * @param educationDTO 교육정보 DTO
+     * @param particcertifDTO 자격증정보 DTO
+     * @param searchBean 검색 조건 유지용 빈
+     * @param branchManagementPageFlag 지점 관리 페이지에서의 수정 여부
+     * @return 알림 페이지 (views/info) - 업데이트 결과 표시 후 목록으로 이동
+     */
     @PostMapping("/participantUpdate.login")
     public String update(Model model, HttpSession session, BasicDTO basicDTO, EmploymentDTO employmentDTO,
                          CounselDTO counselDTO, EducationDTO educationDTO, ParticcertifDTO particcertifDTO, SearchBean searchBean,
@@ -526,6 +556,13 @@ public class UpdateController {
     //------------------------한 페이지 참여자 업데이트 끝----------------------------------
 
 
+    /**
+     * 세션의 로그인 정보와 구직번호를 기반으로 참여자의 유효한 구직번호를 조회한다.
+     * @param jobNo 확인할 구직번호
+     * @param basicDTO 기본정보 조회용 DTO
+     * @param session HTTP 세션 (로그인 정보 확인용)
+     * @return 유효한 구직번호 (조회 실패 시 입력값 그대로 반환)
+     */
     private int getJobNo(int jobNo, BasicDTO basicDTO, HttpSession session){
         LoginBean loginBean = (LoginBean)session.getAttribute("JOBMOA_LOGIN_DATA");
         String loginId = loginBean.getMemberUserID();

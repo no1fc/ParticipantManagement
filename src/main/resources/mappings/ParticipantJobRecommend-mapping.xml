@@ -53,7 +53,9 @@
             R.추천사유 AS recommendationReason,
             R.저장일시 AS createdAt,
             R.수정일시 AS updatedAt,
-            ISNULL(P.is_active, 0) AS isActive
+            ISNULL(P.is_active, 0) AS isActive,
+            P.career AS career,
+            P.region_nm AS regionNm
         FROM
             J_참여자관리_참여자추천채용정보 R
             LEFT JOIN J_참여자관리_JOB_POSTING P
@@ -144,7 +146,9 @@
             학력 AS infoEducation,
             전공 AS infoMajor,
             경력 AS infoCareer,
-            희망급여 AS infoDesiredSalary
+            희망급여 AS infoDesiredSalary,
+            특정계층 AS specialClass,
+            취업역량 AS employmentCapacity
         FROM J_참여자관리
         WHERE 구직번호 = #{jobSeekerNo}
     </select>
@@ -201,6 +205,22 @@
         ORDER BY 대분류카테고리ID ASC, 중분류카테고리ID ASC, 카테고리분류 ASC, 카테고리ID ASC
     </select>
 
+    <!-- 참여자 보유 자격증 목록 조회 -->
+    <select id="selectParticipantCertificates" parameterType="int" resultType="string">
+        SELECT
+            자격증
+        FROM J_참여자관리_자격증
+        WHERE 구직번호 = #{jobSeekerNo}
+    </select>
+
+    <!-- 참여자 직업훈련 이력 목록 조회 -->
+    <select id="selectParticipantTrainings" parameterType="int" resultType="string">
+        SELECT
+            직업훈련
+        FROM J_참여자관리_직업훈련
+        WHERE 구직번호 = #{jobSeekerNo}
+    </select>
+
     <!-- 참여자 알선상세정보, 추천사 조회 쿼리 작성 -->
     <select id="selectParticipantReferral"  resultType="recommendReferral">
         SELECT
@@ -211,8 +231,8 @@
     </select>
 
     <!-- 채용정보 후보군 조회 -->
-    <!-- searchCondition에 maxCount 반드시 포함: searchCondition.setMaxCount(maxCandidates) -->
-    <!-- keywords / jobsCode 는 OR 관계, jobCategory 는 AND 추가 필터              -->
+    <!-- searchCondition에 maxCount 반드시 포함: searchCondition.setMaxCount(maxCandidates)    -->
+    <!-- 개선: 검색 컬럼 확대 + 지역 LIKE 부분매칭 + 관련성 기반 정렬                          -->
     <select id="selectJobInfoCandidates" parameterType="com.jobmoa.app.CounselMain.biz.recommend.SearchConditionDTO" resultType="jobCandidate">
         SELECT TOP (#{maxCount})
             wanted_auth_no  AS certNo,
@@ -232,17 +252,22 @@
         FROM J_참여자관리_JOB_POSTING
         WHERE detail_fetched = 1
           AND is_active = 1
-          AND (close_dt IS NULL OR close_dt &gt;= CAST(GETDATE() AS DATE))
+          AND (close_dt IS NULL OR close_dt <![CDATA[>=]]> CAST(GETDATE() AS DATE))
         <if test="(keywords != null and keywords.size() > 0) or (jobsCode != null and jobsCode.size() > 0)">
             AND (
                 <trim prefixOverrides="OR">
+                    <!-- 키워드 매칭: 제목 + 업종 + 키워드목록 + 직무내용 + 관련직종 + 우대조건 -->
                     <if test="keywords != null and keywords.size() > 0">
                         <foreach collection="keywords" item="kw" separator=" OR " open="(" close=")">
                             recrut_title LIKE '%' + #{kw} + '%'
                             OR ind_tp_nm LIKE '%' + #{kw} + '%'
                             OR keyword_list LIKE '%' + #{kw} + '%'
+                            OR job_cont LIKE '%' + #{kw} + '%'
+                            OR rel_jobs_nm LIKE '%' + #{kw} + '%'
+                            OR pref_cond LIKE '%' + #{kw} + '%'
                         </foreach>
                     </if>
+                    <!-- 직종코드 매칭 -->
                     <if test="jobsCode != null and jobsCode.size() > 0">
                         OR jobs_cd IN
                         <foreach collection="jobsCode" item="code" open="(" separator="," close=")">
@@ -252,23 +277,92 @@
                     <if test="jobCategory != null and jobCategory != ''">
                         OR ind_tp_nm LIKE '%' + #{jobCategory} + '%'
                     </if>
-                    <if test="isAddress">
+                    <!-- 지역 매칭: region_nm LIKE 부분매칭 (기존 basic_addr IN 정확매칭에서 변경) -->
+                    <if test="isAddress != null and isAddress">
                         <if test="largescaleUnits != null and largescaleUnits.size() > 0">
-                            OR basic_addr IN
-                            <foreach collection="largescaleUnits" item="unit" open="(" separator="," close=")">
-                                #{unit}
+                            <foreach collection="largescaleUnits" item="unit" separator="">
+                                OR region_nm LIKE '%' + #{unit} + '%'
                             </foreach>
                         </if>
                         <if test="localUnits != null and localUnits.size() > 0">
-                            OR basic_addr IN
-                            <foreach collection="localUnits" item="unit" open="(" separator="," close=")">
-                                #{unit}
+                            <foreach collection="localUnits" item="unit" separator="">
+                                OR region_nm LIKE '%' + #{unit} + '%'
                             </foreach>
                         </if>
                     </if>
                 </trim>
             )
         </if>
+        ORDER BY
+            <!-- 관련성 기반 정렬: 직종코드(3점) + 키워드(2점) + 지역(1점) -->
+            (
+                0
+                <if test="jobsCode != null and jobsCode.size() > 0">
+                    + CASE WHEN jobs_cd IN
+                    <foreach collection="jobsCode" item="code" open="(" separator="," close=")">
+                        TRY_CAST(#{code} AS INT)
+                    </foreach>
+                    THEN 3 ELSE 0 END
+                </if>
+                <if test="keywords != null and keywords.size() > 0">
+                    <foreach collection="keywords" item="kw">
+                        + CASE WHEN recrut_title LIKE '%' + #{kw} + '%' THEN 2 ELSE 0 END
+                    </foreach>
+                </if>
+                <if test="isAddress != null and isAddress and localUnits != null and localUnits.size() > 0">
+                    <foreach collection="localUnits" item="unit">
+                        + CASE WHEN region_nm LIKE '%' + #{unit} + '%' THEN 1 ELSE 0 END
+                    </foreach>
+                </if>
+            ) DESC,
+            sync_dtm_detail DESC,
+            sync_dtm ASC
+    </select>
+
+    <!-- 후보군 0건 시 완화 재검색: 지역 필터 제거, 키워드 상위 2개 + 직종코드만 사용 -->
+    <select id="selectJobInfoCandidatesFallback" parameterType="com.jobmoa.app.CounselMain.biz.recommend.SearchConditionDTO" resultType="jobCandidate">
+        SELECT TOP (#{maxCount})
+            wanted_auth_no  AS certNo,
+            company_nm      AS companyName,
+            recrut_title    AS recruitTitle,
+            ind_tp_nm       AS industryType,
+            wanted_info_url AS jobPostingUrl,
+            sal_desc        AS salaryDesc,
+            min_edubg       AS minEducation,
+            max_edubg       AS maxEducation,
+            career          AS career,
+            busi_size       AS businessSize,
+            rel_jobs_nm     AS relatedJobs,
+            job_cont        AS jobContent,
+            major           AS major,
+            certificate     AS certificate
+        FROM J_참여자관리_JOB_POSTING
+        WHERE detail_fetched = 1
+          AND is_active = 1
+          AND (close_dt IS NULL OR close_dt <![CDATA[>=]]> CAST(GETDATE() AS DATE))
+          AND (
+            <trim prefixOverrides="OR">
+                <!-- 키워드 매칭 (상위 2개만, 넓은 범위) -->
+                <if test="keywords != null and keywords.size() > 0">
+                    <foreach collection="keywords" item="kw" separator=" OR " open="(" close=")" index="idx">
+                        <if test="idx &lt; 2">
+                            recrut_title LIKE '%' + #{kw} + '%'
+                            OR ind_tp_nm LIKE '%' + #{kw} + '%'
+                            OR keyword_list LIKE '%' + #{kw} + '%'
+                            OR job_cont LIKE '%' + #{kw} + '%'
+                            OR rel_jobs_nm LIKE '%' + #{kw} + '%'
+                        </if>
+                    </foreach>
+                </if>
+                <!-- 직종코드 매칭 -->
+                <if test="jobsCode != null and jobsCode.size() > 0">
+                    OR jobs_cd IN
+                    <foreach collection="jobsCode" item="code" open="(" separator="," close=")">
+                        TRY_CAST(#{code} AS INT)
+                    </foreach>
+                </if>
+            </trim>
+          )
         ORDER BY sync_dtm_detail DESC, sync_dtm ASC
     </select>
 

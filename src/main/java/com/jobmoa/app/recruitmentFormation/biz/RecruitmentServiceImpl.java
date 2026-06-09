@@ -27,6 +27,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -58,7 +62,13 @@ public class RecruitmentServiceImpl implements RecruitmentService {
     private static final int MAX_SYNC_PAGES = 600;
 
     /** 1회 스케줄 실행 시 상세 수집 최대 건수 */
-    private static final int MAX_DETAIL_PER_SYNC = 500;
+    private static final int MAX_DETAIL_PER_SYNC = 60000;
+
+    /** 상세 수집 병렬 스레드 수 */
+    private static final int DETAIL_THREAD_COUNT = 4;
+
+    /** 상세 수집 배치 크기 (배치 간 Rate Limit 딜레이 적용) */
+    private static final int DETAIL_BATCH_SIZE = 100;
 
     /** 고용24 API 연결 타임아웃 */
     private static final Duration API_CONNECT_TIMEOUT = Duration.ofSeconds(10);
@@ -252,29 +262,55 @@ public class RecruitmentServiceImpl implements RecruitmentService {
             log.info("[상세수집] 신규 공고 없음 — 상세 수집 생략");
             return;
         }
-        log.info("[상세수집] 신규 공고 {}건 상세 수집 시작", newIds.size());
+        log.info("[상세수집] 신규 공고 {}건 상세 수집 시작 (스레드 {}개)", newIds.size(), DETAIL_THREAD_COUNT);
 
-        int success = 0, fail = 0;
-        for (int i = 0; i < newIds.size(); i++) {
-            String wantedAuthNo = newIds.get(i);
-            try {
-                RecruitmentDetailDTO detail = fetchDetail(wantedAuthNo);
-                recruitmentDAO.updateDetailFetched(detail);
-                success++;
-            } catch (Exception e) {
-                log.warn("[상세수집] 실패 wantedAuthNo={}: {}", wantedAuthNo, e.getMessage());
-                fail++;
-                // detail_fetched=0 유지 → 다음 스케줄에 자동 재시도
-            }
-            // 100건 처리마다 1초 대기 (고용24 API Rate Limit 방지)
-            if ((i + 1) % 100 == 0) {
-                try {
-                    Thread.sleep(1000);
+        AtomicInteger success = new AtomicInteger();
+        AtomicInteger fail = new AtomicInteger();
+        ExecutorService pool = Executors.newFixedThreadPool(DETAIL_THREAD_COUNT);
+
+        try {
+            // 100건씩 배치 분할 → 배치 내 병렬 처리, 배치 간 1초 딜레이
+            List<List<String>> batches = partitionList(newIds, DETAIL_BATCH_SIZE);
+
+            for (int b = 0; b < batches.size(); b++) {
+                List<String> batch = batches.get(b);
+
+                List<CompletableFuture<Void>> futures = batch.stream()
+                        .map(wantedAuthNo -> CompletableFuture.runAsync(() -> {
+                            try {
+                                RecruitmentDetailDTO detail = fetchDetail(wantedAuthNo);
+                                recruitmentDAO.updateDetailFetched(detail);
+                                success.incrementAndGet();
+                            } catch (Exception e) {
+                                log.warn("[상세수집] 실패 wantedAuthNo={}: {}", wantedAuthNo, e.getMessage());
+                                fail.incrementAndGet();
+                                // detail_fetched=0 유지 → 다음 스케줄에 자동 재시도
+                            }
+                        }, pool))
+                        .toList();
+
+                // 배치 내 모든 작업 완료 대기
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+                // 마지막 배치가 아니면 1초 대기 (고용24 API Rate Limit 방지)
+                if (b < batches.size() - 1) {
+                    try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
                 }
-                catch (InterruptedException ignored) {}
             }
+        } finally {
+            pool.shutdown();
         }
-        log.info("[상세수집] 완료 — 성공: {}건, 실패: {}건", success, fail);
+
+        log.info("[상세수집] 완료 — 성공: {}건, 실패: {}건", success.get(), fail.get());
+    }
+
+    /** 리스트를 지정 크기의 서브리스트로 분할 */
+    private <T> List<List<T>> partitionList(List<T> list, int size) {
+        List<List<T>> partitions = new ArrayList<>();
+        for (int i = 0; i < list.size(); i += size) {
+            partitions.add(list.subList(i, Math.min(i + size, list.size())));
+        }
+        return partitions;
     }
 
     /**

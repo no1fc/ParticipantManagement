@@ -6,12 +6,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * {@link ParticipantJobRecommendService} 구현체.
+ * DAO와 Gemini AI를 연동하여 참여자 맞춤 채용정보 추천 전체 흐름을 처리한다.
+ */
 @Slf4j
 @Service("recommendService")
 public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecommendService {
@@ -159,6 +164,10 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
             participantJobRecommendDAO.getParticipantCategory(jobSeekerNo);
         RecommendReferralDTO referralInfo =
             participantJobRecommendDAO.getParticipantReferral(jobSeekerNo);
+        List<String> certificates =
+            participantJobRecommendDAO.getParticipantCertificates(jobSeekerNo);
+        List<String> trainings =
+            participantJobRecommendDAO.getParticipantTrainings(jobSeekerNo);
 
         // 2. 24시간 이내 재사용 (forceRefresh = false 인 경우만, DB 서버 시간 기준)
         if (!forceRefresh) {
@@ -197,29 +206,48 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
             log.info("[추천저장] 관련 카테고리 조회 midCategoryNames={}, 결과={}건", midCategoryNames, relatedCategories.size());
         }
 
-        // 4. Gemini 1단계: 검색 조건 생성
+        // 4. Gemini 1단계: 검색 조건 생성 (실패 시 폴백)
         SearchConditionDTO searchCondition;
         try {
-            searchCondition = geminiApiService.generateSearchCondition(participant, referralInfo, categoryList, relatedCategories);
+            searchCondition = geminiApiService.generateSearchCondition(participant, referralInfo, categoryList, relatedCategories, certificates, trainings);
             log.info("[추천저장] Gemini 검색조건 생성 jobSeekerNo={}, searchCondition={}", jobSeekerNo, searchCondition);
+
+            // AI 응답 파싱 실패 또는 키워드 비어있으면 폴백
+            if (searchCondition.getParseError() != null && searchCondition.getParseError()) {
+                log.warn("[추천저장] Gemini 응답 파싱 실패, 폴백 검색조건 사용 jobSeekerNo={}", jobSeekerNo);
+                searchCondition = buildFallbackSearchCondition(participant, categoryList, certificates);
+            } else if (searchCondition.getKeywords() == null || searchCondition.getKeywords().isEmpty()) {
+                log.warn("[추천저장] Gemini 키워드 비어있음, 폴백 검색조건 사용 jobSeekerNo={}", jobSeekerNo);
+                searchCondition = buildFallbackSearchCondition(participant, categoryList, certificates);
+            }
 
             result.setSearchCondition(searchCondition);
         } catch (Exception e) {
-            log.error("[추천저장] Gemini 검색조건 생성 실패 jobSeekerNo={}", jobSeekerNo, e);
-            result.setSuccess(false);
-            String msg = (e.getMessage() != null && e.getMessage().contains("Gemini"))
-                    ? "AI 추천 서비스가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해주세요."
-                    : "추천 저장 중 오류가 발생했습니다.";
-            result.setMessage(msg);
-            return result;
+            log.error("[추천저장] Gemini 검색조건 생성 실패, 폴백 시도 jobSeekerNo={}", jobSeekerNo, e);
+            searchCondition = buildFallbackSearchCondition(participant, categoryList, certificates);
+            result.setSearchCondition(searchCondition);
+
+            // 폴백도 키워드가 없으면 실패 처리
+            if (searchCondition.getKeywords() == null || searchCondition.getKeywords().isEmpty()) {
+                result.setSuccess(false);
+                result.setMessage("AI 추천 서비스가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해주세요.");
+                return result;
+            }
         }
 
         // 5. 채용정보 후보군 조회 (maxCount 필수 포함)
         searchCondition.setMaxCount(maxCandidates);
-        log.info("[추천저장] Gemini 검색조건 생성 jobSeekerNo={}, searchCondition={}", jobSeekerNo, searchCondition);
+        log.info("[추천저장] 검색조건 적용 jobSeekerNo={}, searchCondition={}", jobSeekerNo, searchCondition);
         List<JobCandidateDTO> candidates =
             participantJobRecommendDAO.selectJobInfoCandidates(searchCondition);
         log.debug("[추천저장] 후보군 {}건 조회 jobSeekerNo={}", candidates.size(), jobSeekerNo);
+
+        // 5-1. 후보군 0건 시 완화 재검색 (지역 필터 제거, 키워드 상위 2개만)
+        if (candidates.isEmpty()) {
+            log.info("[추천저장] 후보군 0건, 완화 재검색 실행 jobSeekerNo={}", jobSeekerNo);
+            candidates = participantJobRecommendDAO.selectJobInfoCandidatesFallback(searchCondition);
+            log.debug("[추천저장] 완화 재검색 후보군 {}건 jobSeekerNo={}", candidates.size(), jobSeekerNo);
+        }
 
         if (candidates.isEmpty()) {
             result.setSuccess(true);
@@ -232,17 +260,12 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
         int deleted = participantJobRecommendDAO.deleteRecommendByGujikNo(jobSeekerNo);
         log.debug("기존 추천 삭제 결과: {}", deleted > 0);
 
-        // 7. 알선상세정보 유무에 따라 분기 저장
-        String alsonDetail  = (referralInfo != null) ? referralInfo.getInfoAlsonDetail() : null;
-        boolean hasAlsonDetail = (alsonDetail != null && !alsonDetail.trim().isEmpty());
+        // 7. Gemini 2단계: 베스트 선별 및 점수 산출 (알선상세정보 유무 관계없이 항상 실행)
+        String alsonDetail = (referralInfo != null) ? referralInfo.getInfoAlsonDetail() : null;
+        String additionalInfo = (referralInfo != null) ? referralInfo.getInfoAdditionalInfo() : null;
 
-//        log.debug("알선상세정보 유무: {} , referralInfo: {}, alsonDetail: {}", hasAlsonDetail, referralInfo, alsonDetail);
-
-        if (hasAlsonDetail) {
-            saveWithGeminiJudgment(participant, categoryList, referralInfo, candidates, alsonDetail, searchCondition);
-        } else {
-            saveWithoutGeminiJudgment(participant, categoryList, referralInfo, candidates, searchCondition);
-        }
+        saveWithGeminiJudgment(participant, categoryList, referralInfo, candidates,
+                alsonDetail, additionalInfo, certificates, trainings, searchCondition);
 
         log.debug("[추천저장] 완료 jobSeekerNo={}, {}건", jobSeekerNo, candidates.size());
         result.setSuccess(true);
@@ -255,7 +278,7 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
     // =========================================================
 
     /**
-     * 알선상세정보 있는 경우: Gemini 2단계로 베스트 선별 후 저장
+     * Gemini 2단계로 베스트 선별 후 저장 (알선상세정보 유무 관계없이 실행)
      * bestJobInfo = "1" (베스트), "0" (일반)
      */
     private void saveWithGeminiJudgment(
@@ -264,11 +287,14 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
             RecommendReferralDTO referralInfo,
             List<JobCandidateDTO> candidates,
             String alsonDetail,
+            String additionalInfo,
+            List<String> certificates,
+            List<String> trainings,
             SearchConditionDTO searchCondition) {
 
         BestSelectionResultDTO judgment;
         try {
-            judgment = geminiApiService.selectBestFromCandidates(candidates, participant, alsonDetail);
+            judgment = geminiApiService.selectBestFromCandidates(candidates, participant, alsonDetail, additionalInfo, certificates, trainings);
             log.debug("[추천저장] Gemini 2단계 성공, 베스트 선택 결과: {}", judgment);
         } catch (Exception e) {
             log.warn("[추천저장] Gemini 2단계 실패, 베스트 없이 저장: {}", e.getMessage());
@@ -285,13 +311,19 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
             for (RecommendationScoreDTO s : judgment.getScores()) {
                 if (s.getCertNo() != null) {
                     scoreMap.put(s.getCertNo(), s);
+                } else {
+                    log.warn("[추천저장] scores 항목에 certNo가 null: score={}, reason={}", s.getScore(), s.getReason());
                 }
             }
         }
+        log.info("[추천저장] scoreMap 크기: {}, 키목록: {}", scoreMap.size(), scoreMap.keySet());
 
         for (JobCandidateDTO candidate : candidates) {
             String certNo = candidate.getCertNo();
             RecommendationScoreDTO scoreInfo = scoreMap.get(certNo);
+            if (scoreInfo == null) {
+                log.warn("[추천저장] scoreMap에서 certNo={} 미발견 (후보 {}건 중 누락)", certNo, scoreMap.size());
+            }
 
             ParticipantJobRecommendDTO dto =
                 buildRecommendDto(participant, categoryList, referralInfo, candidate, searchCondition);
@@ -309,7 +341,7 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
     }
 
     /**
-     * 알선상세정보 없는 경우: 후보군 전체 bestJobInfo = 0 으로 저장
+     * Gemini 2단계 실패 시 그레이스풀 저하: 점수 없이 저장하되 사유 명시
      */
     private void saveWithoutGeminiJudgment(
             RecommendParticipantDTO participant,
@@ -322,8 +354,9 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
             ParticipantJobRecommendDTO dto =
                 buildRecommendDto(participant, categoryList, referralInfo, candidate, searchCondition);
             dto.setBestJobInfo(false);
+            dto.setRecommendationReason("AI 점수 미적용 - 수동 검토 필요");
             int inserted = participantJobRecommendDAO.insertOrUpdateRecommend(dto);
-            log.debug("[추천저장] 알선상세정보 없는 경우 후보자 저장 결과: {}", inserted > 0);
+            log.debug("[추천저장] Gemini 실패 그레이스풀 저장 결과: {}", inserted > 0);
         }
     }
 
@@ -349,7 +382,6 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
         // RecommendCategoryDTO 희망순위 1순위 희망직무만 사용
         if (categoryList != null && !categoryList.isEmpty()) {
             RecommendCategoryDTO primary = categoryList.get(0);
-//            log.info("[추천저장] 카테고리 대/중분류 설정 jobSeekerNo={}, category={}", participant.getJobSeekerNo(), primary);
             // 카테고리 대/중분류는 J_참여자관리에 저장된 값 사용
             dto.setCategoryMajor(primary.getCategoryMain());
             dto.setCategoryMiddle(primary.getCategoryMiddle());
@@ -375,6 +407,109 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
         dto.setRecommendedJobIndustry(candidate.getIndustryType());
 
         return dto;
+    }
+
+    // =========================================================
+    // 폴백 검색 조건 생성
+    // =========================================================
+
+    /**
+     * AI 검색조건 생성 실패 시 참여자 데이터에서 직접 키워드를 추출하여 검색 조건을 구성한다.
+     */
+    public SearchConditionDTO buildFallbackSearchCondition(
+            RecommendParticipantDTO participant,
+            List<RecommendCategoryDTO> categoryList,
+            List<String> certificates) {
+
+        SearchConditionDTO fallback = new SearchConditionDTO();
+        List<String> keywords = new ArrayList<>();
+
+        // 1. 추천키워드 (상담사 입력) → 최우선
+        if (categoryList != null) {
+            for (RecommendCategoryDTO cat : categoryList) {
+                if (cat.getRecommendedKeywords() != null && !cat.getRecommendedKeywords().trim().isEmpty()) {
+                    String[] parts = cat.getRecommendedKeywords().split("[,\\s]+");
+                    for (String part : parts) {
+                        String trimmed = part.trim();
+                        if (!trimmed.isEmpty() && !keywords.contains(trimmed)) {
+                            keywords.add(trimmed);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. 희망직무 텍스트
+        if (categoryList != null) {
+            for (RecommendCategoryDTO cat : categoryList) {
+                if (cat.getInfoJob() != null && !cat.getInfoJob().trim().isEmpty()
+                        && !keywords.contains(cat.getInfoJob().trim())) {
+                    keywords.add(cat.getInfoJob().trim());
+                }
+            }
+        }
+
+        // 3. 카테고리 중분류명
+        if (categoryList != null) {
+            for (RecommendCategoryDTO cat : categoryList) {
+                if (cat.getCategoryMiddle() != null && !cat.getCategoryMiddle().trim().isEmpty()
+                        && !keywords.contains(cat.getCategoryMiddle().trim())) {
+                    keywords.add(cat.getCategoryMiddle().trim());
+                }
+            }
+        }
+
+        // 4. 자격증명
+        if (certificates != null) {
+            for (String cert : certificates) {
+                if (cert != null && !cert.trim().isEmpty() && !keywords.contains(cert.trim())) {
+                    keywords.add(cert.trim());
+                }
+            }
+        }
+
+        fallback.setKeywords(keywords);
+
+        // 주소에서 광역/기초 자치단위 추출
+        // DB 저장 형식: 카카오 주소 API 전체 주소 (예: "서울 강남구 테헤란로 123 (역삼동)")
+        // 첫 번째 단어 = 광역자치단위 (서울, 경기, 인천 등)
+        // 두 번째 단어 = 기초자치단위 (강남구, 수원시, 횡성군 등) — 구/시/군으로 끝나는 경우만
+        String address = participant.getInfoAddress();
+        if (address != null && !address.trim().isEmpty()) {
+            String cleaned = address.replaceAll("\\(.*?\\)", "").trim(); // 괄호 내용 제거
+            String[] addrParts = cleaned.split("\\s+");
+            List<String> largescale = new ArrayList<>();
+            List<String> local = new ArrayList<>();
+
+            // 1단어: 광역자치단위 (시/도 접미사 제거)
+            if (addrParts.length >= 1) {
+                String first = addrParts[0].trim();
+                if (!first.isEmpty()) {
+                    // "서울특별시" → "서울", "경기도" → "경기" 등 접미사 제거
+                    first = first.replaceAll("(특별시|광역시|특별자치시|특별자치도|도)$", "");
+                    if (!first.isEmpty()) {
+                        largescale.add(first);
+                    }
+                }
+            }
+
+            // 2단어: 기초자치단위 (구/시/군으로 끝나는 경우만)
+            if (addrParts.length >= 2) {
+                String second = addrParts[1].trim();
+                if (second.endsWith("구") || second.endsWith("시") || second.endsWith("군")) {
+                    local.add(second);
+                }
+            }
+
+            if (!largescale.isEmpty() || !local.isEmpty()) {
+                fallback.setIsAddress(true);
+                fallback.setLargescaleUnits(largescale);
+                fallback.setLocalUnits(local);
+            }
+        }
+
+        log.info("[추천저장] 폴백 검색조건 생성: keywords={}", keywords);
+        return fallback;
     }
 
     // =========================================================

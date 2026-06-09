@@ -1,4 +1,9 @@
-﻿
+﻿/**
+ * @file CSV 파일 업로드 및 참여자 랜덤 배정 테이블 생성
+ * @version 0.1.3
+ * @requires jQuery, SweetAlert2
+ */
+
 /**
  * CSV 파일 업로드 및 테이블 생성 스크립트
  *

@@ -1,3 +1,8 @@
+/**
+ * @file Chart.js 도넛 차트 중앙 텍스트 플러그인
+ * @version 0.0.2
+ * @requires Chart.js
+ */
 // chart.js 중앙 텍스트 플러그인 정의 및 등록
 const drawCenterTextPlugin = {
     id: 'drawCenterText',
@@ -11,7 +16,7 @@ const drawCenterTextPlugin = {
         const denominator = chart.options.plugins.drawCenterText?.denominator || 100;
         // 폰트 및 텍스트 정보 설정
         ctx.restore();
-        var fontSize = (height / denominator).toFixed(2); // 글자 크기 지정
+        const fontSize = (height / denominator).toFixed(2); // 글자 크기 지정
         ctx.font = fontSize + "em sans-serif";
         ctx.textBaseline = "middle";
 

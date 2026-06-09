@@ -19,6 +19,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * 관리자 참여자 Excel 다운로드 컨트롤러.
+ * 관리자 권한으로 참여자 목록을 Excel 파일로 내보내는 기능을 제공한다.
+ * 기본 내보내기와 시트/컬럼 선택이 가능한 커스텀 내보내기를 지원한다.
+ */
 @Slf4j
 @Controller
 public class AdminParticipantExcel {
@@ -26,6 +31,14 @@ public class AdminParticipantExcel {
     @Autowired
     private AdminService adminService;
 
+    /**
+     * 관리자 참여자 목록을 기본 형식의 Excel 파일로 다운로드한다.
+     * 관리자 권한 및 지점 범위 검증 후 참여자 데이터를 Excel로 생성하여 응답에 출력한다.
+     *
+     * @param response HTTP 응답 (Excel 파일 출력용)
+     * @param dto      검색 조건 DTO
+     * @param session  HTTP 세션 (권한 확인용)
+     */
     @GetMapping("/admin/api/participants/export")
     public void exportParticipants(HttpServletResponse response, AdminDTO dto, HttpSession session) {
         try {
@@ -91,6 +104,15 @@ public class AdminParticipantExcel {
         }
     }
 
+    /**
+     * 관리자 커스텀 Excel 파일을 다운로드한다.
+     * 사용자가 선택한 시트(기본정보, 희망직무, 자격증, 직업훈련)와 컬럼을 기반으로
+     * 다중 시트 Excel 파일을 생성한다.
+     *
+     * @param response HTTP 응답 (Excel 파일 출력용)
+     * @param dto      검색 조건 및 시트/컬럼 선택 정보가 포함된 DTO
+     * @param session  HTTP 세션 (권한 확인용)
+     */
     @GetMapping("/admin/api/excel/custom-export")
     public void customExport(HttpServletResponse response, AdminDTO dto, HttpSession session) {
         try {
@@ -144,6 +166,13 @@ public class AdminParticipantExcel {
         }
     }
 
+    /**
+     * 참여자 기본정보 시트를 생성한다.
+     * 선택된 컬럼만 포함하며, 선택하지 않은 경우 전체 컬럼을 출력한다.
+     *
+     * @param workbook Excel 워크북
+     * @param dto      검색 조건 및 컬럼 선택 정보
+     */
     private void createMainSheet(XSSFWorkbook workbook, AdminDTO dto) {
         List<AdminDTO> dataList = adminService.getParticipantExcelFullList(dto);
         Sheet sheet = workbook.createSheet("참여자 기본정보");
@@ -206,6 +235,13 @@ public class AdminParticipantExcel {
         }
     }
 
+    /**
+     * AdminDTO에서 지정된 컬럼 키에 해당하는 값을 문자열로 반환한다.
+     *
+     * @param item AdminDTO 데이터 항목
+     * @param key  컬럼 키 (필드명)
+     * @return 해당 컬럼의 문자열 값 (null이면 빈 문자열)
+     */
     private String getColumnValue(AdminDTO item, String key) {
         switch (key) {
             case "jobNo": return String.valueOf(item.getJobNo());
@@ -262,6 +298,12 @@ public class AdminParticipantExcel {
         }
     }
 
+    /**
+     * 희망직무 시트를 생성한다.
+     *
+     * @param workbook Excel 워크북
+     * @param dto      검색 조건 DTO
+     */
     private void createWishJobSheet(XSSFWorkbook workbook, AdminDTO dto) {
         List<AdminDTO> dataList = adminService.getExcelWishJobList(dto);
         Sheet sheet = workbook.createSheet("희망직무");
@@ -285,6 +327,12 @@ public class AdminParticipantExcel {
         }
     }
 
+    /**
+     * 자격증 시트를 생성한다.
+     *
+     * @param workbook Excel 워크북
+     * @param dto      검색 조건 DTO
+     */
     private void createCertificateSheet(XSSFWorkbook workbook, AdminDTO dto) {
         List<AdminDTO> dataList = adminService.getExcelCertificateList(dto);
         Sheet sheet = workbook.createSheet("자격증");
@@ -306,6 +354,12 @@ public class AdminParticipantExcel {
         }
     }
 
+    /**
+     * 직업훈련 시트를 생성한다.
+     *
+     * @param workbook Excel 워크북
+     * @param dto      검색 조건 DTO
+     */
     private void createTrainingSheet(XSSFWorkbook workbook, AdminDTO dto) {
         List<AdminDTO> dataList = adminService.getExcelTrainingList(dto);
         Sheet sheet = workbook.createSheet("직업훈련");

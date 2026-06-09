@@ -12,6 +12,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 이력서 요청 상태 변경을 위한 비동기 REST 컨트롤러.
+ * <p>이력서 요청의 처리 상태를 업데이트하는 API를 제공한다.</p>
+ */
 @Slf4j
 @RestController
 @RequestMapping("/resumeRequest")
@@ -20,6 +24,14 @@ public class ResumeRequestAsyncController {
     @Autowired
     private ParticipantService participantService;
 
+    /**
+     * 이력서 요청의 상태를 변경한다.
+     * <p>로그인 세션을 확인하고, 사용자 정보를 설정한 후 상태를 업데이트한다.</p>
+     *
+     * @param participantDTO 상태 변경 정보가 담긴 DTO
+     * @param session        HTTP 세션 (로그인 확인 및 사용자 정보 설정용)
+     * @return 처리 결과 JSON ({@code statusData}, {@code message})
+     */
     @PostMapping(value = "/statusUpdate.login", produces = "application/json;charset=UTF-8")
     public ResponseEntity<String> resumeRequestStatusUpdate(@RequestBody ParticipantDTO participantDTO, HttpSession session) {
         log.info("ResumeRequestAsyncController resumeRequestStatusUpdate Start");

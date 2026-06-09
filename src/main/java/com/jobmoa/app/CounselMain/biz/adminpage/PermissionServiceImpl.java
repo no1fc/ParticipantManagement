@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * {@link PermissionService} 구현체.
+ * PermissionDAO를 통해 역할 기반 메뉴 접근 권한을 관리한다.
+ */
 @Service("permissionService")
 public class PermissionServiceImpl implements PermissionService {
 

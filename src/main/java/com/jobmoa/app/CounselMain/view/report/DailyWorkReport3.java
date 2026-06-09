@@ -30,6 +30,11 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+/**
+ * 일일업무보고서 컨트롤러.
+ * 상담사별 일일업무보고 페이지 표시 및 Excel 템플릿 기반의 일일보고서 다운로드 기능을 제공한다.
+ * 서버 시작 시 Excel 템플릿 파일을 메모리에 캐싱하여 반복 요청 시 성능을 최적화한다.
+ */
 @Slf4j
 @Controller
 public class DailyWorkReport3 {
@@ -45,7 +50,10 @@ public class DailyWorkReport3 {
 
     private byte[] templateBytes;  // 템플릿 파일을 캐싱할 바이트 배열
 
-    // 서버 시작 시 템플릿 파일을 한 번만 읽어 캐싱
+    /**
+     * 서버 시작 시 Excel 템플릿 파일(template.xlsx)을 메모리에 캐싱한다.
+     * 매 요청마다 파일을 읽지 않고 캐싱된 바이트 배열을 사용하여 성능을 향상시킨다.
+     */
     @PostConstruct
     public void init() {
         log.info("Initializing Excel template...");
@@ -63,7 +71,16 @@ public class DailyWorkReport3 {
         }
     }
 
-    // 보고서 페이지 요청 처리
+    /**
+     * 일일업무보고 페이지를 표시한다.
+     * 지점 내 상담사별 보고 데이터와 취업률/알선취업률/총점 대시보드 점수를 조회하여 뷰에 전달한다.
+     *
+     * @param model        뷰에 전달할 모델 객체
+     * @param reportDTO    보고서 조회 조건 DTO
+     * @param dashboardDTO 대시보드 점수 조회 조건 DTO
+     * @param session      HTTP 세션 (로그인 정보 조회용)
+     * @return JSP 뷰 이름 ("views/DailyWorkReportPage")
+     */
     @GetMapping("report.login")
     public String reportPage(Model model, ReportDTO reportDTO, DashboardDTO dashboardDTO, HttpSession session) {
         LoginBean loginBean = (LoginBean) session.getAttribute("JOBMOA_LOGIN_DATA");
@@ -109,7 +126,14 @@ public class DailyWorkReport3 {
         return "views/DailyWorkReportPage";
     }
 
-    // 엑셀 다운로드 요청 처리
+    /**
+     * 일일업무보고서 Excel 파일을 다운로드한다.
+     * 선택된 상담사 ID 목록을 기반으로 보고서 데이터를 조회하여 Excel 파일로 생성한다.
+     *
+     * @param response  HTTP 응답 (Excel 파일 출력용)
+     * @param reportDTO 보고서 조회 조건 (상담사 ID 목록, 연도, 지점 등)
+     * @return 오류 발생 시 보고서 페이지로 리다이렉트, 성공 시 null
+     */
     @PostMapping("downloadExcel.login")
     public String downloadExcel(HttpServletResponse response, ReportDTO reportDTO){
         log.info("createExcel reportDTO UserIds : [{}]", (Object) reportDTO.getUserIds());
@@ -125,6 +149,13 @@ public class DailyWorkReport3 {
         return null;
     }
 
+    /**
+     * Excel 템플릿을 기반으로 일일보고서 데이터를 채워 넣고 파일을 응답에 출력한다.
+     * 배정 인원, 누적 실적, 민간위탁기관 평가 실적, 참여자 진행현황 등 여러 섹션을 구성한다.
+     *
+     * @param response  HTTP 응답 (Excel 파일 출력용)
+     * @param reportDTO 보고서 조회 조건 DTO
+     */
     private void createExcel(HttpServletResponse response, ReportDTO reportDTO){
         // 1. 캐싱된 템플릿을 메모리에서 로드
         try (XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(templateBytes))) {
@@ -239,6 +270,14 @@ public class DailyWorkReport3 {
         }
     }
 
+    /**
+     * 조건에 따라 시트의 지정된 시작 행부터 데이터 행을 생성한다.
+     *
+     * @param sheet    대상 시트
+     * @param startRow 데이터 시작 행 번호
+     * @param datas    출력할 데이터 목록
+     * @param condition 데이터 유형 구분 (reportSelectStatusAll, reportSelectProgressAll, reportSelectPerformanceAll)
+     */
     private void createRow(Sheet sheet, int startRow, List<ReportDTO> datas, String condition) {
         log.info("createRow Start... : [{}]",condition);
         // 2. startRow 데이터 시작 위치 설정 (템플릿에 따라 조정)
@@ -281,6 +320,13 @@ public class DailyWorkReport3 {
 
     }
 
+    /**
+     * 시트에서 지정된 행을 반환하며, 존재하지 않으면 새로 생성한다.
+     *
+     * @param sheet    대상 시트
+     * @param startRow 행 번호
+     * @return 해당 행 객체
+     */
     private Row setRowValue(Sheet sheet, int startRow) {
         Row row = sheet.getRow(startRow); // 기존 행 가져오기
         if (row == null) {
@@ -289,7 +335,13 @@ public class DailyWorkReport3 {
         return row;
     }
 
-    // 셀 값을 설정하며 기존 스타일 유지
+    /**
+     * 셀 값을 설정하며 기존 스타일을 유지한다.
+     *
+     * @param row         대상 행
+     * @param columnIndex 열 인덱스
+     * @param value       설정할 값 (String, Integer, Double)
+     */
     private void setCellValue(Row row, int columnIndex, Object value) {
         Cell cell = row.getCell(columnIndex);
         if (cell == null) {
@@ -310,6 +362,13 @@ public class DailyWorkReport3 {
         }
     }
 
+    /**
+     * 참여자 진행현황 데이터를 행에 설정한다.
+     *
+     * @param row      대상 행
+     * @param colIndex 시작 열 인덱스
+     * @param data     진행현황 데이터
+     */
     private void setProgress(Row row, int colIndex, ReportDTO data){
         setCellValue(row, colIndex++, data.getCounselorName());        // 이름
         setCellValue(row, colIndex++, data.getCancelCount());          // 취소자
@@ -329,6 +388,13 @@ public class DailyWorkReport3 {
         setCellValue(row, colIndex++, data.getIncentiveOccurrenceRate()); // 취업인센티브 발생률
         setCellValue(row, colIndex, data.getIncentiveNotOccurred());    // 취업인센티브 미발생자
     }
+    /**
+     * 민간위탁기관 평가 실적 데이터를 행에 설정한다.
+     *
+     * @param row      대상 행
+     * @param colIndex 시작 열 인덱스
+     * @param data     평가 실적 데이터
+     */
     private void setStatus(Row row, int colIndex, ReportDTO data){
         setCellValue(row, colIndex++, data.getCounselorName());        // 이름
         setCellValue(row, colIndex++, data.getCompletedCount());          // 종료참여자
@@ -347,6 +413,14 @@ public class DailyWorkReport3 {
         setCellValue(row, colIndex++, data.getIncentiveOccurrenceRate()); // 취업인센티브 발생률
         setCellValue(row, colIndex, data.getIncentiveNotOccurred());      // 취업인센티브 미발생자
     }
+    /**
+     * 누적 실적 데이터를 행에 설정한다.
+     * 금일/금주/금월/금년별 일반 취업 및 알선 취업 실적을 출력한다.
+     *
+     * @param row      대상 행
+     * @param colIndex 시작 열 인덱스
+     * @param data     누적 실적 데이터
+     */
     private void setPerformance(Row row, int colIndex, ReportDTO data){
         setCellValue(row, colIndex++, data.getCounselorName());        // 이름
         setCellValue(row, colIndex, data.getMemberTodayEmployment());    // 금일 일반 취업

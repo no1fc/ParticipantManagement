@@ -7,6 +7,10 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * {@link ParticcertifService} 구현체.
+ * ParticcertifDAO를 통해 참여자 자격증 정보를 처리한다.
+ */
 @Slf4j
 @Service
 public class ParticcertifServiceImpl implements ParticcertifService {
@@ -15,7 +19,6 @@ public class ParticcertifServiceImpl implements ParticcertifService {
 
     @Override
     public ParticcertifDTO selectOne(ParticcertifDTO particcertifDTO) {
-        //log.info("particcertifDTO selectOne : [{}]",particcertifDTO);
         log.info("ParticcertifServiceImpl selectOne Start Log");
         ParticcertifDTO data = null;
         if(particcertifDTO != null || particcertifDTO.getParticcertifCondition() != null) {
@@ -28,7 +31,6 @@ public class ParticcertifServiceImpl implements ParticcertifService {
 
     @Override
     public List<ParticcertifDTO> selectAll(ParticcertifDTO particcertifDTO) {
-        //log.info("particcertifDTO selectAll : [{}]",particcertifDTO);
         log.info("ParticcertifServiceImpl selectAll Start Log");
         List<ParticcertifDTO> data = null;
         if(particcertifDTO != null || particcertifDTO.getParticcertifCondition() != null) {
@@ -83,7 +85,6 @@ public class ParticcertifServiceImpl implements ParticcertifService {
     @Override
     public boolean update(ParticcertifDTO particcertifDTO) {
         log.info("ParticcertifServiceImpl update Start Log");
-        //log.info("particcertifDTO update : [{}]",particcertifDTO);
         log.info("ParticcertifServiceImpl update End Log");
         return particcertifDAO.update(particcertifDTO);
     }
@@ -91,7 +92,6 @@ public class ParticcertifServiceImpl implements ParticcertifService {
     @Override
     public boolean delete(ParticcertifDTO particcertifDTO) {
         log.info("ParticcertifServiceImpl delete Start Log");
-        //log.info("particcertifDTO delete : [{}]",particcertifDTO);
         log.info("ParticcertifServiceImpl delete End Log");
         return particcertifDAO.delete(particcertifDTO);
 //        return false;

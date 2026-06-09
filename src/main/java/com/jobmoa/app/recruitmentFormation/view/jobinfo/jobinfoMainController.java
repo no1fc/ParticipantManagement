@@ -27,6 +27,14 @@ public class jobinfoMainController {
 
     private static final Gson GSON = new Gson();
 
+    /**
+     * 채용공고 검색 메인 페이지를 표시한다.
+     * 초기 진입 시 최신 공고(page=1, display=10)를 서버 사이드에서 사전 조회하여
+     * JSP에 JSON 형태로 전달함으로써 AJAX 왕복 없이 첫 화면을 즉시 표출한다.
+     *
+     * @param model 뷰에 전달할 모델 객체 (initialResultJson 속성에 초기 공고 JSON 포함)
+     * @return JSP 뷰 이름 ("recruitmentInformation/index")
+     */
     @GetMapping
     public String jobinfo(Model model) {
         log.info("jobinfo 페이지 접속 — 초기 공고 로딩 (page=1, display=10)");
