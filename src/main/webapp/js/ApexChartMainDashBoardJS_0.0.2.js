@@ -10,7 +10,6 @@ function apexChartDoughnut(title,series,labels, colors, isBuble) {
 
     // 모든 시리즈 데이터에 대해 유효성 검사 실행
     series.map(function(item) {
-        console.log("apexChartDoughnut : " + item);
         // 숫자로 변환 후 유효성 검사
         let num = Number(item);
         chartData.push(isNaN(num) ? 0.00 : num.toFixed(2));

@@ -49,8 +49,6 @@ function chart_bar_data_succes(id,labels,data){
     let data_label = JSON.parse(JSON.stringify(data)).title;
     let data_text = JSON.parse(JSON.stringify(data)).text;
 
-    console.log(data_label);
-    console.log(data_text);
     return new Chart(id, {
         type: 'bar',
         data: {
@@ -100,8 +98,6 @@ function chart_bar_data_my(id,labels,data){
     let data_label = JSON.parse(JSON.stringify(data)).title;
     let data_text = JSON.parse(JSON.stringify(data)).text;
 
-    console.log(data_label);
-    console.log(data_text[0]);
     return new Chart(id, {
         type: 'bar',
         data: {

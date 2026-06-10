@@ -67,6 +67,16 @@ body { font-family: 'Source Sans 3', 'Noto Sans KR', sans-serif; background-colo
     align-items: center;
 }
 
+/* 금일 업무 지표 → 참여자 조회 드릴다운 링크 */
+.work-list-link {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.work-list-link:hover {
+    background-color: #eef2ff;
+}
+
 /* 성과 점수 박스 */
 .rank-badge {
     padding: 1rem;
