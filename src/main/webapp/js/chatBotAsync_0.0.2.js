@@ -33,8 +33,6 @@ $('document').ready(function () {
         //어시스턴스 아이디와 쓰레드 아이디를 가져옵니다.
         const chatbotThreadId = $("#chatbotThreadId").val();
         const chatbotAssistantsId = $("#chatbotAssistantsId").val();
-        console.log(chatbotThreadId);
-        console.log(chatbotAssistantsId);
 
         /* chatGPT가 대화내역을 산출할때 */
         /* 내용을 출력중이라는 내용을 보여준다. */
@@ -43,7 +41,6 @@ $('document').ready(function () {
 
         //사용자 입력값에 줄바꿈이 있다면 \\n 값으로 전환한다.
         const userMessage = userInput.val().replace(/\n/g, "\\n");
-        console.log(userMessage);
         const chatLog = $("#chatLog");
         let botResponse;
 

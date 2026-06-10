@@ -623,7 +623,10 @@ public class RecruitmentServiceImpl implements RecruitmentService {
 
     private int extractTotal(String xml) {
         try { return getIntText(parseDocument(xml), "total"); }
-        catch (Exception e) { return 0; }
+        catch (Exception e) {
+            log.warn("total 추출 실패 — 0으로 처리: {}", e.getMessage());
+            return 0;
+        }
     }
 
     // ── 공통 유틸 ────────────────────────────────────────────────

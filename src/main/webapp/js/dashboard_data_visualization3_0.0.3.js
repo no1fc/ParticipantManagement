@@ -231,7 +231,6 @@ $(document).ready(function(){
                         dataPointSelection: function(event, chartContext, config) { // click 대신 dataPointSelection 사용
                             const index = config.dataPointIndex;
                             const branchName = config.w.config.xaxis.categories[index];
-                            console.log("선택 지점 :" + branchName);
                             searchNoService(branchName);
                         }
                     }
@@ -289,7 +288,7 @@ $(document).ready(function(){
             //차트 표시
             inventiveSituationAChart.render();
         }).catch(err => {
-            console.log(err);
+            console.error("인센티브 현황 차트 렌더링 실패", err);
         })
 
     }
@@ -361,7 +360,6 @@ $(document).ready(function(){
                        inventiveFalseStatusData.inventiveSituation.at(6).data.push(item.etc);
                    });
            })
-           console.log("비동기 완료 : " + inventiveFalseStatusData);
 
            return new Promise((resolve) => {
                // 테스트용 더미 데이터 (실제 구현시 API 호출로 대체)
@@ -422,9 +420,7 @@ $(document).ready(function(){
         }).then(async r => {
             const noServiceTableBody = $('#noServiceTableBody');
             const noServiceModalLabel = $('#noServiceModalLabel');
-            console.log(r);
             let result = await r.json();
-            console.log(result);
             let searchHtml;
             noServiceModalLabel.text(branchName + " 서비스 미제공 리스트")
 
@@ -445,7 +441,6 @@ $(document).ready(function(){
                 searchHtml += item.participantIncentive;
                 searchHtml += "</td></tr>";
             })
-            console.log(searchHtml);
 
             noServiceTableBody.html(searchHtml);
         })
