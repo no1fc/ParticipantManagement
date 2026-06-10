@@ -1,6 +1,6 @@
 /**
  * @file 페이지네이션 UI 생성 유틸리티
- * @version 0.0.1
+ * @version 0.0.2
  * @requires jQuery
  */
 function paginationAddItems(page, startButton, endButton, totalButton) {
@@ -50,18 +50,11 @@ function pageEndLi(page, endButton, totalButton) {
 }
 
 function searchHref(page) {
-    let href = '?page=' + (page);
-    let search = window.location.search.split('&');
-    if (search[1] != null || search[1] != undefined) {
-        /*console.log('search :['+search+']');*/
-        search.forEach(function (item) {
-            /*console.log('item['+item+']');
-            console.log('search['+search.indexOf(item)+']');*/
-            if (search.indexOf(item) > 0) {
-                href += '&' + item
-            }
-        });
-        /*console.log('href :['+href+']');*/
-    }
-    return href;
+    // 현재 쿼리스트링의 모든 검색 파라미터(다중값 포함)를 보존하고 page만 교체한다.
+    // URLSearchParams를 사용해, page가 첫 파라미터가 아닌 경우(예: 대시보드에서
+    // ?searchTypeList=noInitial&endDateOptionList=false 로 딥링크 진입)에도
+    // searchTypeList/endDateOptionList 등 필터가 누락되지 않도록 한다.
+    const params = new URLSearchParams(window.location.search);
+    params.set('page', page);
+    return '?' + params.toString();
 }

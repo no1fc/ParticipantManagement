@@ -448,7 +448,7 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- Scripts -->
-<script defer src="/js/paginationJS_0.0.1.js"></script>
+<script defer src="/js/paginationJS_0.0.2.js"></script>
 <script>
   $(document).ready(function(){
     let page = parseInt("${param.page}", 10) || 1; // page가 비어있거나 아닌 경우 숫자로 변환 후 기본값 1 적용

@@ -116,7 +116,7 @@
     <!--end::Required Plugin(AdminLTE)-->
 
     <!-- pagination JS 파일 -->
-    <script defer src="/js/paginationJS_0.0.1.js"></script>
+    <script defer src="/js/paginationJS_0.0.2.js"></script>
 
     <!-- selectOptionJS JS 파일 -->
     <script defer src="/js/selectOptionJS_0.0.1.js"></script>
