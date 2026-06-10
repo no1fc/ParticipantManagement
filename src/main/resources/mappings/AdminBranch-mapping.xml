@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="AdminBranchDAO">
+
+    <!-- ===== 지점 관리 (J_참여자관리_지점) ===== -->
+    <select id="selectBranchList" resultType="admin">
+        SELECT
+            지점번호 branchNo,
+            지점 branchName,
+            지점인원 branchStaff,
+            유형1 type1,
+            유형2 type2,
+            사업부 department,
+            순서 branchOrder,
+            사용여부 branchUseStatus
+        FROM J_참여자관리_지점
+        <where>
+            <if test="branchUseStatus == null or branchUseStatus == ''">
+                사용여부 = '사용'
+            </if>
+            <if test="branchUseStatus != null and branchUseStatus != ''">
+                사용여부 = #{branchUseStatus}
+            </if>
+        </where>
+        ORDER BY 순서 ASC, 지점번호 ASC
+    </select>
+
+    <select id="selectBranchOne" resultType="admin">
+        SELECT
+            지점번호 branchNo,
+            지점 branchName,
+            지점인원 branchStaff,
+            유형1 type1,
+            유형2 type2,
+            사업부 department,
+            순서 branchOrder,
+            사용여부 branchUseStatus
+        FROM J_참여자관리_지점
+        WHERE 지점번호 = #{branchNo}
+    </select>
+
+    <!-- 지점 소속 사용자 수 조회 (삭제 전 확인용) -->
+    <select id="selectBranchUserCount" parameterType="admin" resultType="int">
+        SELECT COUNT(*)
+        FROM J_참여자관리_로그인정보
+        WHERE 지점 = (SELECT 지점 FROM J_참여자관리_지점 WHERE 지점번호 = #{branchNo})
+    </select>
+
+    <insert id="insertBranch">
+        INSERT INTO J_참여자관리_지점 (지점, 지점인원, 유형1, 유형2, 사업부, 순서)
+        VALUES (#{branchName}, #{branchStaff}, #{type1}, #{type2}, #{department}, #{branchOrder})
+    </insert>
+
+    <update id="updateBranch">
+        UPDATE J_참여자관리_지점
+        SET
+            지점 = #{branchName},
+            지점인원 = #{branchStaff},
+            유형1 = #{type1},
+            유형2 = #{type2},
+            사업부 = #{department},
+            순서 = #{branchOrder}
+        WHERE 지점번호 = #{branchNo}
+    </update>
+
+    <!-- 소프트 삭제: 사용여부를 '미사용'으로 변경 -->
+    <update id="deleteBranch">
+        UPDATE J_참여자관리_지점
+        SET 사용여부 = '미사용'
+        WHERE 지점번호 = #{branchNo}
+    </update>
+
+</mapper>

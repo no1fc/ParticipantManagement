@@ -56,6 +56,12 @@
         <mapper resource="mappings/Arrangement-mapping.xml"/>
         <mapper resource="mappings/RandomAssignment-mapping.xml"/>
         <mapper resource="mappings/Admin-mapping.xml"/>
+        <mapper resource="mappings/AdminUser-mapping.xml"/>
+        <mapper resource="mappings/AdminBranch-mapping.xml"/>
+        <mapper resource="mappings/AdminParticipant-mapping.xml"/>
+        <mapper resource="mappings/AdminDailyReport-mapping.xml"/>
+        <mapper resource="mappings/AdminJobPlacement-mapping.xml"/>
+        <mapper resource="mappings/AdminResumeRequest-mapping.xml"/>
         <mapper resource="mappings/Recruitment-mapping.xml"/>
         <mapper resource="mappings/ParticipantJobRecommend-mapping.xml"/>
         <mapper resource="mappings/Schedule-mapping.xml"/>

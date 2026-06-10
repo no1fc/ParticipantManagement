@@ -4,138 +4,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 관리자 페이지 서비스 인터페이스.
- * 사용자 관리, 지점 관리, 참여자 관리, 기준금액, 알선, 이력서 요청,
- * 자격증, 직업훈련, 대시보드 KPI, Excel 출력 등 관리자 기능 전반을 정의한다.
+ * 관리자 페이지 공통/보존 기능 서비스 인터페이스.
+ * <p>기준금액, 나은기준임금, 배정 히스토리, 자격증, 직업훈련, 대시보드 KPI,
+ * 상담사 목록, 참여자 Excel, 상담사별 통계, 연계 현황, 운영 현황 대시보드 등
+ * 기능별로 분리되지 않은(또는 보존/보류 대상) 기능을 정의한다.</p>
+ * <p>사용자·지점·참여자·일일업무보고·알선·이력서요청은 각각 별도 서비스로 분리되었다
+ * ({@link AdminUserService}, {@link AdminBranchService}, {@link AdminParticipantService},
+ * {@link AdminDailyReportService}, {@link AdminJobPlacementService}, {@link AdminResumeRequestService}).</p>
  */
 public interface AdminService {
-
-    // ===== 사용자 관리 =====
-
-    /**
-     * 사용자 목록을 조회한다.
-     * @param dto 검색 조건이 담긴 DTO
-     * @return 사용자 목록
-     */
-    List<AdminDTO> getUserList(AdminDTO dto);
-
-    /**
-     * 사용자 단건을 조회한다.
-     * @param dto 조회 대상 사용자 정보가 담긴 DTO
-     * @return 사용자 상세 정보
-     */
-    AdminDTO getUserOne(AdminDTO dto);
-
-    /**
-     * 신규 사용자를 등록한다.
-     * @param dto 등록할 사용자 정보가 담긴 DTO
-     * @return 등록 성공 여부
-     */
-    boolean addUser(AdminDTO dto);
-
-    /**
-     * 사용자 정보를 수정한다.
-     * @param dto 수정할 사용자 정보가 담긴 DTO
-     * @return 수정 성공 여부
-     */
-    boolean modifyUser(AdminDTO dto);
-
-    /**
-     * 사용자를 삭제한다.
-     * @param dto 삭제 대상 사용자 정보가 담긴 DTO
-     * @return 삭제 성공 여부
-     */
-    boolean removeUser(AdminDTO dto);
-
-    /**
-     * 사용자 비밀번호를 초기화한다.
-     * @param dto 대상 사용자 정보가 담긴 DTO
-     * @return 초기화 성공 여부
-     */
-    boolean resetPassword(AdminDTO dto);
-
-    /**
-     * 사용자 계정을 승인 처리한다.
-     * @param dto 승인 대상 사용자 정보가 담긴 DTO
-     * @return 승인 성공 여부
-     */
-    boolean approveUser(AdminDTO dto);
-
-    // ===== 지점 관리 =====
-
-    /**
-     * 지점 목록을 조회한다.
-     * @param dto 검색 조건이 담긴 DTO
-     * @return 지점 목록
-     */
-    List<AdminDTO> getBranchList(AdminDTO dto);
-
-    /**
-     * 지점 단건을 조회한다.
-     * @param dto 조회 대상 지점 정보가 담긴 DTO
-     * @return 지점 상세 정보
-     */
-    AdminDTO getBranchOne(AdminDTO dto);
-
-    /**
-     * 신규 지점을 등록한다.
-     * @param dto 등록할 지점 정보가 담긴 DTO
-     * @return 등록 성공 여부
-     */
-    boolean addBranch(AdminDTO dto);
-
-    /**
-     * 지점 정보를 수정한다.
-     * @param dto 수정할 지점 정보가 담긴 DTO
-     * @return 수정 성공 여부
-     */
-    boolean modifyBranch(AdminDTO dto);
-
-    /**
-     * 지점을 삭제한다.
-     * @param dto 삭제 대상 지점 정보가 담긴 DTO
-     * @return 삭제 성공 여부
-     */
-    boolean removeBranch(AdminDTO dto);
-
-    /**
-     * 특정 지점에 소속된 사용자 수를 조회한다.
-     * @param dto 지점 정보가 담긴 DTO
-     * @return 소속 사용자 수
-     */
-    int getBranchUserCount(AdminDTO dto);
-
-    // ===== 참여자 관리 (관리자) =====
-
-    /**
-     * 참여자 목록을 조회한다 (관리자 전용).
-     * @param dto 검색 조건이 담긴 DTO
-     * @return 참여자 목록
-     */
-    List<AdminDTO> getParticipantList(AdminDTO dto);
-
-    /**
-     * 참여자 단건을 조회한다 (관리자 전용).
-     * @param dto 조회 대상 참여자 정보가 담긴 DTO
-     * @return 참여자 상세 정보
-     */
-    AdminDTO getParticipantOne(AdminDTO dto);
-
-    /**
-     * 참여자를 삭제한다 (관리자 전용).
-     * @param dto 삭제 대상 참여자 정보가 담긴 DTO
-     * @return 삭제 성공 여부
-     */
-    boolean removeParticipant(AdminDTO dto);
-
-    // ===== 일일업무보고 =====
-
-    /**
-     * 일일업무보고 목록을 조회한다.
-     * @param dto 검색 조건이 담긴 DTO
-     * @return 일일업무보고 목록
-     */
-    List<AdminDTO> getDailyReportList(AdminDTO dto);
 
     // ===== 기준금액 =====
 
@@ -227,66 +104,6 @@ public interface AdminService {
      */
     List<AdminDTO> getFormulaHistoryList(AdminDTO dto);
 
-    // ===== 알선 관리 =====
-
-    /**
-     * 알선 목록을 조회한다.
-     * @param dto 검색 조건이 담긴 DTO
-     * @return 알선 목록
-     */
-    List<AdminDTO> getJobPlacementList(AdminDTO dto);
-
-    /**
-     * 알선 단건을 조회한다.
-     * @param dto 조회 대상 알선 정보가 담긴 DTO
-     * @return 알선 상세 정보
-     */
-    AdminDTO getJobPlacementOne(AdminDTO dto);
-
-    /**
-     * 알선 정보를 등록한다.
-     * @param dto 등록할 알선 정보가 담긴 DTO
-     * @return 등록 성공 여부
-     */
-    boolean addJobPlacement(AdminDTO dto);
-
-    /**
-     * 알선 정보를 수정한다.
-     * @param dto 수정할 알선 정보가 담긴 DTO
-     * @return 수정 성공 여부
-     */
-    boolean modifyJobPlacement(AdminDTO dto);
-
-    /**
-     * 알선 정보를 삭제한다.
-     * @param dto 삭제 대상 알선 정보가 담긴 DTO
-     * @return 삭제 성공 여부
-     */
-    boolean removeJobPlacement(AdminDTO dto);
-
-    // ===== 이력서 요청 =====
-
-    /**
-     * 이력서 요청 목록을 조회한다.
-     * @param dto 검색 조건이 담긴 DTO
-     * @return 이력서 요청 목록
-     */
-    List<AdminDTO> getResumeRequestList(AdminDTO dto);
-
-    /**
-     * 이력서 요청 단건을 조회한다.
-     * @param dto 조회 대상 이력서 요청 정보가 담긴 DTO
-     * @return 이력서 요청 상세 정보
-     */
-    AdminDTO getResumeRequestOne(AdminDTO dto);
-
-    /**
-     * 이력서 요청 상태를 변경한다.
-     * @param dto 상태 변경 정보가 담긴 DTO
-     * @return 변경 성공 여부
-     */
-    boolean updateResumeStatus(AdminDTO dto);
-
     // ===== 자격증 =====
 
     /**
@@ -365,21 +182,6 @@ public interface AdminService {
      */
     List<AdminDTO> getCounselorList(AdminDTO dto);
 
-    // ===== 사용자 보조 =====
-
-    /**
-     * 다음 회원번호를 채번한다.
-     * @return 다음 회원번호
-     */
-    int getNextMemberNo();
-
-    /**
-     * 사용자 ID 중복 여부를 확인한다.
-     * @param dto 확인할 사용자 ID가 담긴 DTO
-     * @return 중복이면 true, 아니면 false
-     */
-    boolean checkUserIdExists(AdminDTO dto);
-
     // ===== 참여자 Excel =====
 
     /**
@@ -388,17 +190,6 @@ public interface AdminService {
      * @return 참여자 Excel 데이터 목록
      */
     List<AdminDTO> getParticipantExcelList(AdminDTO dto);
-
-    // ===== 상담사별 통계 =====
-
-    /**
-     * 상담사별 알선 통계를 조회한다.
-     * @param dto 검색 조건이 담긴 DTO
-     * @return 상담사별 통계 목록
-     */
-    List<AdminDTO> getPlacementStatsByCounselor(AdminDTO dto);
-
-    // ===== 참여자 Excel 전체 컬럼 =====
 
     /**
      * 참여자 Excel 전체 컬럼 출력용 목록을 조회한다.
@@ -429,6 +220,15 @@ public interface AdminService {
      * @return 직업훈련 목록
      */
     List<AdminDTO> getExcelTrainingList(AdminDTO dto);
+
+    // ===== 상담사별 통계 =====
+
+    /**
+     * 상담사별 알선 통계를 조회한다.
+     * @param dto 검색 조건이 담긴 DTO
+     * @return 상담사별 통계 목록
+     */
+    List<AdminDTO> getPlacementStatsByCounselor(AdminDTO dto);
 
     // ===== 연계 현황 =====
 
