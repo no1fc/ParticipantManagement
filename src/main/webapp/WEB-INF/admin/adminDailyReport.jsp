@@ -39,9 +39,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.js"></script>
 
-    <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
+    <!-- Admin Common Design System -->
+    <link rel="stylesheet" href="/css/adminCss/adminCommon_0.0.2.css">
 
-    <link rel="stylesheet" href="/css/adminCss/adminDailyReport_0.0.1.css">
+    <!-- Page-specific CSS -->
+    <link rel="stylesheet" href="/css/adminCss/adminDailyReport_0.0.2.css">
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 
@@ -52,21 +54,16 @@
         <div class="app-content">
             <div class="container-fluid">
 
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card-modern border-0 shadow-sm">
-                            <div class="card-body">
-                                <h3 class="fw-bold text-brand mb-2">
-                                    <i class="bi bi-clipboard-data"></i> 일일업무보고
-                                </h3>
-                                <p class="text-muted mb-0">전담자별 일일업무보고 및 실적을 조회합니다.</p>
-                            </div>
-                        </div>
+                <!-- 페이지 헤더 -->
+                <div class="admin-page-header">
+                    <div class="admin-page-title">
+                        <h4><i class="bi bi-clipboard-data"></i> 일일업무보고</h4>
+                        <p>전담자별 일일업무보고 및 실적을 조회합니다.</p>
                     </div>
                 </div>
 
                 <!-- 통계 카드 -->
-                <div class="row mb-4">
+                <div class="row mb-3">
                     <div class="col-md-3">
                         <div class="stat-card">
                             <div class="mb-2 text-muted">금일 일반취업 합계</div>
@@ -93,57 +90,56 @@
                     </div>
                 </div>
 
-                <!-- 검색 패널 -->
-                <div class="row mb-3">
-                    <div class="col-md-3">
-                        <label class="form-label">지점</label>
-                        <select class="form-control" id="searchBranch">
-                            <option value="">전체</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">아이디</label>
-                        <input type="text" class="form-control" id="searchUserId" placeholder="아이디 입력">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">업무보고일</label>
-                        <input type="date" class="form-control" id="searchReportDate">
-                    </div>
-                    <div class="col-md-3 d-flex align-items-end">
-                        <button class="btn btn-primary w-100" onclick="searchReports()">
-                            <i class="bi bi-search"></i> 검색
-                        </button>
+                <!-- 검색 필터 패널 -->
+                <div class="admin-filter-panel">
+                    <div class="admin-filter-title"><i class="bi bi-search"></i> 일일업무보고 검색</div>
+                    <div class="admin-filter-row">
+                        <div class="admin-filter-group">
+                            <label>지점</label>
+                            <select class="form-select" id="searchBranch">
+                                <option value="">전체</option>
+                            </select>
+                        </div>
+                        <div class="admin-filter-group">
+                            <label>아이디</label>
+                            <input type="text" class="form-control" id="searchUserId" placeholder="아이디 입력">
+                        </div>
+                        <div class="admin-filter-group">
+                            <label>업무보고일</label>
+                            <input type="date" class="form-control" id="searchReportDate">
+                        </div>
+                        <div class="admin-filter-actions">
+                            <button class="btn btn-primary" onclick="searchReports()"><i class="bi bi-search"></i> 검색</button>
+                        </div>
                     </div>
                 </div>
 
                 <!-- 일일업무보고 테이블 -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="table-modern">
-                            <table id="dailyReportTable" class="table table-hover mb-0">
-                                <thead>
-                                <tr>
-                                    <th>PK</th>
-                                    <th>지점</th>
-                                    <th>아이디</th>
-                                    <th>유형1</th>
-                                    <th>유형2</th>
-                                    <th>금일일반취업</th>
-                                    <th>금일알선취업</th>
-                                    <th>금주일반취업</th>
-                                    <th>금주알선취업</th>
-                                    <th>금월일반취업</th>
-                                    <th>금월알선취업</th>
-                                    <th>금년일반취업</th>
-                                    <th>금년알선취업</th>
-                                    <th>업무보고일</th>
-                                    <th>실적등록일</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="admin-table-card">
+                    <div class="table-responsive">
+                        <table id="dailyReportTable" class="table admin-data-table mb-0">
+                            <thead>
+                            <tr>
+                                <th>PK</th>
+                                <th>지점</th>
+                                <th>아이디</th>
+                                <th>유형1</th>
+                                <th>유형2</th>
+                                <th>금일일반취업</th>
+                                <th>금일알선취업</th>
+                                <th>금주일반취업</th>
+                                <th>금주알선취업</th>
+                                <th>금월일반취업</th>
+                                <th>금월알선취업</th>
+                                <th>금년일반취업</th>
+                                <th>금년알선취업</th>
+                                <th>업무보고일</th>
+                                <th>실적등록일</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 

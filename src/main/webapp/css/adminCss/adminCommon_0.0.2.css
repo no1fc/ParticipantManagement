@@ -1,0 +1,624 @@
+/* ===== 관리자 공통 디자인 시스템 ===== */
+/* Version: 0.0.2 */
+/* Description: 업무형 데이터그리드 디자인 — 흰/회/남색 토큰, 그라디언트 제거, 정보밀도 우선 */
+/* Note: 0.0.1 대비 강조색을 인디고→남색으로 통일, 여백 축소(밀도↑), 데이터그리드 zebra/버튼 토큰 추가.
+         JS/JSP가 의존하는 클래스명은 모두 유지(admin-metric-*, admin-filter-*, admin-data-table,
+         admin-status-badge, admin-icon-btn, admin-offcanvas, admin-loading-* 등). */
+
+:root {
+    --admin-bg: #f4f6f9;
+    --admin-surface: #ffffff;
+    --admin-surface-muted: #f4f6f9;
+    --admin-border: #dfe3e8;
+    --admin-border-strong: #c7ced6;
+    --admin-text: #1f2733;
+    --admin-text-muted: #687385;
+    /* 남색(navy) 강조 */
+    --admin-primary: #1d3a5f;
+    --admin-primary-hover: #15293f;
+    --admin-primary-light: rgba(29, 58, 95, 0.08);
+    --admin-primary-tint: #eef2f7;
+    --admin-success: #1a7f5a;
+    --admin-success-light: rgba(26, 127, 90, 0.12);
+    --admin-warning: #b9770a;
+    --admin-warning-light: rgba(185, 119, 10, 0.12);
+    --admin-danger: #c0392b;
+    --admin-danger-light: rgba(192, 57, 43, 0.12);
+    --admin-info: #2c6fbb;
+    --admin-info-light: rgba(44, 111, 187, 0.12);
+    --admin-radius: 6px;
+    --admin-radius-sm: 4px;
+    --admin-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+    --admin-shadow-hover: 0 4px 12px rgba(16, 24, 40, 0.12);
+}
+
+/* ===== Button Tokens (Bootstrap btn 남색 통일) ===== */
+.app-content .btn-primary,
+.admin-modal .btn-primary {
+    background-color: var(--admin-primary);
+    border-color: var(--admin-primary);
+}
+.app-content .btn-primary:hover,
+.app-content .btn-primary:focus,
+.app-content .btn-primary:active,
+.admin-modal .btn-primary:hover,
+.admin-modal .btn-primary:focus,
+.admin-modal .btn-primary:active {
+    background-color: var(--admin-primary-hover) !important;
+    border-color: var(--admin-primary-hover) !important;
+}
+.app-content .btn-primary:focus,
+.admin-modal .btn-primary:focus {
+    box-shadow: 0 0 0 3px var(--admin-primary-light);
+}
+.app-content .btn {
+    font-size: 0.85rem;
+    padding: 6px 14px;
+    border-radius: var(--admin-radius-sm);
+}
+
+/* ===== Admin Modal (CRUD 폼 모달) ===== */
+.admin-modal .modal-header {
+    background: var(--admin-primary) !important;
+    border-bottom: 1px solid var(--admin-primary-hover);
+    padding: 14px 20px;
+}
+
+.admin-modal .modal-header .modal-title {
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.admin-modal .modal-header .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.admin-modal .modal-body h6,
+.admin-modal .modal-body h6.text-primary {
+    color: var(--admin-primary) !important;
+    font-weight: 700;
+}
+
+.admin-modal .modal-body .form-label {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--admin-text-muted);
+    margin-bottom: 4px;
+}
+
+.admin-modal .modal-body .form-control:focus,
+.admin-modal .modal-body .form-select:focus {
+    border-color: var(--admin-primary);
+    box-shadow: 0 0 0 3px var(--admin-primary-light);
+}
+
+.admin-modal .form-check-input:checked {
+    background-color: var(--admin-primary);
+    border-color: var(--admin-primary);
+}
+
+/* ===== Page Header ===== */
+.admin-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0 14px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-page-header .admin-page-title h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--admin-text);
+    margin: 0;
+}
+
+.admin-page-header .admin-page-title h4 i {
+    color: var(--admin-primary);
+}
+
+.admin-page-header .admin-page-title p {
+    font-size: 0.82rem;
+    color: var(--admin-text-muted);
+    margin: 3px 0 0;
+}
+
+.admin-page-header .admin-page-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* ===== Metric Grid ===== */
+.admin-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.admin-metric-card {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius);
+    padding: 12px 16px;
+    box-shadow: var(--admin-shadow);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 60px;
+}
+
+.admin-metric-card .admin-metric-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--admin-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+}
+
+.admin-metric-card .admin-metric-icon.icon-total { background: var(--admin-primary-light); color: var(--admin-primary); }
+.admin-metric-card .admin-metric-icon.icon-active { background: var(--admin-success-light); color: var(--admin-success); }
+.admin-metric-card .admin-metric-icon.icon-closed { background: rgba(104, 115, 133, 0.12); color: var(--admin-text-muted); }
+.admin-metric-card .admin-metric-icon.icon-employed { background: var(--admin-info-light); color: var(--admin-info); }
+.admin-metric-card .admin-metric-icon.icon-recent { background: var(--admin-warning-light); color: var(--admin-warning); }
+
+.admin-metric-card .admin-metric-info .admin-metric-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--admin-text);
+    line-height: 1.15;
+}
+
+.admin-metric-card .admin-metric-info .admin-metric-label {
+    font-size: 0.78rem;
+    color: var(--admin-text-muted);
+    margin-top: 2px;
+}
+
+/* ===== Filter Panel ===== */
+.admin-filter-panel {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius);
+    padding: 14px 18px;
+    margin-bottom: 14px;
+    box-shadow: var(--admin-shadow);
+}
+
+.admin-filter-panel .admin-filter-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--admin-text);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.admin-filter-panel .admin-filter-title i {
+    color: var(--admin-primary);
+}
+
+.admin-filter-panel .admin-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.admin-filter-panel .admin-filter-group {
+    flex: 1;
+    min-width: 150px;
+    max-width: 220px;
+}
+
+.admin-filter-panel .admin-filter-group label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--admin-text-muted);
+    margin-bottom: 4px;
+}
+
+.admin-filter-panel .admin-filter-group .form-control,
+.admin-filter-panel .admin-filter-group .form-select {
+    font-size: 0.85rem;
+    padding: 5px 10px;
+    border: 1px solid var(--admin-border-strong);
+    border-radius: var(--admin-radius-sm);
+    height: 34px;
+}
+
+.admin-filter-panel .admin-filter-group .form-control:focus,
+.admin-filter-panel .admin-filter-group .form-select:focus {
+    border-color: var(--admin-primary);
+    box-shadow: 0 0 0 3px var(--admin-primary-light);
+}
+
+.admin-filter-panel .admin-filter-actions {
+    display: flex;
+    gap: 6px;
+    align-items: flex-end;
+    padding-bottom: 1px;
+}
+
+.admin-filter-panel .admin-filter-actions .btn {
+    height: 34px;
+    white-space: nowrap;
+}
+
+.admin-advanced-filters {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--admin-border);
+}
+
+.admin-advanced-filters.show {
+    display: block;
+}
+
+/* ===== Table Card ===== */
+.admin-table-card {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius);
+    box-shadow: var(--admin-shadow);
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.admin-table-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--admin-border);
+    font-size: 0.85rem;
+    color: var(--admin-text-muted);
+}
+
+.admin-table-toolbar .admin-table-count {
+    font-weight: 600;
+    color: var(--admin-text);
+}
+
+/* ===== Data Table (업무형 데이터그리드) ===== */
+.admin-data-table {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.admin-data-table thead th {
+    background: var(--admin-primary-tint);
+    color: var(--admin-text);
+    font-weight: 600;
+    font-size: 0.78rem;
+    padding: 9px 12px;
+    border-bottom: 2px solid var(--admin-border-strong);
+    border-top: none;
+    white-space: nowrap;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.admin-data-table tbody td {
+    font-size: 0.83rem;
+    padding: 7px 12px;
+    color: var(--admin-text);
+    border-bottom: 1px solid var(--admin-border);
+    vertical-align: middle;
+}
+
+/* zebra: 정보밀도형 가독성 */
+.admin-data-table tbody tr:nth-child(even) > td {
+    background: var(--admin-surface-muted);
+}
+
+.admin-data-table tbody tr:hover > td {
+    background: var(--admin-primary-light);
+}
+
+.admin-data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.admin-data-table th.col-check,
+.admin-data-table td.col-check {
+    width: 40px;
+    text-align: center;
+}
+
+/* ===== DataTables 통합 (데이터그리드 일관성) ===== */
+.admin-table-card .dataTables_wrapper {
+    padding: 12px 16px 8px;
+}
+
+.admin-table-card .dataTables_filter input,
+.admin-table-card .dataTables_length select {
+    font-size: 0.83rem;
+    padding: 4px 8px;
+    border: 1px solid var(--admin-border-strong);
+    border-radius: var(--admin-radius-sm);
+}
+
+.admin-table-card .dataTables_filter input:focus,
+.admin-table-card .dataTables_length select:focus {
+    border-color: var(--admin-primary);
+    box-shadow: 0 0 0 3px var(--admin-primary-light);
+    outline: none;
+}
+
+.admin-table-card .dataTables_info,
+.admin-table-card .dataTables_length,
+.admin-table-card .dataTables_filter {
+    font-size: 0.82rem;
+    color: var(--admin-text-muted);
+}
+
+.admin-table-card .page-link {
+    color: var(--admin-primary);
+    font-size: 0.83rem;
+}
+
+.admin-table-card .page-item.active .page-link {
+    background-color: var(--admin-primary);
+    border-color: var(--admin-primary);
+    color: #ffffff;
+}
+
+.admin-table-card .page-link:focus {
+    box-shadow: 0 0 0 3px var(--admin-primary-light);
+}
+
+/* ===== Status Badge ===== */
+.admin-status-badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: var(--admin-radius-sm);
+    font-size: 0.74rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.admin-status-badge.badge-active {
+    background: var(--admin-success-light);
+    color: var(--admin-success);
+}
+
+.admin-status-badge.badge-closed {
+    background: rgba(104, 115, 133, 0.12);
+    color: var(--admin-text-muted);
+}
+
+.admin-status-badge.badge-employed {
+    background: var(--admin-info-light);
+    color: var(--admin-info);
+}
+
+.admin-status-badge.badge-iap-before {
+    background: var(--admin-warning-light);
+    color: var(--admin-warning);
+}
+
+.admin-status-badge.badge-iap-after {
+    background: var(--admin-primary-light);
+    color: var(--admin-primary);
+}
+
+/* ===== Icon Button ===== */
+.admin-icon-btn {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--admin-border-strong);
+    border-radius: var(--admin-radius-sm);
+    background: var(--admin-surface);
+    color: var(--admin-text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 0.88rem;
+    padding: 0;
+}
+
+.admin-icon-btn:hover {
+    background: var(--admin-primary-light);
+    color: var(--admin-primary);
+    border-color: var(--admin-primary);
+}
+
+/* ===== Loading Overlay ===== */
+.admin-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.admin-loading-overlay .admin-loading-box {
+    background: var(--admin-surface);
+    padding: 28px 36px;
+    border-radius: var(--admin-radius);
+    box-shadow: var(--admin-shadow-hover);
+    text-align: center;
+    max-width: 320px;
+}
+
+.admin-loading-overlay .admin-loading-spinner {
+    border: 4px solid var(--admin-border);
+    border-top: 4px solid var(--admin-primary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 14px;
+    animation: admin-spin 0.8s linear infinite;
+}
+
+.admin-loading-overlay .admin-loading-message {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--admin-text);
+}
+
+@keyframes admin-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ===== Sheet Selector ===== */
+.admin-sheet-selector {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.admin-sheet-option {
+    background: var(--admin-surface);
+    border: 2px solid var(--admin-border);
+    border-radius: var(--admin-radius);
+    padding: 18px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+}
+
+.admin-sheet-option:hover {
+    border-color: var(--admin-primary);
+    box-shadow: var(--admin-shadow-hover);
+}
+
+.admin-sheet-option.checked {
+    border-color: var(--admin-primary);
+    background: var(--admin-primary-light);
+}
+
+.admin-sheet-option .sheet-icon {
+    font-size: 1.5rem;
+    color: var(--admin-primary);
+    margin-bottom: 8px;
+}
+
+.admin-sheet-option .sheet-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--admin-text);
+    margin-bottom: 4px;
+}
+
+.admin-sheet-option .sheet-desc {
+    font-size: 0.75rem;
+    color: var(--admin-text-muted);
+}
+
+.admin-sheet-option input[type="checkbox"] {
+    display: none;
+}
+
+/* ===== Download Action ===== */
+.admin-download-action {
+    text-align: center;
+    padding: 24px 0;
+}
+
+.admin-download-action .btn-lg {
+    padding: 12px 48px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: var(--admin-radius);
+}
+
+/* ===== Offcanvas Detail Panel (우측 상세패널) ===== */
+.admin-offcanvas {
+    width: 460px !important;
+}
+
+.admin-offcanvas .offcanvas-header {
+    background: var(--admin-primary);
+    border-bottom: 1px solid var(--admin-primary-hover);
+    padding: 14px 20px;
+}
+
+.admin-offcanvas .offcanvas-header .offcanvas-title {
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.admin-offcanvas .offcanvas-header .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.admin-offcanvas .offcanvas-body {
+    padding: 18px 20px;
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 1024px) {
+    .admin-metric-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .admin-filter-panel .admin-filter-group {
+        min-width: 140px;
+    }
+    .admin-sheet-selector {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-metric-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .admin-page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .admin-page-header .admin-page-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    .admin-filter-panel .admin-filter-row {
+        flex-direction: column;
+    }
+    .admin-filter-panel .admin-filter-group {
+        max-width: 100%;
+    }
+    .admin-offcanvas {
+        width: 100% !important;
+    }
+    .admin-sheet-selector {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 375px) {
+    .admin-metric-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .admin-sheet-selector {
+        grid-template-columns: 1fr;
+    }
+    .admin-page-header .admin-page-actions {
+        flex-direction: column;
+    }
+    .admin-page-header .admin-page-actions .btn {
+        width: 100%;
+    }
+}

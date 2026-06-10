@@ -1,6 +1,6 @@
 /**
  * @file 관리자 이력서 요청 관리 (목록 조회, 검색, 상세 조회, 상태 변경)
- * @version 0.0.3
+ * @version 0.0.4
  * @requires jQuery, SweetAlert2, DataTables, Bootstrap
  */
 
@@ -93,20 +93,25 @@ function loadResumeRequests(params) {
             resumeRequestTable.clear();
             data.forEach(function(item) {
                 const statusClass = item.requestStatus == '완료' ? 'success' : (item.requestStatus == '거절' ? 'danger' : 'warning');
-                resumeRequestTable.row.add([
-                    item.resumeRegNo,
-                    item.participantName || '',
-                    item.branch || '',
-                    item.counselorName || '',
-                    item.resumeJobNo || '',
-                    item.companyName || '',
-                    item.managerName || '',
-                    '<span class="badge bg-' + statusClass + '">' + (item.requestStatus || '요청') + '</span>',
-                    item.resumeRegDate || '',
-                    item.resumeUpdateDate || '',
+                const actionButtons =
                     '<button class="btn btn-sm btn-info" onclick="viewResumeRequest(' + item.resumeRegNo + ')"><i class="bi bi-eye"></i> 상세</button>' +
                     ' <button class="btn btn-sm btn-success" onclick="updateStatus(' + item.resumeRegNo + ', \'완료\')"><i class="bi bi-check"></i> 완료</button>' +
-                    ' <button class="btn btn-sm btn-danger" onclick="updateStatus(' + item.resumeRegNo + ', \'거절\')"><i class="bi bi-x"></i> 거절</button>'
+                    ' <button class="btn btn-sm btn-danger" onclick="updateStatus(' + item.resumeRegNo + ', \'거절\')"><i class="bi bi-x"></i> 거절</button>';
+                // thead 13개 컬럼과 1:1 정렬: 등록번호/구직번호/참여자명/지점/상담사/기업명/담당자명/이메일/비상연락처/상태/등록일/수정일/액션
+                resumeRequestTable.row.add([
+                    item.resumeRegNo,                                                                              // 등록번호
+                    item.resumeJobNo || '',                                                                        // 구직번호
+                    item.participantName || '',                                                                    // 참여자명
+                    item.branch || '',                                                                             // 지점
+                    item.counselorName || '',                                                                      // 상담사
+                    item.companyName || '',                                                                        // 기업명
+                    item.managerName || '',                                                                        // 담당자명
+                    item.managerEmail || '',                                                                       // 이메일
+                    item.emergencyContact || '',                                                                   // 비상연락처
+                    '<span class="badge bg-' + statusClass + '">' + (item.requestStatus || '요청') + '</span>',    // 상태
+                    item.resumeRegDate || '',                                                                      // 등록일
+                    item.resumeUpdateDate || '',                                                                   // 수정일
+                    actionButtons                                                                                  // 액션
                 ]);
             });
             resumeRequestTable.draw(false);
@@ -122,9 +127,6 @@ function viewResumeRequest(regNo) {
         url: '/admin/api/resume-requests/' + regNo,
         method: 'GET',
         success: function(data) {
-            $('#detail-participantName').text(data.participantName || '-');
-            $('#detail-branch').text(data.branch || '-');
-            $('#detail-counselorName').text(data.counselorName || '-');
             $('#detail-jobNo').text(data.resumeJobNo || '-');
             $('#detail-company').text(data.companyName || '-');
             $('#detail-manager').text(data.managerName || '-');

@@ -39,9 +39,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.js"></script>
 
-    <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
+    <!-- Admin Common Design System -->
+    <link rel="stylesheet" href="/css/adminCss/adminCommon_0.0.2.css">
 
-    <link rel="stylesheet" href="/css/adminCss/adminBranchManagement_0.0.1.css">
+    <!-- Page-specific CSS -->
+    <link rel="stylesheet" href="/css/adminCss/adminBranchManagement_0.0.2.css">
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 
@@ -52,54 +54,43 @@
         <div class="app-content">
             <div class="container-fluid">
 
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card-modern border-0 shadow-sm">
-                            <div class="card-body">
-                                <h3 class="fw-bold text-brand mb-2">
-                                    <i class="bi bi-building"></i> 지점 관리
-                                </h3>
-                                <p class="text-muted mb-0">전국 지점 정보를 관리합니다.</p>
-                            </div>
-                        </div>
+                <!-- 페이지 헤더 -->
+                <div class="admin-page-header">
+                    <div class="admin-page-title">
+                        <h4><i class="bi bi-building"></i> 지점 관리</h4>
+                        <p>전국 지점 정보를 관리합니다.</p>
                     </div>
-                </div>
-
-                <!-- 지점 카드 뷰 -->
-                <div class="row mb-4" id="branchCardContainer">
-                    <!-- 동적으로 로드됩니다 -->
-                </div>
-
-                <!-- 액션 버튼 -->
-                <div class="row mb-3">
-                    <div class="col-12 text-end">
+                    <div class="admin-page-actions">
                         <button class="btn btn-primary" onclick="openAddBranchModal()">
                             <i class="bi bi-plus-circle"></i> 지점 추가
                         </button>
                     </div>
                 </div>
 
+                <!-- 지점 요약 카드 뷰 (동적 로드) -->
+                <div class="row mb-3" id="branchCardContainer">
+                    <!-- 동적으로 로드됩니다 -->
+                </div>
+
                 <!-- 지점 목록 테이블 -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="table-modern">
-                            <table id="branchTable" class="table table-hover mb-0">
-                                <thead>
-                                <tr>
-                                    <th>지점번호</th>
-                                    <th>지점명</th>
-                                    <th>지점인원</th>
-                                    <th>유형1</th>
-                                    <th>유형2</th>
-                                    <th>사업부</th>
-                                    <th>순서</th>
-                                    <th>액션</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="admin-table-card">
+                    <div class="table-responsive">
+                        <table id="branchTable" class="table admin-data-table mb-0">
+                            <thead>
+                            <tr>
+                                <th>지점번호</th>
+                                <th>지점명</th>
+                                <th>지점인원</th>
+                                <th>유형1</th>
+                                <th>유형2</th>
+                                <th>사업부</th>
+                                <th>순서</th>
+                                <th>액션</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -114,7 +105,7 @@
 </div>
 
 <!-- 지점 추가/수정 모달 -->
-<div class="modal fade" id="branchModal" tabindex="-1">
+<div class="modal fade admin-modal" id="branchModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">

@@ -1,0 +1,15 @@
+/* ===== 알선 관리 페이지 전용 CSS ===== */
+/* Version: 0.0.2 */
+/* Description: adminCommon_0.0.2.css(업무형 데이터그리드) 보충 — 컬럼 정렬/요약열 폭 */
+
+#jobPlacementTable td:nth-child(1),
+#jobPlacementTable td:nth-child(2) { text-align: center; }
+
+/* 상세정보/추천사 요약 열: 폭 제한 + 말줄임 */
+#jobPlacementTable td:nth-child(6),
+#jobPlacementTable td:nth-child(7) {
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

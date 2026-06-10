@@ -1,0 +1,28 @@
+/* ===== 일일업무보고 페이지 전용 CSS ===== */
+/* Version: 0.0.2 */
+/* Description: adminCommon_0.0.2.css(업무형 데이터그리드) 보충 — 통계 카드, 컬럼 정렬 */
+
+/* ===== 통계 카드 (그라디언트 제거, 업무형) ===== */
+.stat-card {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-left: 3px solid var(--admin-primary);
+    border-radius: var(--admin-radius);
+    padding: 14px 16px;
+    box-shadow: var(--admin-shadow);
+}
+
+.stat-card .text-muted {
+    font-size: 0.78rem;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--admin-primary);
+    line-height: 1.2;
+}
+
+/* ===== 테이블 컬럼 정렬 (수치형 가운데) ===== */
+#dailyReportTable td:nth-child(1),
+#dailyReportTable td:nth-child(n+4):nth-child(-n+13) { text-align: center; }

@@ -56,10 +56,11 @@
     <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.js"></script>
     <script defer src="/js/sweetAlert_0.0.1.js"></script>
 
-    <!-- Modern Design System -->
-    <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
+    <!-- Admin Common Design System -->
+    <link rel="stylesheet" href="/css/adminCss/adminCommon_0.0.2.css">
 
-    <link rel="stylesheet" href="/css/adminCss/adminUserManagement_0.0.1.css">
+    <!-- Page-specific CSS -->
+    <link rel="stylesheet" href="/css/adminCss/adminUserManagement_0.0.2.css">
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 
@@ -77,40 +78,42 @@
             <div class="container-fluid">
 
                 <!-- 페이지 헤더 -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card-modern border-0 shadow-sm">
-                            <div class="card-body">
-                                <h3 class="fw-bold text-brand mb-2">
-                                    <i class="bi bi-person-badge"></i> 사용자 관리
-                                </h3>
-                                <p class="text-muted mb-0">전담자 및 관리자 계정을 관리합니다.</p>
-                            </div>
-                        </div>
+                <div class="admin-page-header">
+                    <div class="admin-page-title">
+                        <h4><i class="bi bi-person-badge"></i> 사용자 관리</h4>
+                        <p>전담자 및 관리자 계정을 관리합니다.</p>
+                    </div>
+                    <div class="admin-page-actions">
+                        <button class="btn btn-primary" onclick="openAddUserModal()">
+                            <i class="bi bi-plus-circle"></i> 사용자 추가
+                        </button>
+                        <button class="btn btn-success" onclick="exportToExcel()">
+                            <i class="bi bi-file-earmark-excel"></i> 엑셀 다운로드
+                        </button>
                     </div>
                 </div>
 
-                <!-- 검색 패널 -->
-                <div class="search-panel">
-                    <h5 class="mb-3"><i class="bi bi-search"></i> 사용자 검색</h5>
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label">이름</label>
+                <!-- 검색 필터 패널 -->
+                <div class="admin-filter-panel">
+                    <div class="admin-filter-title"><i class="bi bi-search"></i> 사용자 검색</div>
+                    <div class="admin-filter-row">
+                        <div class="admin-filter-group">
+                            <label>이름</label>
                             <input type="text" class="form-control" id="searchName" placeholder="이름 입력">
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">아이디</label>
+                        <div class="admin-filter-group">
+                            <label>아이디</label>
                             <input type="text" class="form-control" id="searchUserId" placeholder="아이디 입력">
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">지점</label>
-                            <select class="form-control" id="searchBranch">
+                        <div class="admin-filter-group">
+                            <label>지점</label>
+                            <select class="form-select" id="searchBranch">
                                 <option value="">전체</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">권한</label>
-                            <select class="form-control" id="searchRole">
+                        <div class="admin-filter-group">
+                            <label>권한</label>
+                            <select class="form-select" id="searchRole">
                                 <option value="">전체</option>
                                 <option value="상담">상담</option>
                                 <option value="PRA">배정관리자</option>
@@ -124,50 +127,34 @@
                                 <option value="대표">대표</option>
                             </select>
                         </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button class="btn btn-light w-100" onclick="searchUsers()">
-                                <i class="bi bi-search"></i> 검색
-                            </button>
+                        <div class="admin-filter-actions">
+                            <button class="btn btn-primary" onclick="searchUsers()"><i class="bi bi-search"></i> 검색</button>
                         </div>
-                    </div>
-                </div>
-
-                <!-- 액션 버튼 -->
-                <div class="row mb-3">
-                    <div class="col-12 text-end">
-                        <button class="btn btn-primary" onclick="openAddUserModal()">
-                            <i class="bi bi-plus-circle"></i> 사용자 추가
-                        </button>
-                        <button class="btn btn-success" onclick="exportToExcel()">
-                            <i class="bi bi-file-earmark-excel"></i> 엑셀 다운로드
-                        </button>
                     </div>
                 </div>
 
                 <!-- 사용자 목록 테이블 -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="table-modern">
-                            <table id="userTable" class="table table-hover mb-0">
-                                <thead>
-                                <tr>
-                                    <th>전담자번호</th>
-                                    <th>이름</th>
-                                    <th>아이디</th>
-                                    <th>지점</th>
-                                    <th>권한</th>
-                                    <th>관리자권한</th>
-                                    <th>입사일</th>
-                                    <th>근속기간구분</th>
-                                    <th>아이디사용여부</th>
-                                    <th>배정가중치</th>
-                                    <th>액션</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="admin-table-card">
+                    <div class="table-responsive">
+                        <table id="userTable" class="table admin-data-table mb-0">
+                            <thead>
+                            <tr>
+                                <th>전담자번호</th>
+                                <th>이름</th>
+                                <th>아이디</th>
+                                <th>지점</th>
+                                <th>권한</th>
+                                <th>관리자권한</th>
+                                <th>입사일</th>
+                                <th>근속기간구분</th>
+                                <th>아이디사용여부</th>
+                                <th>배정가중치</th>
+                                <th>액션</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -188,7 +175,7 @@
 <!--end::App Wrapper-->
 
 <!-- 사용자 추가/수정 모달 -->
-<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+<div class="modal fade admin-modal" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">

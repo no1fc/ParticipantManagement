@@ -46,10 +46,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.js"></script>
 
-    <!-- Modern Design System -->
-    <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
+    <!-- Admin Common Design System -->
+    <link rel="stylesheet" href="/css/adminCss/adminCommon_0.0.2.css">
 
-    <link rel="stylesheet" href="/css/adminCss/adminJobPlacement_0.0.1.css">
+    <!-- Page-specific CSS -->
+    <link rel="stylesheet" href="/css/adminCss/adminJobPlacement_0.0.2.css">
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 
@@ -60,88 +61,75 @@
         <div class="app-content">
             <div class="container-fluid">
 
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card-modern border-0 shadow-sm">
-                            <div class="card-body">
-                                <h3 class="fw-bold text-brand mb-2">
-                                    <i class="bi bi-briefcase"></i> 알선 관리
-                                </h3>
-                                <p class="text-muted mb-0">알선 상세정보를 관리합니다.</p>
-                            </div>
-                        </div>
+                <!-- 페이지 헤더 -->
+                <div class="admin-page-header">
+                    <div class="admin-page-title">
+                        <h4><i class="bi bi-briefcase"></i> 알선 관리</h4>
+                        <p>알선 상세정보를 관리합니다.</p>
                     </div>
-                </div>
-
-                <!-- 검색 패널 -->
-                <div class="search-panel">
-                    <h5 class="mb-3"><i class="bi bi-search"></i> 알선 검색</h5>
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label">지점</label>
-                            <select class="form-control form-control-modern" id="searchBranch">
-                                <option value="">전체</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">상담사</label>
-                            <select class="form-control form-control-modern" id="searchCounselor">
-                                <option value="">전체</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">참여자명</label>
-                            <input type="text" class="form-control form-control-modern" id="searchName" placeholder="이름 입력">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">등록일 (시작)</label>
-                            <input type="date" class="form-control form-control-modern" id="searchStartDate">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">등록일 (종료)</label>
-                            <input type="date" class="form-control form-control-modern" id="searchEndDate">
-                        </div>
-                        <div class="col-md-3 d-flex align-items-end">
-                            <button class="btn btn-light w-100 me-2" onclick="searchJobPlacements()">
-                                <i class="bi bi-search"></i> 검색
-                            </button>
-                            <button class="btn btn-outline-secondary w-100" onclick="resetSearch()">
-                                <i class="bi bi-arrow-counterclockwise"></i> 초기화
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-12 text-end">
+                    <div class="admin-page-actions">
                         <button class="btn btn-primary" onclick="openAddModal()">
                             <i class="bi bi-plus-circle"></i> 알선정보 추가
                         </button>
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-12">
-                        <div class="table-modern">
-                            <table id="jobPlacementTable" class="table table-hover mb-0">
-                                <thead>
-                                <tr>
-                                    <th>등록번호</th>
-                                    <th>구직번호</th>
-                                    <th>참여자명</th>
-                                    <th>지점</th>
-                                    <th>상담사</th>
-                                    <th>상세정보 (요약)</th>
-                                    <th>추천사 (요약)</th>
-                                    <th>등록일</th>
-                                    <th>수정일</th>
-                                    <th>액션</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
+                <!-- 검색 필터 패널 -->
+                <div class="admin-filter-panel">
+                    <div class="admin-filter-title"><i class="bi bi-search"></i> 알선 검색</div>
+                    <div class="admin-filter-row">
+                        <div class="admin-filter-group">
+                            <label>지점</label>
+                            <select class="form-select" id="searchBranch">
+                                <option value="">전체</option>
+                            </select>
                         </div>
+                        <div class="admin-filter-group">
+                            <label>상담사</label>
+                            <select class="form-select" id="searchCounselor">
+                                <option value="">전체</option>
+                            </select>
+                        </div>
+                        <div class="admin-filter-group">
+                            <label>참여자명</label>
+                            <input type="text" class="form-control" id="searchName" placeholder="이름 입력">
+                        </div>
+                        <div class="admin-filter-group">
+                            <label>등록일 (시작)</label>
+                            <input type="date" class="form-control" id="searchStartDate">
+                        </div>
+                        <div class="admin-filter-group">
+                            <label>등록일 (종료)</label>
+                            <input type="date" class="form-control" id="searchEndDate">
+                        </div>
+                        <div class="admin-filter-actions">
+                            <button class="btn btn-primary" onclick="searchJobPlacements()"><i class="bi bi-search"></i> 검색</button>
+                            <button class="btn btn-outline-secondary" onclick="resetSearch()"><i class="bi bi-arrow-counterclockwise"></i> 초기화</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 알선 목록 테이블 -->
+                <div class="admin-table-card">
+                    <div class="table-responsive">
+                        <table id="jobPlacementTable" class="table admin-data-table mb-0">
+                            <thead>
+                            <tr>
+                                <th>등록번호</th>
+                                <th>구직번호</th>
+                                <th>참여자명</th>
+                                <th>지점</th>
+                                <th>상담사</th>
+                                <th>상세정보 (요약)</th>
+                                <th>추천사 (요약)</th>
+                                <th>등록일</th>
+                                <th>수정일</th>
+                                <th>액션</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -156,7 +144,7 @@
 </div>
 
 <!-- 알선정보 추가/수정 모달 -->
-<div class="modal fade" id="jobPlacementModal" tabindex="-1">
+<div class="modal fade admin-modal" id="jobPlacementModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
