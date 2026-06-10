@@ -311,16 +311,6 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="/admin/standard-amounts" class="nav-link">
-                                    <small><p>기준금액 관리</p></small>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="/admin/assignment-history" class="nav-link">
-                                    <small><p>배정 히스토리</p></small>
-                                </a>
-                            </li>
-                            <li class="nav-item">
                                 <a href="/admin/job-placements" class="nav-link">
                                     <small><p>알선 관리</p></small>
                                 </a>
@@ -328,16 +318,6 @@
                             <li class="nav-item">
                                 <a href="/admin/resume-requests" class="nav-link">
                                     <small><p>이력서 요청 관리</p></small>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="/admin/certificate-training" class="nav-link">
-                                    <small><p>자격증/직업훈련 관리</p></small>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="/admin/excel-builder" class="nav-link">
-                                    <small><p>엑셀 다운로드 설정</p></small>
                                 </a>
                             </li>
                         </ul>

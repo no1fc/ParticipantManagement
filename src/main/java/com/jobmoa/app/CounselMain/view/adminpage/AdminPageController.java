@@ -83,30 +83,6 @@ public class AdminPageController {
     }
 
     /**
-     * 기준금액 관리 페이지로 이동한다. (시스템 관리자 전용)
-     *
-     * @param session HTTP 세션
-     * @return {@code "admin/adminStandardAmount"} JSP 뷰
-     */
-    @GetMapping("/standard-amounts")
-    public String adminStandardAmount(HttpSession session) {
-        if (!AdminAccessSupport.isManager(session)) return "redirect:/admin";
-        return "admin/adminStandardAmount";
-    }
-
-    /**
-     * 배정 히스토리 페이지로 이동한다.
-     *
-     * @param session HTTP 세션
-     * @return {@code "admin/adminAssignmentHistory"} JSP 뷰
-     */
-    @GetMapping("/assignment-history")
-    public String adminAssignmentHistory(HttpSession session) {
-        if (!AdminAccessSupport.hasAdminAccess(session)) return "redirect:/";
-        return "admin/adminAssignmentHistory";
-    }
-
-    /**
      * 알선 관리 페이지로 이동한다.
      *
      * @param session HTTP 세션
@@ -128,30 +104,6 @@ public class AdminPageController {
     public String adminResumeRequest(HttpSession session) {
         if (!AdminAccessSupport.hasAdminAccess(session)) return "redirect:/";
         return "admin/adminResumeRequest";
-    }
-
-    /**
-     * 자격증/직업훈련 관리 페이지로 이동한다. (시스템 관리자 전용)
-     *
-     * @param session HTTP 세션
-     * @return {@code "admin/adminCertificateTraining"} JSP 뷰
-     */
-    @GetMapping("/certificate-training")
-    public String adminCertificateTraining(HttpSession session) {
-        if (!AdminAccessSupport.isManager(session)) return "redirect:/admin";
-        return "admin/adminCertificateTraining";
-    }
-
-    /**
-     * 엑셀 빌더 페이지로 이동한다.
-     *
-     * @param session HTTP 세션
-     * @return {@code "admin/adminExcelBuilder"} JSP 뷰
-     */
-    @GetMapping("/excel-builder")
-    public String adminExcelBuilder(HttpSession session) {
-        if (!AdminAccessSupport.hasAdminAccess(session)) return "redirect:/";
-        return "admin/adminExcelBuilder";
     }
 
     /**
