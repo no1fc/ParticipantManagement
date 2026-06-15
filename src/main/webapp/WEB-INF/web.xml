@@ -26,15 +26,13 @@
     ============================================================================
     -->
 
-    <!-- Error Page 설정 (유지) -->
-    <error-page>
-        <error-code>404</error-code>
-        <location>/error/error404.jsp</location>
-    </error-page>
-    <error-page>
-        <error-code>500</error-code>
-        <location>/error/error500.jsp</location>
-    </error-page>
+    <!--
+    Error Page 설정:
+    Spring Boot 임베디드/외부 톰캣 모두 오류를 /error 로 포워드하고 BasicErrorController가
+    "error" 뷰(spring.mvc.view.prefix=/WEB-INF/ + suffix=.jsp → /WEB-INF/error.jsp)를 렌더한다.
+    따라서 web.xml <error-page> 매핑은 사용하지 않는다(임베디드 톰캣에서 무시되어 whitelabel 노출됨).
+    상태코드별 문구 분기는 /WEB-INF/error.jsp 내부에서 처리.
+    -->
 
     <!--
     ============================================================================
