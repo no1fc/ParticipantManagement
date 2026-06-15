@@ -80,11 +80,11 @@
                         <input type="text" class="form-control datepicker_on" id="counselJobEX" name="counselJobEX" placeholder="yyyy-mm-dd" aria-label="구직만료일" value="${not empty counsel ? counsel.counselJobEX:""}" autocomplete="off">
                     </div>
                 </td>
-                <th><label for="counselEXPDate">기간만료(예정)일<span class="text-danger">*</span></label></th>
+                <th><label for="counselEXPDate">기간만료(예정)일<span class="text-danger">*</span></label><i class="bi bi-info-circle" style="margin-left:4px; color:#64748b; cursor:help;" title="초기 상담일로 부터 1년 뒤에 날짜를 입력해주세요. 취업자가 아닌 참여자는 해당 날짜가 종료일로 계산됩니다."></i></th>
                 <td>
                     <div class="input-group">
                         <i class="bi bi-calendar-date input-group-text"></i>
-                        <input type="text" class="form-control datepicker_on" id="counselEXPDate" name="counselEXPDate" placeholder="yyyy-mm-dd" aria-label="기간만료(예정)일" value="${not empty counsel ? counsel.counselEXPDate:""}" autocomplete="off">
+                        <input type="text" class="form-control datepicker_on" id="counselEXPDate" name="counselEXPDate" placeholder="yyyy-mm-dd" aria-label="기간만료(예정)일" title="초기 상담일로 부터 1년 뒤에 날짜를 입력해주세요. 취업자가 아닌 참여자는 해당 날짜가 종료일로 계산됩니다." value="${not empty counsel ? counsel.counselEXPDate:""}" autocomplete="off">
                     </div>
                 </td>
             </tr>

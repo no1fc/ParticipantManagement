@@ -1,6 +1,6 @@
 /**
  * @file 참여자 등록/수정 공통 유효성 검사 및 폼 제출 처리
- * @version 0.1.3
+ * @version 0.1.4
  * @requires jQuery, SweetAlert2
  */
 $(document).ready(function () {
@@ -269,31 +269,20 @@ $(document).ready(function () {
         }
 
 
-        // 초기상담일이 비어있는 상태라면 최근상담일이 초기상담일이 입력된다는 안내를 출력한다.
-        if(!counselInItConsVal.length > 0){
-            // let flag = false;
-            // alertConfirmQuestion('초기상담일이 작성되지 않았습니다.','최근상담일을 초기상담일로 작성합니다.','수정','취소')
-            //     .then(result => {
-            //         if(result){
-            //             counselInItCons.val(counselLastConsVal);
-            //             flag = true;
-            //         }
-            //     })
-
-            // 초기상담일 변경
+        // 초기상담일이 비어있고 최근상담일이 있으면 초기상담일을 최근상담일로 자동 설정 (기존 편의 유지)
+        if(isBlank(counselInItConsVal) && !isBlank(counselLastConsVal)){
             counselInItCons.val(counselLastConsVal);
-
-            // if(!flag){
-            //     return;
-            // }
-            // 기간만료(예정)일 수정
-            counselEXPDateChangeFunction();
+            counselInItConsVal = counselLastConsVal;
         }
 
-        // 기간만료(예정)일 값이 없다면 초기상담일 기준으로 1년 이후로 변경
-        if(!counselEXPDateVal.length > 0){
-            // 기간만료(예정)일 수정
-            counselEXPDateChangeFunction();
+        // 초기상담일이 있으면 기간만료(예정)일은 필수 (자동입력하지 않고 사용자가 직접 입력)
+        if(!isBlank(counselInItConsVal) && isBlank(counselEXPDateVal)){
+            alertDefaultInfo(
+                "기간만료(예정)일을 입력해주세요.",
+                "초기 상담일로부터 1년 뒤 날짜를 입력해 주세요. 취업자가 아닌 참여자는 해당 날짜가 종료일로 계산됩니다."
+            );
+            counselEXPDate.focus();
+            return;
         }
 
         //취창업일이 비어있고 임금 OR 취업인센티브_구분이 비어있다면 함수에서 내보낸다.
@@ -361,28 +350,8 @@ $(document).ready(function () {
     });
 //  form 전달 끝
 
-    // 기간만료(예정)일 수정 시작
-    function counselEXPDateChangeFunction() {
-        const counselInItConsVal = counselInItCons.val();
-
-        if(counselInItConsVal.length === 0){
-            counselEXPDate.val("");
-            return;
-        }
-
-        const defaultDate = new Date(counselInItConsVal);
-        let changeDate = new Date(defaultDate.setDate(defaultDate.getDate()-1));
-
-        const year = changeDate.getFullYear()+1;
-        const month = String(changeDate.getMonth() + 1).padStart(2, '0');
-        const day = String(changeDate.getDate()).padStart(2, '0');
-        counselEXPDate.val(`${year}-${month}-${day}`);
-    }
-
-    counselInItCons.on("change", function () {
-        counselEXPDateChangeFunction();
-    })
-    // 기간만료(예정)일 수정 끝
+    // 기간만료(예정)일: 자동입력(초기상담일+1년) 제거 — 사용자가 직접 입력하도록 변경.
+    // 초기상담일 입력 시 필수 검증/안내는 제출 검증부와 refreshRequiredHighlight()에서 처리.
 
     // ── 섹션 캐스케이드 활성/비활성 시작 ──
     // 체인: 기본정보(성명+생년월일) → 상담정보 → (초기상담일) → 취업정보 → (취창업일) → 취업상세
@@ -446,6 +415,9 @@ $(document).ready(function () {
         setRequiredHighlight(basicGender, true);
         setRequiredHighlight(basicAddress, true);
         setRequiredHighlight(basicSchool, true);
+        // 초기상담일 입력 시 기간만료(예정)일 필수
+        const hasInitCons = (counselInItCons.val() || '').trim().length > 0;
+        setRequiredHighlight(counselEXPDate, hasInitCons);
         // 취창업일 입력 시 취업 상세 필수
         const empStarted = (employmentStartDate.val() || '').trim().length > 0;
         setRequiredHighlight(employmentEmpType, empStarted);
@@ -464,7 +436,7 @@ $(document).ready(function () {
     counselFocusedPlacement.on("change", enforceFocusedPlacement);
 
     // 필수 강조 감시 대상 필드 (게이트 외 일반 필수)
-    $([]).add(basicGender).add(basicAddress).add(basicSchool)
+    $([]).add(basicGender).add(basicAddress).add(basicSchool).add(counselEXPDate)
         .add(employmentEmpType).add(employmentLoyer).add(employmentSalary).add(employmentIncentive)
         .on("change input", refreshRequiredHighlight);
 
