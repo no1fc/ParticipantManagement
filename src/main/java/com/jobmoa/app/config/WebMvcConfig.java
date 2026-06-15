@@ -40,7 +40,6 @@ import java.util.concurrent.TimeUnit;
     "com.jobmoa.app.CounselMain.view.management",
     "com.jobmoa.app.CounselMain.view.function",
     "com.jobmoa.app.CounselMain.view.report",
-    "com.jobmoa.app.CounselMain.view.chatBot",
     "com.jobmoa.app.CounselMain.view.branchManagement",
     "com.jobmoa.app.CounselMain.view.participantRandomAssignment",
     "com.jobmoa.app.CounselMain.view.mailSend",
