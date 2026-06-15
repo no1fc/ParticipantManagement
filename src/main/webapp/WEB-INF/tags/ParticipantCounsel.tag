@@ -8,10 +8,14 @@
 <%@ attribute name="counsel" type="com.jobmoa.app.CounselMain.biz.participantCounsel.CounselDTO" %>
 
 <%-- 상담정보 입력 폼 (form-board 디자인) --%>
-<div class="form-board">
+<div class="form-board" id="counselSection">
     <%-- 섹션 헤더: 좌측 파란 액센트 바 + 제목 --%>
     <div class="section-header">
         <h3 class="section-title">상담정보</h3>
+        <%-- 잠금 안내: 기본정보(성명·생년월일) 입력 전까지 비활성 --%>
+        <span class="section-lock-hint" id="counselLockHint">
+            <i class="bi bi-lock-fill"></i> 참여자 성명·생년월일 입력 시 활성화됩니다
+        </span>
     </div>
     <%-- 구직번호 hidden input (수정 시 식별자) --%>
     <input type="hidden" id="counselJobNo" name="counselJobNo" value="${not empty param.counselJobNo ? param.counselJobNo : 0}">

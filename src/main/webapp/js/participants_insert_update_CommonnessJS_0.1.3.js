@@ -1,6 +1,6 @@
 /**
  * @file 참여자 등록/수정 공통 유효성 검사 및 폼 제출 처리
- * @version 0.1.2
+ * @version 0.1.3
  * @requires jQuery, SweetAlert2
  */
 $(document).ready(function () {
@@ -10,6 +10,8 @@ $(document).ready(function () {
     const basicPartic = $("#basicPartic");
     //생년월일
     const basicDob = $("#basicDob");
+    //성별
+    const basicGender = $("#basicGender");
     //주소
     const basicAddress = $("#basicAddress");
     //학교명
@@ -65,6 +67,12 @@ $(document).ready(function () {
     const employmentSalary = $("#employmentSalary");
     //취업인센티브_구분
     const employmentIncentive = $("#employmentIncentive");
+    //집중알선요청 (true/false)
+    const counselFocusedPlacement = $("#counselFocusedPlacement");
+    //상담정보 섹션 컨테이너 (참여자명·생년월일 캐스케이드 활성·비활성 타깃)
+    const counselSection = $("#counselSection");
+    //취업정보 섹션 컨테이너 (초기상담일/취창업일 캐스케이드 활성·비활성 타깃)
+    const employmentSection = $("#employmentSection");
 
     //키워드 등록 개수 확인용 함수
     function keywordCountFunction(){
@@ -92,6 +100,8 @@ $(document).ready(function () {
         const basicParticVal = basicPartic.val();
         //생년월일
         const basicDobVal = basicDob.val();
+        //성별
+        const basicGenderVal = basicGender.val();
         //주소
         let basicAddressVal = basicAddress.val();
         //학교명
@@ -145,6 +155,10 @@ $(document).ready(function () {
         //취업인센티브_구분
         const employmentIncentiveVal = employmentIncentive.val();
 
+        //집중알선요청이 희망(true)이면 알선요청을 희망으로 강제 변경 후 값 재확인
+        enforceFocusedPlacement();
+        counselPlacementVal = counselPlacement.val();
+
         //flag 변수 생성
         //각 변수들이 비어 있다면 값이 없는 것으로 간주하여 form 태그 실행 함수에서 내보낸다.
         let flag = basicParticVal.length > 0;
@@ -152,7 +166,30 @@ $(document).ready(function () {
             alertDefaultInfo("참여자 성명은 필수 입력 입니다.","참여자를 입력해주세요.");
             return;
         }
-        else if(counselIAPDateVal.length > 0){
+
+        //기본정보 무조건 필수 (참여자명 외: 생년월일·성별·주소·학교명)
+        if(!(basicDobVal && basicDobVal.trim().length > 0)){
+            alertDefaultInfo("생년월일은 필수 입력입니다.","생년월일을 입력해주세요.");
+            basicDob.focus();
+            return;
+        }
+        if(!(basicGenderVal && basicGenderVal.trim().length > 0)){
+            alertDefaultInfo("성별은 필수 입력입니다.","성별을 선택해주세요.");
+            basicGender.focus();
+            return;
+        }
+        if(!(basicAddressVal && basicAddressVal.trim().length > 0)){
+            alertDefaultInfo("주소는 필수 입력입니다.","주소를 입력해주세요.");
+            basicAddress.focus();
+            return;
+        }
+        if(!(basicSchoolVal && basicSchoolVal.trim().length > 0)){
+            alertDefaultInfo("학교명은 필수 입력입니다.","학교명을 입력해주세요.");
+            basicSchool.focus();
+            return;
+        }
+
+        if(counselIAPDateVal.length > 0){
             //iap 전 상태에서 iap 수립일을 작성하고 등록 OR 저장하면 경고 출력
             //iap 수립일이 비어있지 않은 상태로
             // iap 3개월차, 5개월차 칸이 비어있다면 입력 요청 후 함수에서 내보낸다.
@@ -284,6 +321,16 @@ $(document).ready(function () {
                 alertDefaultInfo("임금을 정확히 입력해주세요","1~1000까지 입력부탁드립니다.");
                 return;
             }
+            //취업유형은 필수 입력
+            if (!(employmentEmpTypeVal && employmentEmpTypeVal.length > 0)){
+                alertDefaultInfo("취업유형은 필수 입력입니다.","");
+                return;
+            }
+            //취업처는 필수 입력
+            if (!(employmentLoyerVal && employmentLoyerVal.length > 0)){
+                alertDefaultInfo("취업처는 필수 입력입니다.","");
+                return;
+            }
             //임금이 작성되어 있거나
             if (!employmentSalaryVal.length > 0){
                 alertDefaultInfo("임금은 필수 입력입니다.","");
@@ -300,6 +347,14 @@ $(document).ready(function () {
         if (typeof syncPrimaryJobWish === 'function') {
             syncPrimaryJobWish();
         }
+
+        // 캐스케이드로 비활성화된 상담·취업 필드를 제출 직전 재활성화 (값 누락/데이터 유실 방지)
+        counselSection.find("input, select, textarea").prop("disabled", false);
+        employmentSection.find("input, select, textarea").prop("disabled", false);
+        // IAP 3/5개월차는 IAP수립일이 없으면 기존대로 비활성 유지 (제출 동작 보존)
+        const hasIAPOnSubmit = ($('#counselIAPDate').val() || '').trim().length > 0;
+        counselIAP3Month.prop("disabled", !hasIAPOnSubmit);
+        counselIAP5Month.prop("disabled", !hasIAPOnSubmit);
 
         const form = $("#participantsForm");
         form.submit();
@@ -328,6 +383,95 @@ $(document).ready(function () {
         counselEXPDateChangeFunction();
     })
     // 기간만료(예정)일 수정 끝
+
+    // ── 섹션 캐스케이드 활성/비활성 시작 ──
+    // 체인: 기본정보(성명+생년월일) → 상담정보 → (초기상담일) → 취업정보 → (취창업일) → 취업상세
+    function updateSectionCascade() {
+        // 1단계: 상담정보 게이트 = 참여자명 + 생년월일
+        const counselReady = (basicPartic.val() || '').trim().length > 0
+            && (basicDob.val() || '').trim().length > 0;
+        // hidden(식별자)은 비활성 대상에서 제외 (제출 누락 방지)
+        const $counselFields = counselSection.find("input, select, textarea").not("[type='hidden']");
+        if (!counselReady) {
+            $counselFields.prop("disabled", true);
+        } else {
+            $counselFields.prop("disabled", false);
+            // IAP 3/5개월차는 IAP수립일 유무에 따름 (기존 규칙 보존)
+            const hasIAP = ($('#counselIAPDate').val() || '').trim().length > 0;
+            counselIAP3Month.prop("disabled", !hasIAP);
+            counselIAP5Month.prop("disabled", !hasIAP);
+        }
+        counselSection.toggleClass("section-locked", !counselReady);
+        $("#counselLockHint").toggle(!counselReady);
+
+        // 2단계: 취업정보 게이트 = 상담준비 + 초기상담일
+        const hasInitCons = (counselInItCons.val() || '').trim().length > 0;
+        const hasStartDate = (employmentStartDate.val() || '').trim().length > 0;
+        const empLocked = !counselReady || !hasInitCons;
+        const $empFields = employmentSection.find("input, select, textarea").not("[type='hidden']");
+        if (empLocked) {
+            $empFields.prop("disabled", true);
+        } else {
+            // 취창업일은 항상 입력 가능, 나머지 상세필드는 취창업일 유무에 따름
+            employmentStartDate.prop("disabled", false);
+            $empFields.not(employmentStartDate).prop("disabled", !hasStartDate);
+        }
+        employmentSection.toggleClass("section-locked", empLocked);
+        $("#employmentLockHint").toggle(empLocked);
+    }
+
+    // ── 집중알선요청 → 알선요청 강제 ──
+    function enforceFocusedPlacement() {
+        if (counselFocusedPlacement.val() === 'true' && counselPlacement.val() !== '희망') {
+            counselPlacement.val('희망').trigger('change');
+        }
+    }
+
+    // ── 필수 미입력 시각 강조 (입력 td 칸 색상) ──
+    function setRequiredHighlight($el, required) {
+        const $td = $el.closest('td');
+        const isEmpty = ($el.val() == null || String($el.val()).trim() === '');
+        const isDisabled = $el.prop('disabled');
+        if (required && isEmpty && !isDisabled) {
+            $td.addClass('required-empty');
+        } else {
+            $td.removeClass('required-empty');
+        }
+    }
+
+    function refreshRequiredHighlight() {
+        // 기본정보 무조건 필수
+        setRequiredHighlight(basicPartic, true);
+        setRequiredHighlight(basicDob, true);
+        setRequiredHighlight(basicGender, true);
+        setRequiredHighlight(basicAddress, true);
+        setRequiredHighlight(basicSchool, true);
+        // 취창업일 입력 시 취업 상세 필수
+        const empStarted = (employmentStartDate.val() || '').trim().length > 0;
+        setRequiredHighlight(employmentEmpType, empStarted);
+        setRequiredHighlight(employmentLoyer, empStarted);
+        setRequiredHighlight(employmentSalary, empStarted);
+        setRequiredHighlight(employmentIncentive, empStarted);
+    }
+
+    // 캐스케이드/강조 이벤트 바인딩
+    // 체인 게이트 필드(성명·생년월일·초기상담일·취창업일) 변경 시 전체 캐스케이드 재계산
+    $([]).add(basicPartic).add(basicDob).add(counselInItCons).add(employmentStartDate)
+        .on("change input", function () {
+            updateSectionCascade();
+            refreshRequiredHighlight();
+        });
+    counselFocusedPlacement.on("change", enforceFocusedPlacement);
+
+    // 필수 강조 감시 대상 필드 (게이트 외 일반 필수)
+    $([]).add(basicGender).add(basicAddress).add(basicSchool)
+        .add(employmentEmpType).add(employmentLoyer).add(employmentSalary).add(employmentIncentive)
+        .on("change input", refreshRequiredHighlight);
+
+    // 초기 상태 적용 (로드 시)
+    updateSectionCascade();
+    refreshRequiredHighlight();
+    // ── 섹션 캐스케이드/강조 끝 ──
 
 // 사용자 편의성을 위해 목록 리스트 출력 시작
     //자격증 목록 리스트 출력
@@ -476,6 +620,9 @@ $(document).ready(function () {
 
                 // 커서를 상세주소 필드로 이동한다.
                 basicAddress.focus();
+
+                // 주소 입력 완료 → 필수 미입력 강조 갱신 (readonly라 change 미발생 보완)
+                refreshRequiredHighlight();
 
                 // iframe을 넣은 element를 안보이게 한다.
                 element_layer.css('display', 'none');

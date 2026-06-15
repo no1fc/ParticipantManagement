@@ -58,6 +58,35 @@
     margin: 0;
 }
 
+/* 섹션 잠금 안내 (캐스케이드 비활성 시 헤더에 표시) */
+.section-lock-hint {
+    display: none;          /* JS가 잠금 상태일 때만 표시 */
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--pt-required);
+    margin-left: 8px;
+}
+
+.section-lock-hint .bi {
+    margin-right: 2px;
+}
+
+/* 잠금된 섹션: 입력 영역을 흐리게 + 빗금 배경으로 비활성임을 명확히 구분 */
+.form-board.section-locked .participant-table {
+    opacity: 0.5;
+    background-image: repeating-linear-gradient(
+        45deg,
+        rgba(148, 163, 184, 0.08),
+        rgba(148, 163, 184, 0.08) 10px,
+        rgba(148, 163, 184, 0.16) 10px,
+        rgba(148, 163, 184, 0.16) 20px
+    );
+}
+
+.form-board.section-locked .section-header {
+    background-color: rgba(254, 226, 225, 0.6);
+}
+
 /* ──────────────────────────────────────
    participant-table: form-board 내부 입력 테이블
    ────────────────────────────────────── */
@@ -141,6 +170,12 @@
 .section-header .text-danger {
     color: var(--pt-required);
     margin-left: 2px;
+}
+
+/* 필수인데 미입력 상태인 td 칸 강조 (JS refreshRequiredHighlight가 토글) */
+.participant-table td.required-empty {
+    background-color: #fde2e1;
+    box-shadow: inset 3px 0 0 var(--pt-required);
 }
 
 /* th 내부 label 스타일 정리 */

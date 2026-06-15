@@ -119,7 +119,8 @@
             전공 AS basicSpecialty,
             경력 AS basicAntecedents,
             특정계층 AS basicSpecific,
-            학력 AS basicEducation
+            학력 AS basicEducation,
+            마감 AS basicClose
         FROM
             J_참여자관리
         WHERE

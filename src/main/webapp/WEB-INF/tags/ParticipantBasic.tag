@@ -37,7 +37,7 @@
                         <input type="text" class="form-control datepicker_on" id="basicDob" name="basicDob" placeholder="yyyy-mm-dd" aria-label="생년월일" value="${not empty basic ? basic.basicDob : ""}" autocomplete="off">
                     </div>
                 </td>
-                <th><label for="basicGender">성별</label></th>
+                <th><label for="basicGender">성별<span class="text-danger">*</span></label></th>
                 <td>
                     <select class="form-select" aria-label="Default select example" id="basicGender" name="basicGender">
                         <option selected value="남">남</option>

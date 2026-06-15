@@ -8,10 +8,14 @@
 <%@ attribute name="employment" type="com.jobmoa.app.CounselMain.biz.participantEmployment.EmploymentDTO" %>
 
 <%-- 취업정보 입력 폼 (form-board 디자인) --%>
-<div class="form-board">
+<div class="form-board" id="employmentSection">
     <%-- 섹션 헤더: 좌측 파란 액센트 바 + 제목 --%>
     <div class="section-header">
         <h3 class="section-title">취업정보</h3>
+        <%-- 잠금 안내: 초기상담일 입력 전까지 비활성 --%>
+        <span class="section-lock-hint" id="employmentLockHint">
+            <i class="bi bi-lock-fill"></i> 초기상담일 입력 시 활성화됩니다
+        </span>
     </div>
     <%-- 구직번호 hidden input (수정 시 식별자) --%>
     <input type="hidden" id="employmentJobNo" name="employmentJobNo" value="${not empty param.employmentJobNo ? param.employmentJobNo : 0}">
@@ -57,7 +61,7 @@
             </tr>
             <%-- 행3: 취업처 / 임금 --%>
             <tr>
-                <th><label for="employmentLoyer">취업처</label></th>
+                <th><label for="employmentLoyer">취업처<span class="text-danger">*</span></label></th>
                 <td>
                     <input type="text" class="form-control" id="employmentLoyer" name="employmentLoyer" value="${not empty employment ? employment.employmentLoyer:""}">
                 </td>

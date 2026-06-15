@@ -91,8 +91,8 @@
     <!-- particcertifDiv JS -->
     <script defer src="/js/particcertifDiv_0.0.3.js"></script>
 
-    <!-- participants_insert_update_CommonnessJS_0.1.2.js  -->
-    <script defer src="/js/participants_insert_update_CommonnessJS_0.1.2.js"></script>
+    <!-- participants_insert_update_CommonnessJS_0.1.3.js  -->
+    <script defer src="/js/participants_insert_update_CommonnessJS_0.1.3.js"></script>
 
     <!-- selectOption JS -->
     <script defer src="/js/selectOptionJS_0.0.1.js"></script>
@@ -121,7 +121,7 @@
     <!-- 다중 희망직무 관리 JS -->
     <script defer src="/js/jobWishListManager_0.0.1.js"></script>
     <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
-    <link rel="stylesheet" href="/css/participantCss/participantTable_0.0.1.css">
+    <link rel="stylesheet" href="/css/participantCss/participantTable_0.0.2.css">
 
     <!-- sortablejs CDN -->
     <script defer
@@ -153,6 +153,13 @@
                                 <input type="hidden" name="branchManagementPageFlag" id="branchManagementPageFlag" value="${branchManagementPageFlag}">
                                 <%-- 검색 필터 hiddenInput tag --%>
                                 <mytag:searchHiddenInput/>
+
+                                <%-- 마감 인원 안내 배너 (마감 상태일 때만 노출) --%>
+                                <%-- d-flex/d-none 둘 다 !important 라 인라인 display 충돌 없이 확실히 토글됨 --%>
+                                <div class="alert alert-danger align-items-center py-2 mb-2 ${basic.basicClose ? 'd-flex' : 'd-none'}" role="alert">
+                                    <i class="bi bi-lock-fill me-2"></i>
+                                    <span>마감인원입니다.</span>
+                                </div>
 
                                 <%-- 참여자 수정 버튼 시작 --%>
                                 <div class="row pb-2 mb-1">
