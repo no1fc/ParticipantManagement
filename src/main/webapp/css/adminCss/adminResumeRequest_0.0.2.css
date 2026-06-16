@@ -1,0 +1,15 @@
+/* ===== 이력서 요청 관리 페이지 전용 CSS ===== */
+/* Version: 0.0.2 */
+/* Description: adminCommon_0.0.2.css(업무형 데이터그리드) 보충 — 컬럼 정렬/요약열 */
+
+#resumeRequestTable td:nth-child(1),
+#resumeRequestTable td:nth-child(2) { text-align: center; }
+
+/* 이메일/비상연락처 열: 폭 제한 + 말줄임 */
+#resumeRequestTable td:nth-child(8),
+#resumeRequestTable td:nth-child(9) {
+    max-width: 180px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

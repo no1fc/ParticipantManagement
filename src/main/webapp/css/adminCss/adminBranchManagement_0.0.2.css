@@ -1,0 +1,56 @@
+/* ===== 지점 관리 페이지 전용 CSS ===== */
+/* Version: 0.0.2 */
+/* Description: adminCommon_0.0.2.css(업무형 데이터그리드) 보충 — 지점 요약 카드 */
+
+/* ===== 지점 요약 카드 (그라디언트/리프트 제거, 업무형) ===== */
+.branch-card {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-left: 3px solid var(--admin-primary);
+    border-radius: var(--admin-radius);
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    box-shadow: var(--admin-shadow);
+    transition: box-shadow 0.15s ease;
+}
+
+.branch-card:hover {
+    box-shadow: var(--admin-shadow-hover);
+}
+
+.branch-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--admin-text);
+}
+
+.branch-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--admin-border);
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--admin-text-muted);
+}
+
+.stat-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--admin-primary);
+}
+
+/* ===== 테이블 컬럼 정렬 ===== */
+#branchTable td:nth-child(1),
+#branchTable td:nth-child(3),
+#branchTable td:nth-child(4),
+#branchTable td:nth-child(5),
+#branchTable td:nth-child(7) { text-align: center; }

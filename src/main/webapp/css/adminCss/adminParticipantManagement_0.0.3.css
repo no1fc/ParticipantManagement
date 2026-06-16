@@ -1,0 +1,79 @@
+/* ===== 참여자 관리 페이지 전용 CSS ===== */
+/* Version: 0.0.3 */
+/* Description: adminCommon_0.0.2.css(업무형 데이터그리드) 보충 — 상세 패널, 테이블 컬럼 폭 */
+
+/* ===== Offcanvas Detail Section ===== */
+.participant-detail-section {
+    border-bottom: 1px solid var(--admin-border);
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+}
+
+.participant-detail-section h6 {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--admin-primary);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.detail-row {
+    display: flex;
+    margin-bottom: 7px;
+}
+
+.detail-label {
+    width: 116px;
+    font-size: 0.8rem;
+    color: var(--admin-text-muted);
+    flex-shrink: 0;
+}
+
+.detail-value {
+    flex: 1;
+    font-size: 0.84rem;
+    color: var(--admin-text);
+}
+
+/* ===== Table Column Width Overrides ===== */
+#participantTable th:nth-child(1),
+#participantTable td:nth-child(1) { width: 40px; text-align: center; }
+
+#participantTable th:nth-child(2),
+#participantTable td:nth-child(2) { width: 100px; }
+
+#participantTable th:nth-child(3),
+#participantTable td:nth-child(3) { width: 100px; }
+
+#participantTable th:nth-child(4),
+#participantTable td:nth-child(4) { width: 100px; }
+
+#participantTable th:nth-child(5),
+#participantTable td:nth-child(5) { width: 60px; }
+
+#participantTable th:nth-child(6),
+#participantTable td:nth-child(6) { width: 80px; }
+
+#participantTable th:nth-child(7),
+#participantTable td:nth-child(7) { width: 120px; }
+
+#participantTable th:nth-child(8),
+#participantTable td:nth-child(8) { width: 90px; }
+
+#participantTable th:nth-child(9),
+#participantTable td:nth-child(9) { width: 100px; }
+
+#participantTable th:nth-child(10),
+#participantTable td:nth-child(10) { width: 80px; }
+
+#participantTable th:nth-child(11),
+#participantTable td:nth-child(11) { width: 50px; text-align: center; }
+
+/* ===== Mobile Offcanvas ===== */
+@media (max-width: 768px) {
+    .admin-offcanvas .offcanvas-body {
+        padding: 16px;
+    }
+}

@@ -29,8 +29,9 @@ public class ScheduleAlertScheduler {
     /**
      * 알림 대상 상담 일정을 조회하여 WebSocket으로 상담사에게 전송한다.
      *
-     * <p>매 분 실행되며, {@code /topic/schedule-alert} 토픽으로
+     * <p>매 분 실행되며, {@code /topic/schedule-alert/{상담사ID}} 토픽으로
      * 일정 유형, 참여자명, 시작 시각 등의 알림 메시지를 발송한다.
+     * (클라이언트 구독 경로 {@code gnb-notification.js}와 일치)
      */
     @Scheduled(cron = "0 * * * * *")
     public void checkScheduleAlerts() {
@@ -46,15 +47,14 @@ public class ScheduleAlertScheduler {
                 notification.put("scheduleId", target.getScheduleId());
                 notification.put("startTime", target.getStartTime());
 
-                webSocketService.sendObjectToUser(
-                        "/topic/schedule-alert",
-                        notification,
-                        target.getCounselorId()
+                webSocketService.sendObject(
+                        "/topic/schedule-alert/" + target.getCounselorId(),
+                        notification
                 );
                 log.info("일정 알림 전송: 상담사={}, 일정ID={}", target.getCounselorId(), target.getScheduleId());
             }
         } catch (Exception e) {
-            log.error("일정 알림 스케줄러 오류: {}", e.getMessage());
+            log.error("일정 알림 스케줄러 오류", e);
         }
     }
 }

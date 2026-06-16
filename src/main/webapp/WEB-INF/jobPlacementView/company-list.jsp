@@ -331,7 +331,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <!-- Pagination Function Start -->
-<script defer src="/js/paginationJS_0.0.1.js"></script>
+<script defer src="/js/paginationJS_0.0.2.js"></script>
 <script>
     $(document).ready(function(){
         <%-- pagination 시작 --%>

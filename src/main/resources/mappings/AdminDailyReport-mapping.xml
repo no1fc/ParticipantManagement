@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="AdminDailyReportDAO">
+
+    <!-- ===== 일일업무보고 (J_참여자관리_일일업무보고) ===== -->
+    <select id="selectDailyReportList" resultType="admin">
+        SELECT
+            PK pk,
+            지점 reportBranch,
+            아이디 reportUserId,
+            유형1 type1,
+            유형2 type2,
+            금일일반취업 dailyGeneralEmp,
+            금일알선취업 dailyPlacementEmp,
+            금주일반취업 weekGeneralEmp,
+            금주알선취업 weekPlacementEmp,
+            금월일반취업 monthGeneralEmp,
+            금월알선취업 monthPlacementEmp,
+            금년일반취업 yearGeneralEmp,
+            금년알선취업 yearPlacementEmp,
+            CONVERT(varchar, 업무보고일, 23) reportDate,
+            CONVERT(varchar, 실적등록일, 120) reportRegDate
+        FROM J_참여자관리_일일업무보고
+        WHERE 1=1
+        <if test="searchBranch != null and searchBranch != ''">
+            AND 지점 = #{searchBranch}
+        </if>
+        <if test="searchUserId != null and searchUserId != ''">
+            AND 아이디 LIKE '%' + #{searchUserId} + '%'
+        </if>
+        <if test="reportDate != null and reportDate != ''">
+            AND 업무보고일 = #{reportDate}
+        </if>
+        ORDER BY PK DESC
+    </select>
+
+</mapper>

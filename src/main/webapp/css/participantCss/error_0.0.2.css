@@ -1,0 +1,166 @@
+/*
+ * 공통 에러 페이지 스타일 (업무형, 남색 #1d3a5f 톤)
+ * 403/404/500/일반예외 통합 error.jsp 전용
+ */
+
+:root {
+    --err-navy: #1d3a5f;
+    --err-navy-dark: #142a47;
+    --err-bg: #f1f5f9;
+    --err-card: #ffffff;
+    --err-border: #cbd5e1;
+    --err-border-light: #e2e8f0;
+    --err-text: #1e293b;
+    --err-muted: #64748b;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', '맑은 고딕', sans-serif;
+    background-color: var(--err-bg);
+    color: var(--err-text);
+}
+
+.error-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.error-card {
+    width: 100%;
+    max-width: 520px;
+    background: var(--err-card);
+    border: 1px solid var(--err-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+}
+
+/* 상단 남색 액센트 바 */
+.error-accent {
+    height: 6px;
+    background: var(--err-navy);
+}
+
+.error-body {
+    padding: 36px 32px 28px;
+    text-align: center;
+}
+
+.error-code {
+    font-size: 64px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--err-navy);
+    letter-spacing: 1px;
+}
+
+.error-title {
+    margin: 16px 0 8px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--err-text);
+}
+
+.error-desc {
+    margin: 0 0 24px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--err-muted);
+}
+
+/* 오류 신고용 정보 박스 */
+.error-info {
+    text-align: left;
+    background: #f8fafc;
+    border: 1px solid var(--err-border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 24px;
+    font-size: 13px;
+}
+
+.error-info-row {
+    display: flex;
+    gap: 10px;
+    padding: 5px 0;
+}
+
+.error-info-row + .error-info-row {
+    border-top: 1px dashed var(--err-border-light);
+}
+
+.error-info-key {
+    flex: 0 0 72px;
+    color: var(--err-muted);
+    font-weight: 600;
+}
+
+.error-info-val {
+    flex: 1;
+    color: var(--err-text);
+    font-family: 'Consolas', 'Menlo', monospace;
+    word-break: break-all;
+}
+
+/* 액션 버튼 */
+.error-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.error-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid var(--err-border);
+    background: #fff;
+    color: var(--err-text);
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color .15s, border-color .15s, color .15s;
+}
+
+.error-btn-outline:hover {
+    background: #f1f5f9;
+    border-color: var(--err-navy);
+    color: var(--err-navy);
+}
+
+.error-btn-primary {
+    background: var(--err-navy);
+    border-color: var(--err-navy);
+    color: #fff;
+}
+
+.error-btn-primary:hover {
+    background: var(--err-navy-dark);
+    border-color: var(--err-navy-dark);
+}
+
+/* 반응형 */
+@media (max-width: 480px) {
+    .error-body {
+        padding: 28px 20px 22px;
+    }
+    .error-code {
+        font-size: 52px;
+    }
+    .error-btn {
+        flex: 1 1 calc(50% - 8px);
+        justify-content: center;
+    }
+}

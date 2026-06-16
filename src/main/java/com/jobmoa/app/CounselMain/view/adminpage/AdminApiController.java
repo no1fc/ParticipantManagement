@@ -1,7 +1,13 @@
 package com.jobmoa.app.CounselMain.view.adminpage;
 
+import com.jobmoa.app.CounselMain.biz.adminpage.AdminBranchService;
 import com.jobmoa.app.CounselMain.biz.adminpage.AdminDTO;
+import com.jobmoa.app.CounselMain.biz.adminpage.AdminDailyReportService;
+import com.jobmoa.app.CounselMain.biz.adminpage.AdminJobPlacementService;
+import com.jobmoa.app.CounselMain.biz.adminpage.AdminParticipantService;
+import com.jobmoa.app.CounselMain.biz.adminpage.AdminResumeRequestService;
 import com.jobmoa.app.CounselMain.biz.adminpage.AdminService;
+import com.jobmoa.app.CounselMain.biz.adminpage.AdminUserService;
 import com.jobmoa.app.CounselMain.biz.bean.LoginBean;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
@@ -33,18 +39,23 @@ public class AdminApiController {
     @Autowired
     private AdminService adminService;
 
-    /**
-     * 관리자 또는 지점관리자 접근 권한을 확인한다.
-     *
-     * @param session HTTP 세션
-     * @return 권한이 없으면 401/403 응답, 권한이 있으면 {@code null}
-     */
-    private ResponseEntity<Map<String, Object>> checkAccess(HttpSession session) {
-        LoginBean login = AdminAccessSupport.getLoginBean(session);
-        if (login == null) return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요합니다."));
-        if (!AdminAccessSupport.hasAdminAccess(session)) return ResponseEntity.status(403).body(Map.of("message", "관리자 권한이 필요합니다."));
-        return null;
-    }
+    @Autowired
+    private AdminUserService adminUserService;
+
+    @Autowired
+    private AdminBranchService adminBranchService;
+
+    @Autowired
+    private AdminParticipantService adminParticipantService;
+
+    @Autowired
+    private AdminDailyReportService adminDailyReportService;
+
+    @Autowired
+    private AdminJobPlacementService adminJobPlacementService;
+
+    @Autowired
+    private AdminResumeRequestService adminResumeRequestService;
 
     /**
      * 시스템 관리자 전용 접근 권한을 확인한다.
@@ -69,10 +80,7 @@ public class AdminApiController {
     // ===== 대시보드 KPI =====
     @GetMapping("/kpi")
     public ResponseEntity<?> getKpi(AdminDTO dto, HttpSession session) {
-        log.info("GET /admin/api/kpi");
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        AdminAccessSupport.enforceBranchScope(session, dto);
+        log.info("GET /admin/api/kpi");        AdminAccessSupport.enforceBranchScope(session, dto);
         return ResponseEntity.ok(adminService.getDashboardData(dto));
     }
 
@@ -89,7 +97,7 @@ public class AdminApiController {
         log.info("GET /admin/api/users");
         ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
         if (denied != null) return denied;
-        return ResponseEntity.ok(adminService.getUserList(dto));
+        return ResponseEntity.ok(adminUserService.getUserList(dto));
     }
 
     /**
@@ -106,7 +114,7 @@ public class AdminApiController {
         if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setMemberNo(userNo);
-        return ResponseEntity.ok(adminService.getUserOne(dto));
+        return ResponseEntity.ok(adminUserService.getUserOne(dto));
     }
 
     /**
@@ -122,7 +130,7 @@ public class AdminApiController {
         ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
         if (denied != null) return denied;
         Map<String, Object> result = new HashMap<>();
-        boolean success = adminService.addUser(dto);
+        boolean success = adminUserService.addUser(dto);
         result.put("success", success);
         result.put("message", success ? "사용자가 등록되었습니다." : "등록에 실패했습니다.");
         return ResponseEntity.ok(result);
@@ -143,7 +151,7 @@ public class AdminApiController {
         if (denied != null) return denied;
         dto.setMemberNo(userNo);
         Map<String, Object> result = new HashMap<>();
-        boolean success = adminService.modifyUser(dto);
+        boolean success = adminUserService.modifyUser(dto);
         result.put("success", success);
         result.put("message", success ? "사용자 정보가 수정되었습니다." : "수정에 실패했습니다.");
         return ResponseEntity.ok(result);
@@ -164,7 +172,7 @@ public class AdminApiController {
         AdminDTO dto = new AdminDTO();
         dto.setMemberNo(userNo);
         Map<String, Object> result = new HashMap<>();
-        boolean success = adminService.removeUser(dto);
+        boolean success = adminUserService.removeUser(dto);
         result.put("success", success);
         result.put("message", success ? "사용자가 삭제되었습니다." : "삭제에 실패했습니다.");
         return ResponseEntity.ok(result);
@@ -185,7 +193,7 @@ public class AdminApiController {
         AdminDTO dto = new AdminDTO();
         dto.setMemberNo(userNo);
         Map<String, Object> result = new HashMap<>();
-        boolean success = adminService.resetPassword(dto);
+        boolean success = adminUserService.resetPassword(dto);
         result.put("success", success);
         result.put("message", success ? "비밀번호가 초기화되었습니다." : "초기화에 실패했습니다.");
         return ResponseEntity.ok(result);
@@ -207,7 +215,7 @@ public class AdminApiController {
         dto.setMemberNo(userNo);
         dto.setUseStatus("사용");
         Map<String, Object> result = new HashMap<>();
-        boolean success = adminService.approveUser(dto);
+        boolean success = adminUserService.approveUser(dto);
         result.put("success", success);
         result.put("message", success ? "사용자가 승인되었습니다." : "승인에 실패했습니다.");
         return ResponseEntity.ok(result);
@@ -224,7 +232,7 @@ public class AdminApiController {
         log.info("GET /admin/api/users/next-no");
         ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
         if (denied != null) return denied;
-        return ResponseEntity.ok(Map.of("nextNo", adminService.getNextMemberNo()));
+        return ResponseEntity.ok(Map.of("nextNo", adminUserService.getNextMemberNo()));
     }
 
     /**
@@ -239,7 +247,7 @@ public class AdminApiController {
         log.info("GET /admin/api/users/check-id");
         ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
         if (denied != null) return denied;
-        boolean exists = adminService.checkUserIdExists(dto);
+        boolean exists = adminUserService.checkUserIdExists(dto);
         return ResponseEntity.ok(Map.of("exists", exists));
     }
 
@@ -256,7 +264,7 @@ public class AdminApiController {
         log.info("GET /admin/api/branches");
         ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
         if (denied != null) return denied;
-        return ResponseEntity.ok(adminService.getBranchList(dto));
+        return ResponseEntity.ok(adminBranchService.getBranchList(dto));
     }
 
     /**
@@ -273,7 +281,7 @@ public class AdminApiController {
         if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setBranchNo(branchNo);
-        return ResponseEntity.ok(adminService.getBranchOne(dto));
+        return ResponseEntity.ok(adminBranchService.getBranchOne(dto));
     }
 
     /**
@@ -289,7 +297,7 @@ public class AdminApiController {
         ResponseEntity<Map<String, Object>> denied = checkManagerOnly(session);
         if (denied != null) return denied;
         Map<String, Object> result = new HashMap<>();
-        boolean success = adminService.addBranch(dto);
+        boolean success = adminBranchService.addBranch(dto);
         result.put("success", success);
         result.put("message", success ? "지점이 등록되었습니다." : "등록에 실패했습니다.");
         return ResponseEntity.ok(result);
@@ -310,7 +318,7 @@ public class AdminApiController {
         if (denied != null) return denied;
         dto.setBranchNo(branchNo);
         Map<String, Object> result = new HashMap<>();
-        boolean success = adminService.modifyBranch(dto);
+        boolean success = adminBranchService.modifyBranch(dto);
         result.put("success", success);
         result.put("message", success ? "지점 정보가 수정되었습니다." : "수정에 실패했습니다.");
         return ResponseEntity.ok(result);
@@ -331,9 +339,9 @@ public class AdminApiController {
         if (denied != null) return denied;
         AdminDTO dto = new AdminDTO();
         dto.setBranchNo(branchNo);
-        int userCount = adminService.getBranchUserCount(dto);
+        int userCount = adminBranchService.getBranchUserCount(dto);
         Map<String, Object> result = new HashMap<>();
-        boolean success = adminService.removeBranch(dto);
+        boolean success = adminBranchService.removeBranch(dto);
         String message = success ? "지점이 비활성화되었습니다." : "비활성화에 실패했습니다.";
         if (success && userCount > 0) {
             message += " (소속 사용자 " + userCount + "명은 유지됩니다.)";
@@ -354,11 +362,8 @@ public class AdminApiController {
     // ===== 참여자 관리 =====
     @GetMapping("/participants")
     public ResponseEntity<?> getParticipants(AdminDTO dto, HttpSession session) {
-        log.info("GET /admin/api/participants");
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        AdminAccessSupport.enforceBranchScope(session, dto);
-        return ResponseEntity.ok(adminService.getParticipantList(dto));
+        log.info("GET /admin/api/participants");        AdminAccessSupport.enforceBranchScope(session, dto);
+        return ResponseEntity.ok(adminParticipantService.getParticipantList(dto));
     }
 
     /**
@@ -370,12 +375,9 @@ public class AdminApiController {
      */
     @GetMapping("/participants/{jobNo}")
     public ResponseEntity<?> getParticipant(@PathVariable int jobNo, HttpSession session) {
-        log.info("GET /admin/api/participants/{}", jobNo);
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        AdminDTO dto = new AdminDTO();
+        log.info("GET /admin/api/participants/{}", jobNo);        AdminDTO dto = new AdminDTO();
         dto.setJobNo(jobNo);
-        return ResponseEntity.ok(adminService.getParticipantOne(dto));
+        return ResponseEntity.ok(adminParticipantService.getParticipantOne(dto));
     }
 
     /**
@@ -393,7 +395,7 @@ public class AdminApiController {
         AdminDTO dto = new AdminDTO();
         dto.setJobNo(jobNo);
         Map<String, Object> result = new HashMap<>();
-        boolean success = adminService.removeParticipant(dto);
+        boolean success = adminParticipantService.removeParticipant(dto);
         result.put("success", success);
         result.put("message", success ? "참여자가 삭제되었습니다." : "삭제에 실패했습니다.");
         return ResponseEntity.ok(result);
@@ -409,11 +411,8 @@ public class AdminApiController {
     // ===== 일일업무보고 =====
     @GetMapping("/daily-reports")
     public ResponseEntity<?> getDailyReports(AdminDTO dto, HttpSession session) {
-        log.info("GET /admin/api/daily-reports");
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        AdminAccessSupport.enforceBranchScope(session, dto);
-        return ResponseEntity.ok(adminService.getDailyReportList(dto));
+        log.info("GET /admin/api/daily-reports");        AdminAccessSupport.enforceBranchScope(session, dto);
+        return ResponseEntity.ok(adminDailyReportService.getDailyReportList(dto));
     }
 
     /**
@@ -614,10 +613,7 @@ public class AdminApiController {
     // ===== 배정 히스토리 =====
     @GetMapping("/assignment-csv-history")
     public ResponseEntity<?> getCsvHistory(AdminDTO dto, HttpSession session) {
-        log.info("GET /admin/api/assignment-csv-history");
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        AdminAccessSupport.enforceBranchScope(session, dto);
+        log.info("GET /admin/api/assignment-csv-history");        AdminAccessSupport.enforceBranchScope(session, dto);
         return ResponseEntity.ok(adminService.getCsvHistoryList(dto));
     }
 
@@ -630,10 +626,7 @@ public class AdminApiController {
      */
     @GetMapping("/assignment-formula-history")
     public ResponseEntity<?> getFormulaHistory(AdminDTO dto, HttpSession session) {
-        log.info("GET /admin/api/assignment-formula-history");
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        AdminAccessSupport.enforceBranchScope(session, dto);
+        log.info("GET /admin/api/assignment-formula-history");        AdminAccessSupport.enforceBranchScope(session, dto);
         return ResponseEntity.ok(adminService.getFormulaHistoryList(dto));
     }
 
@@ -647,11 +640,8 @@ public class AdminApiController {
     // ===== 알선 관리 =====
     @GetMapping("/job-placements")
     public ResponseEntity<?> getJobPlacements(AdminDTO dto, HttpSession session) {
-        log.info("GET /admin/api/job-placements");
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        AdminAccessSupport.enforceBranchScope(session, dto);
-        return ResponseEntity.ok(adminService.getJobPlacementList(dto));
+        log.info("GET /admin/api/job-placements");        AdminAccessSupport.enforceBranchScope(session, dto);
+        return ResponseEntity.ok(adminJobPlacementService.getJobPlacementList(dto));
     }
 
     /**
@@ -663,12 +653,9 @@ public class AdminApiController {
      */
     @GetMapping("/job-placements/{regNo}")
     public ResponseEntity<?> getJobPlacement(@PathVariable int regNo, HttpSession session) {
-        log.info("GET /admin/api/job-placements/{}", regNo);
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        AdminDTO dto = new AdminDTO();
+        log.info("GET /admin/api/job-placements/{}", regNo);        AdminDTO dto = new AdminDTO();
         dto.setRegistrationNo(regNo);
-        return ResponseEntity.ok(adminService.getJobPlacementOne(dto));
+        return ResponseEntity.ok(adminJobPlacementService.getJobPlacementOne(dto));
     }
 
     /**
@@ -680,11 +667,8 @@ public class AdminApiController {
      */
     @PostMapping("/job-placements")
     public ResponseEntity<?> addJobPlacement(@RequestBody AdminDTO dto, HttpSession session) {
-        log.info("POST /admin/api/job-placements");
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        Map<String, Object> result = new HashMap<>();
-        boolean success = adminService.addJobPlacement(dto);
+        log.info("POST /admin/api/job-placements");        Map<String, Object> result = new HashMap<>();
+        boolean success = adminJobPlacementService.addJobPlacement(dto);
         result.put("success", success);
         result.put("message", success ? "알선정보가 등록되었습니다." : "등록에 실패했습니다.");
         return ResponseEntity.ok(result);
@@ -700,12 +684,9 @@ public class AdminApiController {
      */
     @PutMapping("/job-placements/{regNo}")
     public ResponseEntity<?> updateJobPlacement(@PathVariable int regNo, @RequestBody AdminDTO dto, HttpSession session) {
-        log.info("PUT /admin/api/job-placements/{}", regNo);
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        dto.setRegistrationNo(regNo);
+        log.info("PUT /admin/api/job-placements/{}", regNo);        dto.setRegistrationNo(regNo);
         Map<String, Object> result = new HashMap<>();
-        boolean success = adminService.modifyJobPlacement(dto);
+        boolean success = adminJobPlacementService.modifyJobPlacement(dto);
         result.put("success", success);
         result.put("message", success ? "알선정보가 수정되었습니다." : "수정에 실패했습니다.");
         return ResponseEntity.ok(result);
@@ -726,7 +707,7 @@ public class AdminApiController {
         AdminDTO dto = new AdminDTO();
         dto.setRegistrationNo(regNo);
         Map<String, Object> result = new HashMap<>();
-        boolean success = adminService.removeJobPlacement(dto);
+        boolean success = adminJobPlacementService.removeJobPlacement(dto);
         result.put("success", success);
         result.put("message", success ? "알선정보가 삭제되었습니다." : "삭제에 실패했습니다.");
         return ResponseEntity.ok(result);
@@ -742,11 +723,8 @@ public class AdminApiController {
     // ===== 이력서 요청 =====
     @GetMapping("/resume-requests")
     public ResponseEntity<?> getResumeRequests(AdminDTO dto, HttpSession session) {
-        log.info("GET /admin/api/resume-requests");
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        AdminAccessSupport.enforceBranchScope(session, dto);
-        return ResponseEntity.ok(adminService.getResumeRequestList(dto));
+        log.info("GET /admin/api/resume-requests");        AdminAccessSupport.enforceBranchScope(session, dto);
+        return ResponseEntity.ok(adminResumeRequestService.getResumeRequestList(dto));
     }
 
     /**
@@ -758,12 +736,9 @@ public class AdminApiController {
      */
     @GetMapping("/resume-requests/{regNo}")
     public ResponseEntity<?> getResumeRequest(@PathVariable int regNo, HttpSession session) {
-        log.info("GET /admin/api/resume-requests/{}", regNo);
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        AdminDTO dto = new AdminDTO();
+        log.info("GET /admin/api/resume-requests/{}", regNo);        AdminDTO dto = new AdminDTO();
         dto.setResumeRegNo(regNo);
-        return ResponseEntity.ok(adminService.getResumeRequestOne(dto));
+        return ResponseEntity.ok(adminResumeRequestService.getResumeRequestOne(dto));
     }
 
     /**
@@ -776,12 +751,9 @@ public class AdminApiController {
      */
     @PutMapping("/resume-requests/{regNo}/status")
     public ResponseEntity<?> updateResumeStatus(@PathVariable int regNo, @RequestBody AdminDTO dto, HttpSession session) {
-        log.info("PUT /admin/api/resume-requests/{}/status", regNo);
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        dto.setResumeRegNo(regNo);
+        log.info("PUT /admin/api/resume-requests/{}/status", regNo);        dto.setResumeRegNo(regNo);
         Map<String, Object> result = new HashMap<>();
-        boolean success = adminService.updateResumeStatus(dto);
+        boolean success = adminResumeRequestService.updateResumeStatus(dto);
         result.put("success", success);
         result.put("message", success ? "상태가 변경되었습니다." : "변경에 실패했습니다.");
         return ResponseEntity.ok(result);
@@ -951,10 +923,7 @@ public class AdminApiController {
     // ===== 상담사 목록 (공통 API) =====
     @GetMapping("/counselors")
     public ResponseEntity<?> getCounselors(AdminDTO dto, HttpSession session) {
-        log.info("GET /admin/api/counselors");
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        AdminAccessSupport.enforceBranchScope(session, dto);
+        log.info("GET /admin/api/counselors");        AdminAccessSupport.enforceBranchScope(session, dto);
         return ResponseEntity.ok(adminService.getCounselorList(dto));
     }
 
@@ -968,10 +937,7 @@ public class AdminApiController {
     // ===== 상담사별 통계 =====
     @GetMapping("/placement-stats")
     public ResponseEntity<?> getPlacementStats(AdminDTO dto, HttpSession session) {
-        log.info("GET /admin/api/placement-stats");
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        AdminAccessSupport.enforceBranchScope(session, dto);
+        log.info("GET /admin/api/placement-stats");        AdminAccessSupport.enforceBranchScope(session, dto);
         return ResponseEntity.ok(adminService.getPlacementStatsByCounselor(dto));
     }
 
@@ -985,10 +951,7 @@ public class AdminApiController {
     // ===== 연계 현황 =====
     @GetMapping("/linkage-stats")
     public ResponseEntity<?> getLinkageStats(AdminDTO dto, HttpSession session) {
-        log.info("GET /admin/api/linkage-stats");
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        AdminAccessSupport.enforceBranchScope(session, dto);
+        log.info("GET /admin/api/linkage-stats");        AdminAccessSupport.enforceBranchScope(session, dto);
         return ResponseEntity.ok(adminService.getLinkageStats(dto));
     }
 
@@ -1001,10 +964,7 @@ public class AdminApiController {
      */
     @GetMapping("/linkage-stats/by-counselor")
     public ResponseEntity<?> getLinkageByCounselor(AdminDTO dto, HttpSession session) {
-        log.info("GET /admin/api/linkage-stats/by-counselor");
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        AdminAccessSupport.enforceBranchScope(session, dto);
+        log.info("GET /admin/api/linkage-stats/by-counselor");        AdminAccessSupport.enforceBranchScope(session, dto);
         return ResponseEntity.ok(adminService.getLinkageByCounselor(dto));
     }
 
@@ -1017,10 +977,7 @@ public class AdminApiController {
      */
     @GetMapping("/linkage-stats/by-type")
     public ResponseEntity<?> getLinkageByType(AdminDTO dto, HttpSession session) {
-        log.info("GET /admin/api/linkage-stats/by-type");
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        AdminAccessSupport.enforceBranchScope(session, dto);
+        log.info("GET /admin/api/linkage-stats/by-type");        AdminAccessSupport.enforceBranchScope(session, dto);
         return ResponseEntity.ok(adminService.getLinkageByType(dto));
     }
 
@@ -1034,10 +991,7 @@ public class AdminApiController {
     // ===== 운영 현황 대시보드 =====
     @GetMapping("/management-dashboard")
     public ResponseEntity<?> getManagementDashboardData(AdminDTO dto, HttpSession session) {
-        log.info("GET /admin/api/management-dashboard year={}", dto.getSearchYear());
-        ResponseEntity<Map<String, Object>> denied = checkAccess(session);
-        if (denied != null) return denied;
-        AdminAccessSupport.enforceBranchScope(session, dto);
+        log.info("GET /admin/api/management-dashboard year={}", dto.getSearchYear());        AdminAccessSupport.enforceBranchScope(session, dto);
         return ResponseEntity.ok(adminService.getManagementDashboardData(dto));
     }
 

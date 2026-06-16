@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="AdminUserDAO">
+
+    <!-- ===== 사용자 관리 (J_참여자관리_로그인정보) ===== -->
+    <select id="selectUserList" resultType="admin">
+        SELECT
+            전담자번호 memberNo,
+            지점 branch,
+            이름 memberName,
+            아이디 userId,
+            권한 role,
+            관리자권한 isAdmin,
+            등록일 regDate,
+            이메일 email,
+            전화번호 phoneNumber,
+            아이디사용여부 useStatus,
+            입사일 hireDate,
+            최종발령일 lastAssignDate,
+            근속기간구분 continuousPeriod,
+            조회순서 viewOrder,
+            실적작성여부 performanceWrite,
+            일일업무일지발급여부 dailyReportIssue,
+            배정가중치 assignWeight
+        FROM J_참여자관리_로그인정보
+        WHERE 1=1
+        <if test="searchBranch != null and searchBranch != ''">
+            AND 지점 = #{searchBranch}
+        </if>
+        <if test="searchName != null and searchName != ''">
+            AND 이름 LIKE '%' + #{searchName} + '%'
+        </if>
+        <if test="searchUserId != null and searchUserId != ''">
+            AND 아이디 LIKE '%' + #{searchUserId} + '%'
+        </if>
+        <if test="searchRole != null and searchRole != ''">
+            AND 권한 = #{searchRole}
+        </if>
+        ORDER BY 조회순서 ASC, 전담자번호 ASC
+    </select>
+
+    <select id="selectUserOne" resultType="admin">
+        SELECT
+            전담자번호 memberNo,
+            지점 branch,
+            이름 memberName,
+            아이디 userId,
+            권한 role,
+            관리자권한 isAdmin,
+            등록일 regDate,
+            이메일 email,
+            전화번호 phoneNumber,
+            아이디사용여부 useStatus,
+            입사일 hireDate,
+            최종발령일 lastAssignDate,
+            근속기간구분 continuousPeriod,
+            조회순서 viewOrder,
+            실적작성여부 performanceWrite,
+            일일업무일지발급여부 dailyReportIssue,
+            배정가중치 assignWeight
+        FROM J_참여자관리_로그인정보
+        WHERE 전담자번호 = #{memberNo}
+    </select>
+
+    <insert id="insertUser">
+        INSERT INTO J_참여자관리_로그인정보 (
+            전담자번호, 지점, 이름, 아이디, 비밀번호, 권한, 관리자권한,
+            이메일, 전화번호, 아이디사용여부, 입사일, 최종발령일,
+            조회순서, 실적작성여부, 일일업무일지발급여부, 배정가중치
+        ) VALUES (
+            #{memberNo}, #{branch}, #{memberName}, #{userId}, #{password}, #{role}, #{isAdmin},
+            #{email}, #{phoneNumber}, #{useStatus}, #{hireDate}, #{lastAssignDate},
+            #{viewOrder}, #{performanceWrite}, #{dailyReportIssue}, #{assignWeight}
+        )
+    </insert>
+
+    <update id="updateUser">
+        UPDATE J_참여자관리_로그인정보
+        SET
+            지점 = #{branch},
+            이름 = #{memberName},
+            아이디 = #{userId},
+            권한 = #{role},
+            관리자권한 = #{isAdmin},
+            이메일 = #{email},
+            전화번호 = #{phoneNumber},
+            아이디사용여부 = #{useStatus},
+            입사일 = #{hireDate},
+            최종발령일 = #{lastAssignDate},
+            조회순서 = #{viewOrder},
+            실적작성여부 = #{performanceWrite},
+            일일업무일지발급여부 = #{dailyReportIssue},
+            배정가중치 = #{assignWeight}
+        WHERE 전담자번호 = #{memberNo}
+    </update>
+
+    <delete id="deleteUser">
+        DELETE FROM J_참여자관리_로그인정보
+        WHERE 전담자번호 = #{memberNo}
+    </delete>
+
+    <update id="resetUserPassword">
+        UPDATE J_참여자관리_로그인정보
+        SET 비밀번호 = #{password}
+        WHERE 전담자번호 = #{memberNo}
+    </update>
+
+    <update id="approveUser">
+        UPDATE J_참여자관리_로그인정보
+        SET 아이디사용여부 = #{useStatus}
+        WHERE 전담자번호 = #{memberNo}
+    </update>
+
+    <!-- ===== 사용자 보조 ===== -->
+    <select id="selectNextMemberNo" resultType="int">
+        SELECT ISNULL(MAX(전담자번호), 0) + 1 FROM J_참여자관리_로그인정보
+    </select>
+
+    <select id="selectUserIdExists" resultType="int">
+        SELECT COUNT(*) FROM J_참여자관리_로그인정보
+        WHERE 아이디 = #{userId}
+        <if test="memberNo > 0">
+            AND 전담자번호 != #{memberNo}
+        </if>
+    </select>
+
+</mapper>

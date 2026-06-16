@@ -128,8 +128,8 @@
     <!-- particcertifDiv JS -->
     <script defer src="/js/particcertifDiv_0.0.3.js"></script>
 
-    <!-- participants_insert_update_CommonnessJS_0.1.2.js  -->
-    <script defer src="/js/participants_insert_update_CommonnessJS_0.1.2.js"></script>
+    <!-- participants_insert_update_CommonnessJS_0.1.4.js  -->
+    <script defer src="/js/participants_insert_update_CommonnessJS_0.1.4.js"></script>
 
     <!-- selectOption JS -->
     <script defer src="/js/selectOptionJS_0.0.1.js"></script>
@@ -158,7 +158,7 @@
     <!-- 다중 희망직무 관리 JS -->
     <script defer src="/js/jobWishListManager_0.0.1.js"></script>
     <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
-    <link rel="stylesheet" href="/css/participantCss/participantTable_0.0.1.css">
+    <link rel="stylesheet" href="/css/participantCss/participantTable_0.0.2.css">
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 

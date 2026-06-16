@@ -57,10 +57,10 @@
     <script defer src="/js/sweetAlert_0.0.1.js"></script>
 
     <!-- Admin Common Design System -->
-    <link rel="stylesheet" href="/css/adminCss/adminCommon_0.0.1.css">
+    <link rel="stylesheet" href="/css/adminCss/adminCommon_0.0.2.css">
 
     <!-- Page-specific CSS -->
-    <link rel="stylesheet" href="/css/adminCss/adminParticipantManagement_0.0.2.css">
+    <link rel="stylesheet" href="/css/adminCss/adminParticipantManagement_0.0.3.css">
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 

@@ -1,6 +1,7 @@
 package com.jobmoa.app.config;
 
 import com.jobmoa.app.CounselMain.biz.interceptor.LoginInterceptor;
+import com.jobmoa.app.CounselMain.view.adminpage.AdminApiInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -39,7 +40,6 @@ import java.util.concurrent.TimeUnit;
     "com.jobmoa.app.CounselMain.view.management",
     "com.jobmoa.app.CounselMain.view.function",
     "com.jobmoa.app.CounselMain.view.report",
-    "com.jobmoa.app.CounselMain.view.chatBot",
     "com.jobmoa.app.CounselMain.view.branchManagement",
     "com.jobmoa.app.CounselMain.view.participantRandomAssignment",
     "com.jobmoa.app.CounselMain.view.mailSend",
@@ -76,6 +76,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        // 관리자 REST API 공통 권한 인터셉터 (로그인 인터셉터보다 먼저 실행되어 미인증 시 401 JSON 응답)
+        registry.addInterceptor(new AdminApiInterceptor())
+                .addPathPatterns("/admin/api/**");
+
         registry.addInterceptor(new LoginInterceptor())
                 .addPathPatterns("/**")
                 .excludePathPatterns(

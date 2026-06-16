@@ -2,7 +2,6 @@ package com.jobmoa.app.CounselMain.biz.adminpage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -11,8 +10,9 @@ import java.util.Map;
 
 /**
  * {@link AdminService} 구현체.
- * AdminDAO를 통해 사용자, 지점, 참여자, 기준금액, 알선, 이력서 요청,
- * 자격증, 직업훈련, 대시보드 KPI, Excel 출력 등 관리자 기능을 처리한다.
+ * <p>AdminDAO를 통해 기준금액, 나은기준임금, 배정 히스토리, 자격증, 직업훈련,
+ * 대시보드 KPI, 상담사 목록, 참여자 Excel, 상담사별 통계, 연계 현황,
+ * 운영 현황 대시보드 등 공통/보존 기능을 처리한다.</p>
  */
 @Slf4j
 @Service
@@ -20,102 +20,6 @@ public class AdminServiceImpl implements AdminService {
 
     @Autowired
     private AdminDAO adminDAO;
-
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
-
-    // ===== 사용자 관리 =====
-    @Override
-    public List<AdminDTO> getUserList(AdminDTO dto) {
-        return adminDAO.selectUserList(dto);
-    }
-
-    @Override
-    public AdminDTO getUserOne(AdminDTO dto) {
-        return adminDAO.selectUserOne(dto);
-    }
-
-    @Override
-    public boolean addUser(AdminDTO dto) {
-        if (dto.getPassword() != null && !dto.getPassword().startsWith("$2a$")) {
-            dto.setPassword(passwordEncoder.encode(dto.getPassword()));
-        }
-        return adminDAO.insertUser(dto);
-    }
-
-    @Override
-    public boolean modifyUser(AdminDTO dto) {
-        return adminDAO.updateUser(dto);
-    }
-
-    @Override
-    public boolean removeUser(AdminDTO dto) {
-        return adminDAO.deleteUser(dto);
-    }
-
-    @Override
-    public boolean resetPassword(AdminDTO dto) {
-        dto.setPassword("");
-        return adminDAO.resetUserPassword(dto);
-    }
-
-    @Override
-    public boolean approveUser(AdminDTO dto) {
-        return adminDAO.approveUser(dto);
-    }
-
-    // ===== 지점 관리 =====
-    @Override
-    public List<AdminDTO> getBranchList(AdminDTO dto) {
-        return adminDAO.selectBranchList(dto);
-    }
-
-    @Override
-    public AdminDTO getBranchOne(AdminDTO dto) {
-        return adminDAO.selectBranchOne(dto);
-    }
-
-    @Override
-    public boolean addBranch(AdminDTO dto) {
-        return adminDAO.insertBranch(dto);
-    }
-
-    @Override
-    public boolean modifyBranch(AdminDTO dto) {
-        return adminDAO.updateBranch(dto);
-    }
-
-    @Override
-    public boolean removeBranch(AdminDTO dto) {
-        return adminDAO.deleteBranch(dto);
-    }
-
-    @Override
-    public int getBranchUserCount(AdminDTO dto) {
-        return adminDAO.selectBranchUserCount(dto);
-    }
-
-    // ===== 참여자 관리 =====
-    @Override
-    public List<AdminDTO> getParticipantList(AdminDTO dto) {
-        return adminDAO.selectParticipantList(dto);
-    }
-
-    @Override
-    public AdminDTO getParticipantOne(AdminDTO dto) {
-        return adminDAO.selectParticipantOne(dto);
-    }
-
-    @Override
-    public boolean removeParticipant(AdminDTO dto) {
-        return adminDAO.deleteParticipant(dto);
-    }
-
-    // ===== 일일업무보고 =====
-    @Override
-    public List<AdminDTO> getDailyReportList(AdminDTO dto) {
-        return adminDAO.selectDailyReportList(dto);
-    }
 
     // ===== 기준금액 =====
     @Override
@@ -180,48 +84,6 @@ public class AdminServiceImpl implements AdminService {
         return adminDAO.selectFormulaHistoryList(dto);
     }
 
-    // ===== 알선 관리 =====
-    @Override
-    public List<AdminDTO> getJobPlacementList(AdminDTO dto) {
-        return adminDAO.selectJobPlacementList(dto);
-    }
-
-    @Override
-    public AdminDTO getJobPlacementOne(AdminDTO dto) {
-        return adminDAO.selectJobPlacementOne(dto);
-    }
-
-    @Override
-    public boolean addJobPlacement(AdminDTO dto) {
-        return adminDAO.insertJobPlacement(dto);
-    }
-
-    @Override
-    public boolean modifyJobPlacement(AdminDTO dto) {
-        return adminDAO.updateJobPlacement(dto);
-    }
-
-    @Override
-    public boolean removeJobPlacement(AdminDTO dto) {
-        return adminDAO.deleteJobPlacement(dto);
-    }
-
-    // ===== 이력서 요청 =====
-    @Override
-    public List<AdminDTO> getResumeRequestList(AdminDTO dto) {
-        return adminDAO.selectResumeRequestList(dto);
-    }
-
-    @Override
-    public AdminDTO getResumeRequestOne(AdminDTO dto) {
-        return adminDAO.selectResumeRequestOne(dto);
-    }
-
-    @Override
-    public boolean updateResumeStatus(AdminDTO dto) {
-        return adminDAO.updateResumeRequestStatus(dto);
-    }
-
     // ===== 자격증 =====
     @Override
     public List<AdminDTO> getCertificateList(AdminDTO dto) {
@@ -281,27 +143,10 @@ public class AdminServiceImpl implements AdminService {
         return adminDAO.selectCounselorsByBranch(dto);
     }
 
-    // ===== 사용자 보조 =====
-    @Override
-    public int getNextMemberNo() {
-        return adminDAO.selectNextMemberNo();
-    }
-
-    @Override
-    public boolean checkUserIdExists(AdminDTO dto) {
-        return adminDAO.selectUserIdExists(dto) > 0;
-    }
-
     // ===== 참여자 Excel =====
     @Override
     public List<AdminDTO> getParticipantExcelList(AdminDTO dto) {
         return adminDAO.selectParticipantExcelList(dto);
-    }
-
-    // ===== 상담사별 통계 =====
-    @Override
-    public List<AdminDTO> getPlacementStatsByCounselor(AdminDTO dto) {
-        return adminDAO.selectPlacementStatsByCounselor(dto);
     }
 
     // ===== 참여자 Excel 전체 컬럼 =====
@@ -326,6 +171,12 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<AdminDTO> getExcelTrainingList(AdminDTO dto) {
         return adminDAO.selectExcelTrainingList(dto);
+    }
+
+    // ===== 상담사별 통계 =====
+    @Override
+    public List<AdminDTO> getPlacementStatsByCounselor(AdminDTO dto) {
+        return adminDAO.selectPlacementStatsByCounselor(dto);
     }
 
     // ===== 연계 현황 =====

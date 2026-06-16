@@ -78,10 +78,10 @@
     <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
     <script defer src="/js/drawChartCenterTextPlugin_0.0.2.js"></script>
-    <script defer src="/js/dashBoardJS_0.0.1.js"></script>
+    <script defer src="/js/dashBoardJS_0.0.2.js"></script>
 
     <!-- ApexChart로 변경 -->
-    <script defer src="/js/ApexChartMainDashBoardJS_0.0.1.js"></script>
+    <script defer src="/js/ApexChartMainDashBoardJS_0.0.2.js"></script>
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
@@ -91,12 +91,12 @@
 <%--    <script defer src="/js/randomColorGenerator_0.0.1.js"></script>--%>
 
     <!-- 진행바 스타일 적용 -->
-    <link rel="stylesheet" href="/css/participantCss/dashboard_0.0.3.css">
+    <link rel="stylesheet" href="/css/participantCss/dashboard_0.0.4.css">
 
     <link rel="stylesheet" href="/css/participantCss/dashBoardUi_0.0.2.css">
     <!-- Modern Design System -->
     <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
-    <!-- 상담일정 뱃지 스타일은 dashboard_0.0.3.css에 통합 -->
+    <!-- 상담일정 뱃지 스타일은 dashboard_0.0.4.css에 통합 -->
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 
@@ -145,22 +145,27 @@
                                 <div class="list-group list-group-flush">
                                     <c:choose>
                                         <c:when test="${not empty dailyDashboard}">
-                                            <div class="work-list-item">
+                                            <%-- 각 지표 클릭 시 참여자 조회 화면으로 해당 조건(진행중) 딥링크 이동 --%>
+                                            <a href="/participant.login?searchTypeList=noInitial&endDateOptionList=false"
+                                               class="work-list-item work-list-link text-decoration-none text-reset" title="해당 참여자 조회로 이동">
                                                 <span class="fs-7">초기상담 미실시자</span>
                                                 <span class="badge bg-danger rounded-pill">${dailyDashboard.dashBoardInItCons}</span>
-                                            </div>
-                                            <div class="work-list-item">
+                                            </a>
+                                            <a href="/participant.login?searchTypeList=recent21&endDateOptionList=false"
+                                               class="work-list-item work-list-link text-decoration-none text-reset" title="해당 참여자 조회로 이동">
                                                 <span class="fs-7 text-muted">최근상담 21일 경과</span>
                                                 <span class="badge bg-secondary rounded-pill">${dailyDashboard.dashBoardLastCons}</span>
-                                            </div>
-                                            <div class="work-list-item">
+                                            </a>
+                                            <a href="/participant.login?searchTypeList=jobExpire&endDateOptionList=false"
+                                               class="work-list-item work-list-link text-decoration-none text-reset" title="해당 참여자 조회로 이동">
                                                 <span class="fs-7 fw-bold">구직 만료 도래</span>
                                                 <span class="badge bg-warning text-dark rounded-pill">${dailyDashboard.dashBoardJobEX}</span>
-                                            </div>
-                                            <div class="work-list-item">
+                                            </a>
+                                            <a href="/participant.login?searchTypeList=periodExpire&endDateOptionList=false"
+                                               class="work-list-item work-list-link text-decoration-none text-reset" title="해당 참여자 조회로 이동">
                                                 <span class="fs-7 fw-bold">기간 만료 예정</span>
                                                 <span class="badge bg-info rounded-pill">${dailyDashboard.dashBoardEXPDate}</span>
-                                            </div>
+                                            </a>
                                         </c:when>
                                         <c:otherwise>
                                             <div class="text-center py-4 text-muted fs-7">확인할 내역이 없습니다.</div>
@@ -397,29 +402,17 @@ document.addEventListener('DOMContentLoaded', function () {
     $(document).ready(function () {
 
         let employmentRate = ${empty myKPI.employmentRate ? 0 : myKPI.employmentRate}; // 취업률
-        console.log("employmentRate : " + employmentRate);
         let avgEmploymentRateMiddle = ${empty myKPI.avgEmploymentRateMiddle ? 0 : myKPI.avgEmploymentRateMiddle}; // 평균 취업률
-        console.log("avgEmploymentRateMiddle : " + avgEmploymentRateMiddle);
         let placementRate = ${empty myKPI.placementRate ? 0 : myKPI.placementRate}; // 알선취업률
-        console.log("employmentRate : "+placementRate);
         let avgPlacementRateMiddle = ${empty myKPI.avgPlacementRateMiddle ? 0 : myKPI.avgPlacementRateMiddle}; // 평균 알선취업률
-        console.log("avgPlacementRateMiddle : "+avgPlacementRateMiddle);
         let earlyEmploymentRate = ${empty myKPI.earlyEmploymentRate ? 0 : myKPI.earlyEmploymentRate}; // 조기취업률
-        console.log("earlyEmploymentRate : "+ earlyEmploymentRate);
         let avgEarlyEmploymentRateMiddle = ${empty myKPI.avgEarlyEmploymentRateMiddle ? 0 : myKPI.avgEarlyEmploymentRateMiddle}; // 평균 조기취업률
-        console.log("avgEarlyEmploymentRateMiddle : "+ avgEarlyEmploymentRateMiddle);
         let betterJobRate = ${empty myKPI.betterJobRate ? 0 : myKPI.betterJobRate}; // 나은일자리
-        console.log("betterJobRate : "+ betterJobRate);
         let avgBetterJobRateMiddle = ${empty myKPI.avgBetterJobRateMiddle ? 0 : myKPI.avgBetterJobRateMiddle}; // 평균 나은일자리
-        console.log("avgBetterJobRateMiddle : "+ avgBetterJobRateMiddle);
         let assignedParticipants = ${empty myKPI.assignedParticipants ? 0 : myKPI.assignedParticipants}; // 배정인원수
-        console.log("assignedParticipants : "+ assignedParticipants);
         let noServiceCount = ${empty myKPI.noServiceCount ? 0 : myKPI.noServiceCount}; // 인센 미해당 서비스미제공
-        console.log("noServiceCount : "+ noServiceCount);
         let falseCaseNum = ${empty myKPI.falseCaseNum ? 0 : myKPI.falseCaseNum}; // 인센 미해당
-        console.log("falseCaseNum : "+ falseCaseNum);
         let trueCaseNum = ${empty myKPI.trueCaseNum ? 0 : myKPI.trueCaseNum}; // 인센 해당
-        console.log("trueCaseNum : "+ trueCaseNum);
 
         // 음수 확인 후 고정 값 지정
         function checkNegative(value1,value2) {
@@ -446,8 +439,6 @@ document.addEventListener('DOMContentLoaded', function () {
         donut = new ApexCharts(document.querySelector("#terminatedEmploymentChart"), apexChartDoughnut('종료 취업자',series, labels,colors,true));
         donut.render();
 
-        console.log("placementRate : "+placementRate);
-        console.log("checkNegative(avgPlacementRateMiddle,placementRate) : "+checkNegative(avgPlacementRateMiddle,placementRate));
         //알선 취업자 차트
         series = [placementRate, checkNegative(avgPlacementRateMiddle,placementRate)]
         labels = ['알선 취업자','남은 목표']
@@ -488,7 +479,6 @@ document.addEventListener('DOMContentLoaded', function () {
         let id=$('#ex-chart-bar1');
         let lable=['성공금 발생'];
         let data={title:data_title,text:JSON.parse('${dashBoardSuccessMoney}')};
-        console.log(data);
         chart_bar_data_my(id,lable,data);
     })
 </script>
@@ -627,7 +617,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const nextRanginScore = scoreStatusData[0].pointsToNextGrade;
         const nextRanking = scoreStatusData[0].nextGrade;
 
-        console.log(Math.floor(nextRanginScore*100)/100);
         let $nextRanking = $('#nextRanking');
         // $nextRanking.text("다음등급까지: "+ nextRanginScore + "점");
         if(nextRanking !== 'x'){
@@ -699,9 +688,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function scoreChartColorChange(score, flagScore) {
-        console.log("scoreChartColorChange score: " + score);
-        console.log("scoreChartColorChange flagScore: " + flagScore);
-        console.log("scoreChartColorChange flagScore.length: " + flagScore.length);
         let rankingColor = 'rgba(255,7,7,0.79)'; // D등급 (기본값)
 
         if (flagScore[0] <= score) {

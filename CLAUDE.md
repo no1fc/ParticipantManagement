@@ -21,7 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./mvnw clean compile
 ```
 
-Output WAR: `target/JobmoaProject-1.4.0-SNAPSHOT.war`
+Output WAR: `target/JobmoaProject-1.6.1-SNAPSHOT.war`
 
 ## Technology Stack
 
@@ -35,7 +35,7 @@ Output WAR: `target/JobmoaProject-1.4.0-SNAPSHOT.war`
 - **Spring WebSocket** with STOMP/SockJS
 - **Lombok** for boilerplate reduction
 - **OkHttp** for external HTTP calls
-- **AdminLTE 3** (Bootstrap 4) for frontend UI framework
+- **AdminLTE 4** (v4.0.0-beta3, Bootstrap 5) for frontend UI framework
 - **jQuery** + SweetAlert2 + ApexCharts for frontend interactivity
 
 ## Project Structure
@@ -51,10 +51,10 @@ src/main/java/com/jobmoa/app/
 ├── CounselMain/                    # Main counseling module
 │   ├── biz/                        # Services + DAOs (business logic)
 │   │   ├── recommend/              # Gemini AI job recommendation (GeminiApiService, concurrency mgr)
-│   │   ├── adminpage/              # Admin service layer
+│   │   ├── adminpage/              # Admin service layer — 6 domain slices (Admin{User,Branch,Participant,DailyReport,JobPlacement,ResumeRequest}* + Permission*)
 │   │   └── ...                     # participant*, login, dashboard, report, etc.
 │   └── view/                       # Controllers (request handlers)
-│       ├── adminpage/              # AdminPageController, AdminApiController
+│       ├── adminpage/              # AdminPageController, AdminApiController (/admin/api/*, 55 mappings)
 │       └── ...                     # login, dashboard, chatBot, mypage, etc.
 ├── jobPlacement/                   # Job placement module
 │   ├── biz/jobPlacement/           # Service + DAO
@@ -130,9 +130,10 @@ src/main/webapp/
 
 **Gemini AI integration (`CounselMain/biz/recommend/`):**
 - `GeminiApiService` uses Google Generative AI SDK (`com.google.genai.Client`) for job recommendation
-- `ParticipantJobRecommendServiceImpl` orchestrates the full recommendation flow
-- `RecommendConcurrencyManager` handles concurrent recommendation requests
-- Default model: `gemma-4-31b-it` (configurable via `gemini.api.model`); client bean in `RootConfig.java`
+- **Two-stage call:** stage1 builds search conditions (`SearchConditionDTO`), stage2 selects/scores candidate postings (`RecommendationScoreDTO`)
+- `ParticipantJobRecommendServiceImpl` orchestrates the full flow; `RecommendConcurrencyManager` handles concurrent requests
+- Models: `gemini.api.model.stage1` / `gemini.api.model.stage2` (default `gemini-2.5-flash`), `gemini.recommend.max-candidates=20`; client bean in `RootConfig.java`
+- API controller: `CounselMain/view/participant/recommendAjax/recommendAjaxController`
 
 ## Key Configuration
 
@@ -156,6 +157,7 @@ ViewResolver: prefix `/WEB-INF/` + suffix `.jsp`.
 - **Frontend libs** — jQuery `$.ajax()` for AJAX, SweetAlert2 for alerts, ApexCharts for charts
 - **Custom JSP tags** — `gnb.tag`, `adminGnb.tag`, `footer.tag`, `pagination.tag` in `/WEB-INF/tags/`
 - **No `var` in JavaScript** — always use `let` or `const`; `var`는 사용 금지
+- **Docs location (git-ignored)** — Obsidian vault at `docs/`, organized as `docs/{개발일지, 운영, 기능명세, sql}/`. Dev logs go to `docs/개발일지/개발일지_[날짜].md`; ops docs (배포정의서·인수인계서) in `docs/운영/`; feature specs in `docs/기능명세/`. The whole `docs/` tree is excluded from git.
 
 ## Git Commit 메시지 형식
 

@@ -81,7 +81,7 @@
   <!-- 대시보드 JavaScript -->
   <script defer src="/js/dashboard_data_visualization_0.0.2.js"></script>
   <script defer src="/js/dashboard_data_visualization2_0.0.1.js"></script>
-  <script defer src="/js/dashboard_data_visualization3_0.0.2.js"></script>
+  <script defer src="/js/dashboard_data_visualization3_0.0.3.js"></script>
 
   <link rel="stylesheet" href="/css/participantCss/DashBoardTotalManagement_0.0.2.css" />
   

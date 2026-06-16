@@ -8,10 +8,14 @@
 <%@ attribute name="counsel" type="com.jobmoa.app.CounselMain.biz.participantCounsel.CounselDTO" %>
 
 <%-- 상담정보 입력 폼 (form-board 디자인) --%>
-<div class="form-board">
+<div class="form-board" id="counselSection">
     <%-- 섹션 헤더: 좌측 파란 액센트 바 + 제목 --%>
     <div class="section-header">
         <h3 class="section-title">상담정보</h3>
+        <%-- 잠금 안내: 기본정보(성명·생년월일) 입력 전까지 비활성 --%>
+        <span class="section-lock-hint" id="counselLockHint">
+            <i class="bi bi-lock-fill"></i> 참여자 성명·생년월일 입력 시 활성화됩니다
+        </span>
     </div>
     <%-- 구직번호 hidden input (수정 시 식별자) --%>
     <input type="hidden" id="counselJobNo" name="counselJobNo" value="${not empty param.counselJobNo ? param.counselJobNo : 0}">
@@ -76,11 +80,11 @@
                         <input type="text" class="form-control datepicker_on" id="counselJobEX" name="counselJobEX" placeholder="yyyy-mm-dd" aria-label="구직만료일" value="${not empty counsel ? counsel.counselJobEX:""}" autocomplete="off">
                     </div>
                 </td>
-                <th><label for="counselEXPDate">기간만료(예정)일<span class="text-danger">*</span></label></th>
+                <th><label for="counselEXPDate">기간만료(예정)일<span class="text-danger">*</span></label><i class="bi bi-info-circle" style="margin-left:4px; color:#64748b; cursor:help;" title="초기 상담일로 부터 1년 뒤에 날짜를 입력해주세요. 취업자가 아닌 참여자는 해당 날짜가 종료일로 계산됩니다."></i></th>
                 <td>
                     <div class="input-group">
                         <i class="bi bi-calendar-date input-group-text"></i>
-                        <input type="text" class="form-control datepicker_on" id="counselEXPDate" name="counselEXPDate" placeholder="yyyy-mm-dd" aria-label="기간만료(예정)일" value="${not empty counsel ? counsel.counselEXPDate:""}" autocomplete="off">
+                        <input type="text" class="form-control datepicker_on" id="counselEXPDate" name="counselEXPDate" placeholder="yyyy-mm-dd" aria-label="기간만료(예정)일" title="초기 상담일로 부터 1년 뒤에 날짜를 입력해주세요. 취업자가 아닌 참여자는 해당 날짜가 종료일로 계산됩니다." value="${not empty counsel ? counsel.counselEXPDate:""}" autocomplete="off">
                     </div>
                 </td>
             </tr>

@@ -67,6 +67,21 @@ public class BranchManagement {
         participantDTO.setParticipantBranch(loginBranch);
         log.info("Login ID : [{}]", loginId);
 
+        // 맨 URL 최초 접속(필터/검색/정렬 파라미터 전무) → 기본 필터(진행중 + 1·2유형)로 정규화 redirect.
+        // 권한 체크 이후에 위치해야 미인증 사용자의 dashboard redirect 동작을 가로채지 않는다.
+        boolean noFilterParams =
+                participantDTO.getEndDateOption() == null
+                && (participantDTO.getEndDateOptionList() == null || participantDTO.getEndDateOptionList().isEmpty())
+                && participantDTO.getParticipantInItCons() == null
+                && (participantDTO.getSearch() == null || participantDTO.getSearch().isEmpty())
+                && (participantDTO.getSearchTypeList() == null || participantDTO.getSearchTypeList().isEmpty())
+                && (participantDTO.getParticipantPartTypeList() == null || participantDTO.getParticipantPartTypeList().isEmpty())
+                && (participantDTO.getWishJobSearchList() == null || participantDTO.getWishJobSearchList().isEmpty())
+                && (participantDTO.getColumn() == null || participantDTO.getColumn().isEmpty());
+        if (noFilterParams) {
+            return "redirect:/branchParitic.login?page=1&endDateOptionList=false&participantPartTypeList=1&participantPartTypeList=2";
+        }
+
         //마감 여부가 없으면 기본 false로 진행
         String isClose = participantDTO.getEndDateOption() == null ? "false" : participantDTO.getEndDateOption();
         participantDTO.setEndDateOption(isClose);
