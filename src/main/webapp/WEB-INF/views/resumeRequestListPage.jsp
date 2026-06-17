@@ -39,7 +39,7 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
   <!-- Custom JS -->
-  <script defer src="/js/resumeRequestListJS_0.0.1.js"></script>
+  <script defer src="/js/resumeRequestListJS_0.0.2.js"></script>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>

@@ -1,6 +1,6 @@
 /**
  * @file 이력서 요청 목록 관리 (상태 변경, 필터링, 토스트 알림)
- * @version 0.0.1
+ * @version 0.0.2
  * @requires jQuery, Bootstrap
  */
 
@@ -51,6 +51,23 @@ $(document).ready(function() {
     $('#statusFilter').val(urlParams.get('status') || '');
     $('#companyNameFilter').val(urlParams.get('companyName') || '');
     $('#participantFilter').val(urlParams.get('participantPartic') || '');
+
+    // 서버 렌더된 페이지네이션 링크가 현재 검색필터를 유지하도록 ?page=N → 전체 파라미터 보존.
+    // paginationJS의 searchHref()와 동일 철학: URLSearchParams로 page만 교체하고
+    // status/companyName/participantPartic 등 나머지 필터를 그대로 보존한다.
+    $('.pagination a.page-link').each(function() {
+        const href = $(this).attr('href');
+        if (!href) {
+            return;
+        }
+        const target = new URLSearchParams(href.split('?')[1] || '').get('page');
+        if (target === null) {
+            return;
+        }
+        const params = new URLSearchParams(window.location.search);
+        params.set('page', target);
+        $(this).attr('href', '?' + params.toString());
+    });
 
     // 상태 변경 버튼 이벤트
     $('.status-update-btn').on('click', function() {
