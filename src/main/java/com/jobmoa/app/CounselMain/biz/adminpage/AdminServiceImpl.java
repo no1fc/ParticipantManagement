@@ -1,6 +1,7 @@
 package com.jobmoa.app.CounselMain.biz.adminpage;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.session.ResultHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -171,6 +172,32 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<AdminDTO> getExcelTrainingList(AdminDTO dto) {
         return adminDAO.selectExcelTrainingList(dto);
+    }
+
+    // ===== 참여자 Excel 스트리밍 (대량 다운로드 메모리 최적화) =====
+    @Override
+    public void getParticipantExcelListStream(AdminDTO dto, ResultHandler<AdminDTO> handler) {
+        adminDAO.selectParticipantExcelListStream(dto, handler);
+    }
+
+    @Override
+    public void getParticipantExcelFullListStream(AdminDTO dto, ResultHandler<AdminDTO> handler) {
+        adminDAO.selectParticipantExcelFullListStream(dto, handler);
+    }
+
+    @Override
+    public void getExcelWishJobListStream(AdminDTO dto, ResultHandler<AdminDTO> handler) {
+        adminDAO.selectExcelWishJobListStream(dto, handler);
+    }
+
+    @Override
+    public void getExcelCertificateListStream(AdminDTO dto, ResultHandler<AdminDTO> handler) {
+        adminDAO.selectExcelCertificateListStream(dto, handler);
+    }
+
+    @Override
+    public void getExcelTrainingListStream(AdminDTO dto, ResultHandler<AdminDTO> handler) {
+        adminDAO.selectExcelTrainingListStream(dto, handler);
     }
 
     // ===== 상담사별 통계 =====

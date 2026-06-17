@@ -1,6 +1,7 @@
 package com.jobmoa.app.CounselMain.biz.adminpage;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.session.ResultHandler;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -358,6 +359,63 @@ public class AdminDAO {
     public List<AdminDTO> selectExcelTrainingList(AdminDTO dto) {
         log.info("AdminDAO selectExcelTrainingList");
         return sqlSession.selectList(ns + "selectExcelTrainingList", dto);
+    }
+
+    // ===== 참여자 Excel 스트리밍 (대량 다운로드 메모리 최적화) =====
+
+    /**
+     * 참여자 Excel 기본 목록을 스트리밍 방식으로 조회한다(전체 List 미적재).
+     *
+     * @param dto     검색 조건이 담긴 DTO
+     * @param handler 행 1건씩 전달받는 ResultHandler
+     */
+    public void selectParticipantExcelListStream(AdminDTO dto, ResultHandler<AdminDTO> handler) {
+        log.info("AdminDAO selectParticipantExcelListStream");
+        sqlSession.select(ns + "selectParticipantExcelList", dto, handler);
+    }
+
+    /**
+     * 참여자 Excel 전체 컬럼 목록을 스트리밍 방식으로 조회한다(전체 List 미적재).
+     *
+     * @param dto     검색 조건이 담긴 DTO
+     * @param handler 행 1건씩 전달받는 ResultHandler
+     */
+    public void selectParticipantExcelFullListStream(AdminDTO dto, ResultHandler<AdminDTO> handler) {
+        log.info("AdminDAO selectParticipantExcelFullListStream");
+        sqlSession.select(ns + "selectParticipantExcelFullList", dto, handler);
+    }
+
+    /**
+     * Excel 빌더용 희망직무 목록을 스트리밍 방식으로 조회한다(전체 List 미적재).
+     *
+     * @param dto     검색 조건이 담긴 DTO
+     * @param handler 행 1건씩 전달받는 ResultHandler
+     */
+    public void selectExcelWishJobListStream(AdminDTO dto, ResultHandler<AdminDTO> handler) {
+        log.info("AdminDAO selectExcelWishJobListStream");
+        sqlSession.select(ns + "selectExcelWishJobList", dto, handler);
+    }
+
+    /**
+     * Excel 빌더용 자격증 목록을 스트리밍 방식으로 조회한다(전체 List 미적재).
+     *
+     * @param dto     검색 조건이 담긴 DTO
+     * @param handler 행 1건씩 전달받는 ResultHandler
+     */
+    public void selectExcelCertificateListStream(AdminDTO dto, ResultHandler<AdminDTO> handler) {
+        log.info("AdminDAO selectExcelCertificateListStream");
+        sqlSession.select(ns + "selectExcelCertificateList", dto, handler);
+    }
+
+    /**
+     * Excel 빌더용 직업훈련 목록을 스트리밍 방식으로 조회한다(전체 List 미적재).
+     *
+     * @param dto     검색 조건이 담긴 DTO
+     * @param handler 행 1건씩 전달받는 ResultHandler
+     */
+    public void selectExcelTrainingListStream(AdminDTO dto, ResultHandler<AdminDTO> handler) {
+        log.info("AdminDAO selectExcelTrainingListStream");
+        sqlSession.select(ns + "selectExcelTrainingList", dto, handler);
     }
 
     // ===== 상담사별 통계 =====

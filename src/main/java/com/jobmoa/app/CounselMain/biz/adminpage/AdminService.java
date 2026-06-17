@@ -1,5 +1,7 @@
 package com.jobmoa.app.CounselMain.biz.adminpage;
 
+import org.apache.ibatis.session.ResultHandler;
+
 import java.util.List;
 import java.util.Map;
 
@@ -220,6 +222,43 @@ public interface AdminService {
      * @return 직업훈련 목록
      */
     List<AdminDTO> getExcelTrainingList(AdminDTO dto);
+
+    // ===== 참여자 Excel 스트리밍 (대량 다운로드 메모리 최적화) =====
+
+    /**
+     * 참여자 Excel 기본 목록을 스트리밍 방식으로 조회한다(전체 List 미적재).
+     * @param dto 검색 조건이 담긴 DTO
+     * @param handler 행 1건씩 전달받는 ResultHandler
+     */
+    void getParticipantExcelListStream(AdminDTO dto, ResultHandler<AdminDTO> handler);
+
+    /**
+     * 참여자 Excel 전체 컬럼 목록을 스트리밍 방식으로 조회한다(전체 List 미적재).
+     * @param dto 검색 조건이 담긴 DTO
+     * @param handler 행 1건씩 전달받는 ResultHandler
+     */
+    void getParticipantExcelFullListStream(AdminDTO dto, ResultHandler<AdminDTO> handler);
+
+    /**
+     * Excel 빌더용 희망직무 목록을 스트리밍 방식으로 조회한다(전체 List 미적재).
+     * @param dto 검색 조건이 담긴 DTO
+     * @param handler 행 1건씩 전달받는 ResultHandler
+     */
+    void getExcelWishJobListStream(AdminDTO dto, ResultHandler<AdminDTO> handler);
+
+    /**
+     * Excel 빌더용 자격증 목록을 스트리밍 방식으로 조회한다(전체 List 미적재).
+     * @param dto 검색 조건이 담긴 DTO
+     * @param handler 행 1건씩 전달받는 ResultHandler
+     */
+    void getExcelCertificateListStream(AdminDTO dto, ResultHandler<AdminDTO> handler);
+
+    /**
+     * Excel 빌더용 직업훈련 목록을 스트리밍 방식으로 조회한다(전체 List 미적재).
+     * @param dto 검색 조건이 담긴 DTO
+     * @param handler 행 1건씩 전달받는 ResultHandler
+     */
+    void getExcelTrainingListStream(AdminDTO dto, ResultHandler<AdminDTO> handler);
 
     // ===== 상담사별 통계 =====
 

@@ -339,7 +339,7 @@
 
     <!-- ===== 참여자 Excel ===== -->
     <!-- ===== 참여자 Excel 전체 컬럼 ===== -->
-    <select id="selectParticipantExcelFullList" resultType="admin">
+    <select id="selectParticipantExcelFullList" resultType="admin" fetchSize="500">
         SELECT
             A.구직번호 jobNo,
             A.참여자 participantName,
@@ -421,7 +421,7 @@
         ORDER BY A.구직번호 DESC
     </select>
 
-    <select id="selectParticipantExcelList" resultType="admin">
+    <select id="selectParticipantExcelList" resultType="admin" fetchSize="500">
         SELECT
             A.구직번호 jobNo,
             A.참여자 participantName,
@@ -472,7 +472,7 @@
     </select>
 
     <!-- ===== Excel 빌더 - 희망직무 ===== -->
-    <select id="selectExcelWishJobList" resultType="admin">
+    <select id="selectExcelWishJobList" resultType="admin" fetchSize="500">
         SELECT
             A.구직번호 jobNo,
             A.참여자 participantName,
@@ -513,7 +513,7 @@
     </select>
 
     <!-- ===== Excel 빌더 - 자격증 ===== -->
-    <select id="selectExcelCertificateList" resultType="admin">
+    <select id="selectExcelCertificateList" resultType="admin" fetchSize="500">
         SELECT
             A.구직번호 jobNo,
             A.참여자 participantName,
@@ -551,7 +551,7 @@
     </select>
 
     <!-- ===== Excel 빌더 - 직업훈련 ===== -->
-    <select id="selectExcelTrainingList" resultType="admin">
+    <select id="selectExcelTrainingList" resultType="admin" fetchSize="500">
         SELECT
             A.구직번호 jobNo,
             A.참여자 participantName,

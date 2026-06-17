@@ -9,15 +9,15 @@ import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.util.List;
 
 /**
  * 관리자 참여자 Excel 다운로드 컨트롤러.
@@ -53,48 +53,55 @@ public class AdminParticipantExcel {
             }
             AdminAccessSupport.enforceBranchScope(session, dto);
 
-            List<AdminDTO> dataList = adminService.getParticipantExcelList(dto);
+            // SXSSF 스트리밍 워크북(윈도우 100행) — 행 수와 무관하게 상수 메모리 유지
+            SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+            try {
+                Sheet sheet = workbook.createSheet("참여자목록");
 
-            XSSFWorkbook workbook = new XSSFWorkbook();
-            Sheet sheet = workbook.createSheet("참여자목록");
+                String[] headers = {"구직번호", "참여자명", "생년월일", "성별", "지점", "상담사ID", "상담사명",
+                        "진행단계", "모집경로", "참여유형", "경력", "학력", "특정계층", "취업역량",
+                        "희망직무", "희망급여", "등록일", "마감"};
 
-            String[] headers = {"구직번호", "참여자명", "생년월일", "성별", "지점", "상담사ID", "상담사명",
-                    "진행단계", "모집경로", "참여유형", "경력", "학력", "특정계층", "취업역량",
-                    "희망직무", "희망급여", "등록일", "마감"};
+                Row headerRow = sheet.createRow(0);
+                for (int i = 0; i < headers.length; i++) {
+                    headerRow.createCell(i).setCellValue(headers[i]);
+                }
 
-            Row headerRow = sheet.createRow(0);
-            for (int i = 0; i < headers.length; i++) {
-                headerRow.createCell(i).setCellValue(headers[i]);
+                // DB를 ResultHandler로 스트리밍하며 한 행씩 기록(전체 List 미적재)
+                final int[] rowNum = {1};
+                adminService.getParticipantExcelListStream(dto, ctx -> {
+                    AdminDTO item = ctx.getResultObject();
+                    Row row = sheet.createRow(rowNum[0]++);
+                    row.createCell(0).setCellValue(item.getJobNo());
+                    row.createCell(1).setCellValue(item.getParticipantName() != null ? item.getParticipantName() : "");
+                    row.createCell(2).setCellValue(item.getBirthDate() != null ? item.getBirthDate() : "");
+                    row.createCell(3).setCellValue(item.getGender() != null ? item.getGender() : "");
+                    row.createCell(4).setCellValue(item.getBranch() != null ? item.getBranch() : "");
+                    row.createCell(5).setCellValue(item.getCounselorAccount() != null ? item.getCounselorAccount() : "");
+                    row.createCell(6).setCellValue(item.getCounselorName() != null ? item.getCounselorName() : "");
+                    row.createCell(7).setCellValue(item.getProgressStage() != null ? item.getProgressStage() : "");
+                    row.createCell(8).setCellValue(item.getRecruitPath() != null ? item.getRecruitPath() : "");
+                    row.createCell(9).setCellValue(item.getParticipationType() != null ? item.getParticipationType() : "");
+                    row.createCell(10).setCellValue(item.getCareer() != null ? item.getCareer() : "");
+                    row.createCell(11).setCellValue(item.getEducation() != null ? item.getEducation() : "");
+                    row.createCell(12).setCellValue(item.getSpecialClass() != null ? item.getSpecialClass() : "");
+                    row.createCell(13).setCellValue(item.getEmploymentCapacity() != null ? item.getEmploymentCapacity() : "");
+                    row.createCell(14).setCellValue(item.getDesiredJob() != null ? item.getDesiredJob() : "");
+                    row.createCell(15).setCellValue(item.getDesiredSalary() != null ? item.getDesiredSalary() : "");
+                    row.createCell(16).setCellValue(item.getParticipantRegDate() != null ? item.getParticipantRegDate() : "");
+                    row.createCell(17).setCellValue(item.isClosed() ? "마감" : "진행중");
+                });
+
+                String fileName = URLEncoder.encode("관리자_참여자목록_" + LocalDate.now() + ".xlsx", StandardCharsets.UTF_8);
+                response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+                workbook.write(response.getOutputStream());
+            } finally {
+                workbook.dispose(); // SXSSF 임시파일 정리(필수)
+                try {
+                    workbook.close();
+                } catch (IOException ignored) {}
             }
-
-            int rowNum = 1;
-            for (AdminDTO item : dataList) {
-                Row row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(item.getJobNo());
-                row.createCell(1).setCellValue(item.getParticipantName() != null ? item.getParticipantName() : "");
-                row.createCell(2).setCellValue(item.getBirthDate() != null ? item.getBirthDate() : "");
-                row.createCell(3).setCellValue(item.getGender() != null ? item.getGender() : "");
-                row.createCell(4).setCellValue(item.getBranch() != null ? item.getBranch() : "");
-                row.createCell(5).setCellValue(item.getCounselorAccount() != null ? item.getCounselorAccount() : "");
-                row.createCell(6).setCellValue(item.getCounselorName() != null ? item.getCounselorName() : "");
-                row.createCell(7).setCellValue(item.getProgressStage() != null ? item.getProgressStage() : "");
-                row.createCell(8).setCellValue(item.getRecruitPath() != null ? item.getRecruitPath() : "");
-                row.createCell(9).setCellValue(item.getParticipationType() != null ? item.getParticipationType() : "");
-                row.createCell(10).setCellValue(item.getCareer() != null ? item.getCareer() : "");
-                row.createCell(11).setCellValue(item.getEducation() != null ? item.getEducation() : "");
-                row.createCell(12).setCellValue(item.getSpecialClass() != null ? item.getSpecialClass() : "");
-                row.createCell(13).setCellValue(item.getEmploymentCapacity() != null ? item.getEmploymentCapacity() : "");
-                row.createCell(14).setCellValue(item.getDesiredJob() != null ? item.getDesiredJob() : "");
-                row.createCell(15).setCellValue(item.getDesiredSalary() != null ? item.getDesiredSalary() : "");
-                row.createCell(16).setCellValue(item.getParticipantRegDate() != null ? item.getParticipantRegDate() : "");
-                row.createCell(17).setCellValue(item.isClosed() ? "마감" : "진행중");
-            }
-
-            String fileName = URLEncoder.encode("관리자_참여자목록_" + LocalDate.now() + ".xlsx", StandardCharsets.UTF_8);
-            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
-            workbook.write(response.getOutputStream());
-            workbook.close();
 
         } catch (Exception e) {
             log.error("관리자 참여자 Excel 다운로드 오류", e);
@@ -133,30 +140,36 @@ public class AdminParticipantExcel {
             }
             String[] selectedSheets = sheetsParam.split(",");
 
-            XSSFWorkbook workbook = new XSSFWorkbook();
-
-            for (String sheetType : selectedSheets) {
-                switch (sheetType.trim()) {
-                    case "main":
-                        createMainSheet(workbook, dto);
-                        break;
-                    case "wishJob":
-                        createWishJobSheet(workbook, dto);
-                        break;
-                    case "certificate":
-                        createCertificateSheet(workbook, dto);
-                        break;
-                    case "training":
-                        createTrainingSheet(workbook, dto);
-                        break;
+            // SXSSF 스트리밍 워크북(윈도우 100행) — 행 수와 무관하게 상수 메모리 유지
+            SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+            try {
+                for (String sheetType : selectedSheets) {
+                    switch (sheetType.trim()) {
+                        case "main":
+                            createMainSheet(workbook, dto);
+                            break;
+                        case "wishJob":
+                            createWishJobSheet(workbook, dto);
+                            break;
+                        case "certificate":
+                            createCertificateSheet(workbook, dto);
+                            break;
+                        case "training":
+                            createTrainingSheet(workbook, dto);
+                            break;
+                    }
                 }
-            }
 
-            String fileName = URLEncoder.encode("관리자_커스텀엑셀_" + LocalDate.now() + ".xlsx", StandardCharsets.UTF_8);
-            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
-            workbook.write(response.getOutputStream());
-            workbook.close();
+                String fileName = URLEncoder.encode("관리자_커스텀엑셀_" + LocalDate.now() + ".xlsx", StandardCharsets.UTF_8);
+                response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+                workbook.write(response.getOutputStream());
+            } finally {
+                workbook.dispose(); // SXSSF 임시파일 정리(필수)
+                try {
+                    workbook.close();
+                } catch (IOException ignored) {}
+            }
 
         } catch (Exception e) {
             log.error("관리자 커스텀 Excel 다운로드 오류", e);
@@ -173,8 +186,7 @@ public class AdminParticipantExcel {
      * @param workbook Excel 워크북
      * @param dto      검색 조건 및 컬럼 선택 정보
      */
-    private void createMainSheet(XSSFWorkbook workbook, AdminDTO dto) {
-        List<AdminDTO> dataList = adminService.getParticipantExcelFullList(dto);
+    private void createMainSheet(SXSSFWorkbook workbook, AdminDTO dto) {
         Sheet sheet = workbook.createSheet("참여자 기본정보");
 
         String[][] allColumns = {
@@ -213,7 +225,7 @@ public class AdminParticipantExcel {
             log.info("선택된 컬럼 수: {}, 목록: {}", selectedSet.size(), selectedSet);
         }
 
-        java.util.List<String[]> columns = new java.util.ArrayList<>();
+        final java.util.List<String[]> columns = new java.util.ArrayList<>();
         for (String[] col : allColumns) {
             if (selectedSet == null || selectedSet.contains(col[0])) {
                 columns.add(col);
@@ -225,14 +237,16 @@ public class AdminParticipantExcel {
             headerRow.createCell(i).setCellValue(columns.get(i)[1]);
         }
 
-        int rowNum = 1;
-        for (AdminDTO item : dataList) {
-            Row row = sheet.createRow(rowNum++);
+        // DB를 ResultHandler로 스트리밍하며 한 행씩 기록(전체 List 미적재)
+        final int[] rowNum = {1};
+        adminService.getParticipantExcelFullListStream(dto, ctx -> {
+            AdminDTO item = ctx.getResultObject();
+            Row row = sheet.createRow(rowNum[0]++);
             int colIdx = 0;
             for (String[] col : columns) {
                 row.createCell(colIdx++).setCellValue(getColumnValue(item, col[0]));
             }
-        }
+        });
     }
 
     /**
@@ -304,8 +318,7 @@ public class AdminParticipantExcel {
      * @param workbook Excel 워크북
      * @param dto      검색 조건 DTO
      */
-    private void createWishJobSheet(XSSFWorkbook workbook, AdminDTO dto) {
-        List<AdminDTO> dataList = adminService.getExcelWishJobList(dto);
+    private void createWishJobSheet(SXSSFWorkbook workbook, AdminDTO dto) {
         Sheet sheet = workbook.createSheet("희망직무");
 
         String[] headers = {"구직번호", "참여자명", "상담사명", "카테고리(대)", "카테고리(중)", "희망직무"};
@@ -315,16 +328,17 @@ public class AdminParticipantExcel {
             headerRow.createCell(i).setCellValue(headers[i]);
         }
 
-        int rowNum = 1;
-        for (AdminDTO item : dataList) {
-            Row row = sheet.createRow(rowNum++);
+        final int[] rowNum = {1};
+        adminService.getExcelWishJobListStream(dto, ctx -> {
+            AdminDTO item = ctx.getResultObject();
+            Row row = sheet.createRow(rowNum[0]++);
             row.createCell(0).setCellValue(item.getJobNo());
             row.createCell(1).setCellValue(item.getParticipantName() != null ? item.getParticipantName() : "");
             row.createCell(2).setCellValue(item.getCounselorName() != null ? item.getCounselorName() : "");
             row.createCell(3).setCellValue(item.getExcelCategoryLarge() != null ? item.getExcelCategoryLarge() : "");
             row.createCell(4).setCellValue(item.getExcelCategoryMid() != null ? item.getExcelCategoryMid() : "");
             row.createCell(5).setCellValue(item.getExcelWishJob() != null ? item.getExcelWishJob() : "");
-        }
+        });
     }
 
     /**
@@ -333,8 +347,7 @@ public class AdminParticipantExcel {
      * @param workbook Excel 워크북
      * @param dto      검색 조건 DTO
      */
-    private void createCertificateSheet(XSSFWorkbook workbook, AdminDTO dto) {
-        List<AdminDTO> dataList = adminService.getExcelCertificateList(dto);
+    private void createCertificateSheet(SXSSFWorkbook workbook, AdminDTO dto) {
         Sheet sheet = workbook.createSheet("자격증");
 
         String[] headers = {"구직번호", "참여자명", "상담사명", "자격증명"};
@@ -344,14 +357,15 @@ public class AdminParticipantExcel {
             headerRow.createCell(i).setCellValue(headers[i]);
         }
 
-        int rowNum = 1;
-        for (AdminDTO item : dataList) {
-            Row row = sheet.createRow(rowNum++);
+        final int[] rowNum = {1};
+        adminService.getExcelCertificateListStream(dto, ctx -> {
+            AdminDTO item = ctx.getResultObject();
+            Row row = sheet.createRow(rowNum[0]++);
             row.createCell(0).setCellValue(item.getJobNo());
             row.createCell(1).setCellValue(item.getParticipantName() != null ? item.getParticipantName() : "");
             row.createCell(2).setCellValue(item.getCounselorName() != null ? item.getCounselorName() : "");
             row.createCell(3).setCellValue(item.getExcelCertificateName() != null ? item.getExcelCertificateName() : "");
-        }
+        });
     }
 
     /**
@@ -360,8 +374,7 @@ public class AdminParticipantExcel {
      * @param workbook Excel 워크북
      * @param dto      검색 조건 DTO
      */
-    private void createTrainingSheet(XSSFWorkbook workbook, AdminDTO dto) {
-        List<AdminDTO> dataList = adminService.getExcelTrainingList(dto);
+    private void createTrainingSheet(SXSSFWorkbook workbook, AdminDTO dto) {
         Sheet sheet = workbook.createSheet("직업훈련");
 
         String[] headers = {"구직번호", "참여자명", "상담사명", "직업훈련명"};
@@ -371,13 +384,14 @@ public class AdminParticipantExcel {
             headerRow.createCell(i).setCellValue(headers[i]);
         }
 
-        int rowNum = 1;
-        for (AdminDTO item : dataList) {
-            Row row = sheet.createRow(rowNum++);
+        final int[] rowNum = {1};
+        adminService.getExcelTrainingListStream(dto, ctx -> {
+            AdminDTO item = ctx.getResultObject();
+            Row row = sheet.createRow(rowNum[0]++);
             row.createCell(0).setCellValue(item.getJobNo());
             row.createCell(1).setCellValue(item.getParticipantName() != null ? item.getParticipantName() : "");
             row.createCell(2).setCellValue(item.getCounselorName() != null ? item.getCounselorName() : "");
             row.createCell(3).setCellValue(item.getExcelTrainingName() != null ? item.getExcelTrainingName() : "");
-        }
+        });
     }
 }

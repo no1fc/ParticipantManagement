@@ -11,6 +11,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
@@ -24,7 +25,7 @@ import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.util.List;
+import java.util.function.BiConsumer;
 
 /**
  * 전체 참여자 Excel 다운로드 컨트롤러.
@@ -125,63 +126,36 @@ public class ParticipantAllExcel {
      * @param branchManagementPageFlag 지점 관리 페이지 여부 (파일명 접두어 결정에 사용)
      */
     private void createExcel(HttpServletResponse response,ParticipantDTO participantDTO, boolean branchManagementPageFlag){
-        // 1. 캐싱된 템플릿을 메모리에서 로드
-        try (XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(templateBytes2))) {
-            if (templateBytes2 == null) {
-                throw new IllegalStateException("템플릿 파일이 로드되지 않았습니다.");
-            }
-            Sheet sheet = workbook.getSheetAt(0); // 첫 번째 시트 사용
-            List<ParticipantDTO> datas = null;
-            try{
-                datas = participantService.selectAll(participantDTO);
-            } catch (Exception e){
-                log.error("참여자 데이터 조회 실패: {}", e.getMessage());
-                datas = List.of(); // 빈 리스트 할당
-            }
+        if (templateBytes2 == null) {
+            throw new IllegalStateException("템플릿 파일이 로드되지 않았습니다.");
+        }
+        // 1. 캐싱된 템플릿(XSSF)을 SXSSF 스트리밍 워크북으로 래핑
+        //    - 윈도우 100행만 메모리에 유지하고 초과분은 임시파일로 flush → 행 수와 무관하게 상수 메모리
+        //    - 템플릿의 헤더 스타일은 그대로 보존됨
+        SXSSFWorkbook workbook = null;
+        try {
+            workbook = new SXSSFWorkbook(new XSSFWorkbook(new ByteArrayInputStream(templateBytes2)), 100);
+            Sheet sheet = workbook.getSheetAt(0); // 첫 번째 시트(기본정보) 사용
 
-            if (datas == null) {
-                log.warn("조회된 참여자 데이터가 없습니다. 빈 목록으로 처리합니다.");
-                datas = List.of(); // null 대신 빈 리스트 사용
-            }
-
-            createRow(sheet,1,datas);
+            // 기본정보 시트 — 1행부터 스트리밍 기록 (전체 List 미적재)
+            streamSheet(participantDTO, "participantExcel", sheet, (row, data) -> setProgress(row, 0, data));
 
             // 희망직무 시트 생성
-            List<ParticipantDTO> wishJobDatas = selectExcelSheetData(participantDTO, "participantExcelWishJob");
             Sheet wishJobSheet = workbook.createSheet("희망직무");
             createSheetHeader(wishJobSheet, new String[]{"구직번호", "상담사명", "참여자명", "카테고리_대", "카테고리_중", "희망직무"});
-            createWishJobRows(wishJobSheet, wishJobDatas);
+            streamSheet(participantDTO, "participantExcelWishJob", wishJobSheet, this::writeWishJobRow);
 
             // 자격증 시트 생성
-            List<ParticipantDTO> certifDatas = selectExcelSheetData(participantDTO, "participantExcelCertificate");
             Sheet certifSheet = workbook.createSheet("자격증");
             createSheetHeader(certifSheet, new String[]{"구직번호", "상담사명", "참여자명", "자격증명"});
-            createCertificateRows(certifSheet, certifDatas);
+            streamSheet(participantDTO, "participantExcelCertificate", certifSheet, this::writeCertificateRow);
 
             // 직업훈련 시트 생성
-            List<ParticipantDTO> trainingDatas = selectExcelSheetData(participantDTO, "participantExcelTraining");
             Sheet trainingSheet = workbook.createSheet("직업훈련");
             createSheetHeader(trainingSheet, new String[]{"구직번호", "상담사명", "참여자명", "직업훈련명"});
-            createTrainingRows(trainingSheet, trainingDatas);
+            streamSheet(participantDTO, "participantExcelTraining", trainingSheet, this::writeTrainingRow);
 
-            // 수식이 포함된 셀들의 계산을 실행
-            // 1. 워크북의 CreationHelper를 얻어옴
-            // 2. FormulaEvaluator 생성
-            // 3. evaluateAll()로 모든 수식을 재계산
-            workbook.getCreationHelper()
-                    .createFormulaEvaluator()
-                    .evaluateAll();
-
-            /*
-             * 수식 계산 방법은 크게 두 가지가 있습니다:
-             * 1. evaluateAll(): 워크북의 모든 수식을 한 번에 계산
-             * 2. evaluate(Cell): 특정 셀의 수식만 계산
-             *
-             * evaluateAll()은 다음과 같은 경우에 유용합니다:
-             * - 여러 시트에 걸쳐 수식이 있는 경우
-             * - 수식들이 서로 연관되어 있는 경우
-             * - 수식이 많은 경우 한 번에 처리 가능
-             */
+            // 수식 평가(evaluateAll) 제거: 템플릿에 수식이 없어 불필요하며, SXSSF는 미지원.
 
             //지점 전체 참여자 다운 요청이면 앞 부분을 지점으로 변경
             String title = participantDTO.getParticipantBranch();
@@ -189,57 +163,44 @@ public class ParticipantAllExcel {
                 title = participantDTO.getParticipantUserid();
             }
 
-            // 4. 파일 다운로드 설정
+            // 파일 다운로드 설정
             String fileName = URLEncoder.encode(title + "_전체참여자_" + LocalDate.now() + ".xlsx", StandardCharsets.UTF_8);
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
             workbook.write(response.getOutputStream());
         } catch (Exception e) {
             throw new RuntimeException("엑셀 파일 처리 중 오류가 발생했습니다.", e);
+        } finally {
+            if (workbook != null) {
+                workbook.dispose(); // SXSSF 임시파일 정리(필수)
+                try {
+                    workbook.close();
+                } catch (IOException ex) {
+                    log.warn("SXSSF 워크북 close 실패", ex);
+                }
+            }
         }
     }
 
     /**
-     * 참여자 기본정보 데이터를 시트의 지정된 시작 행부터 채워 넣는다.
+     * 지정 조건의 참여자 데이터를 스트리밍 조회하며, 시트의 1행부터 한 건씩 기록한다.
+     * 전체 결과를 List로 적재하지 않아 대량 다운로드 시에도 메모리가 상수에 가깝게 유지된다.
      *
-     * @param sheet    대상 시트
-     * @param startRow 데이터 시작 행 번호
-     * @param datas    참여자 데이터 목록
+     * @param participantDTO 조회 조건 DTO (participantCondition이 condition으로 설정됨)
+     * @param condition      MyBatis 매퍼 ID(조회 조건)
+     * @param sheet          기록 대상 시트
+     * @param writer         행 1건을 기록하는 함수 (Row, 데이터)
      */
-    private void createRow(Sheet sheet, int startRow, List<ParticipantDTO> datas) {
-        // 2. startRow 데이터 시작 위치 설정 (템플릿에 따라 조정)
-        // 3. 데이터 채우기
-
-        // null 체크 추가
-        if (datas == null || datas.isEmpty()) {
-            log.warn("처리할 데이터가 없습니다.");
-            return; // 데이터가 없으면 메소드 종료
+    private void streamSheet(ParticipantDTO participantDTO, String condition, Sheet sheet,
+                             BiConsumer<Row, ParticipantDTO> writer) {
+        participantDTO.setParticipantCondition(condition);
+        final int[] rowIdx = {1}; // 0행은 헤더, 데이터는 1행부터
+        try {
+            participantService.selectAllStream(participantDTO,
+                    ctx -> writer.accept(sheet.createRow(rowIdx[0]++), ctx.getResultObject()));
+        } catch (Exception e) {
+            log.error("엑셀 시트 스트리밍 조회 실패 condition: {}", condition, e);
         }
-
-        for (ParticipantDTO data : datas) {
-            //row 값 가져오기
-            Row row = setRowValue(sheet,startRow);
-
-            //행을 초기화 하여 값을 출력
-            int colIndex = 0;
-            setProgress(row,colIndex,data);
-            startRow++;
-        }
-    }
-
-    /**
-     * 시트에서 지정된 행을 반환하며, 존재하지 않으면 새로 생성한다.
-     *
-     * @param sheet    대상 시트
-     * @param startRow 행 번호
-     * @return 해당 행 객체
-     */
-    private Row setRowValue(Sheet sheet, int startRow) {
-        Row row = sheet.getRow(startRow); // 기존 행 가져오기
-        if (row == null) {
-            row = sheet.createRow(startRow); // 행이 없으면 새로 생성
-        }
-        return row;
     }
 
     /**
@@ -336,21 +297,6 @@ public class ParticipantAllExcel {
     }
 
     /**
-     * 엑셀 시트 데이터 조회 helper
-     * participantCondition을 바꿔서 기존 selectAll을 재사용한다.
-     */
-    private List<ParticipantDTO> selectExcelSheetData(ParticipantDTO participantDTO, String condition) {
-        participantDTO.setParticipantCondition(condition);
-        try {
-            List<ParticipantDTO> datas = participantService.selectAll(participantDTO);
-            return datas == null ? List.of() : datas;
-        } catch (Exception e) {
-            log.error("엑셀 시트 데이터 조회 실패 condition: {}", condition, e);
-            return List.of();
-        }
-    }
-
-    /**
      * 텍스트 전용 셀 값 설정 (null을 빈 문자열로 처리)
      */
     private void setStringCellValue(Row row, int columnIndex, Object value) {
@@ -373,52 +319,37 @@ public class ParticipantAllExcel {
     }
 
     /**
-     * 희망직무 시트 행 생성
+     * 희망직무 시트 행 1건 기록 (스트리밍)
      */
-    private void createWishJobRows(Sheet sheet, List<ParticipantDTO> datas) {
-        if (datas == null || datas.isEmpty()) return;
-        int rowIndex = 1;
-        for (ParticipantDTO data : datas) {
-            Row row = sheet.createRow(rowIndex++);
-            int col = 0;
-            setStringCellValue(row, col++, data.getParticipantJobNo());
-            setStringCellValue(row, col++, data.getParticipantUserName());
-            setStringCellValue(row, col++, data.getParticipantPartic());
-            setStringCellValue(row, col++, data.getExcelCategoryLarge());
-            setStringCellValue(row, col++, data.getExcelCategoryMid());
-            setStringCellValue(row, col, data.getExcelWishJob());
-        }
+    private void writeWishJobRow(Row row, ParticipantDTO data) {
+        int col = 0;
+        setStringCellValue(row, col++, data.getParticipantJobNo());
+        setStringCellValue(row, col++, data.getParticipantUserName());
+        setStringCellValue(row, col++, data.getParticipantPartic());
+        setStringCellValue(row, col++, data.getExcelCategoryLarge());
+        setStringCellValue(row, col++, data.getExcelCategoryMid());
+        setStringCellValue(row, col, data.getExcelWishJob());
     }
 
     /**
-     * 자격증 시트 행 생성
+     * 자격증 시트 행 1건 기록 (스트리밍)
      */
-    private void createCertificateRows(Sheet sheet, List<ParticipantDTO> datas) {
-        if (datas == null || datas.isEmpty()) return;
-        int rowIndex = 1;
-        for (ParticipantDTO data : datas) {
-            Row row = sheet.createRow(rowIndex++);
-            int col = 0;
-            setStringCellValue(row, col++, data.getParticipantJobNo());
-            setStringCellValue(row, col++, data.getParticipantUserName());
-            setStringCellValue(row, col++, data.getParticipantPartic());
-            setStringCellValue(row, col, data.getExcelCertificateName());
-        }
+    private void writeCertificateRow(Row row, ParticipantDTO data) {
+        int col = 0;
+        setStringCellValue(row, col++, data.getParticipantJobNo());
+        setStringCellValue(row, col++, data.getParticipantUserName());
+        setStringCellValue(row, col++, data.getParticipantPartic());
+        setStringCellValue(row, col, data.getExcelCertificateName());
     }
 
     /**
-     * 직업훈련 시트 행 생성
+     * 직업훈련 시트 행 1건 기록 (스트리밍)
      */
-    private void createTrainingRows(Sheet sheet, List<ParticipantDTO> datas) {
-        if (datas == null || datas.isEmpty()) return;
-        int rowIndex = 1;
-        for (ParticipantDTO data : datas) {
-            Row row = sheet.createRow(rowIndex++);
-            int col = 0;
-            setStringCellValue(row, col++, data.getParticipantJobNo());
-            setStringCellValue(row, col++, data.getParticipantUserName());
-            setStringCellValue(row, col++, data.getParticipantPartic());
-            setStringCellValue(row, col, data.getExcelTrainingName());
-        }
+    private void writeTrainingRow(Row row, ParticipantDTO data) {
+        int col = 0;
+        setStringCellValue(row, col++, data.getParticipantJobNo());
+        setStringCellValue(row, col++, data.getParticipantUserName());
+        setStringCellValue(row, col++, data.getParticipantPartic());
+        setStringCellValue(row, col, data.getExcelTrainingName());
     }
 }
