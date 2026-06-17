@@ -226,7 +226,7 @@
                           <i class="bi bi-geo-alt"></i> 직무카테고리-대분류
                       </label>
                       <div class="jobCategoryLarge-box">
-                          <select class="form-select" id="jobCategoryLarge" name="jobCategoryLargeFilter" multiple required>
+                          <select class="form-select" id="jobCategoryLarge" name="jobCategoryLargeFilter" multiple required data-selected="${fn:escapeXml(param.jobCategoryLargeFilter)}">
                               <option value="">선택하세요</option>
                           </select>
                       </div>
@@ -237,7 +237,7 @@
                           <i class="bi bi-geo-alt"></i> 직무카테고리-중분류
                       </label>
                       <div class="jobCategoryMid-box">
-                          <select class="form-select" id="jobCategoryMid" name="jobCategoryMidFilter" multiple required>
+                          <select class="form-select" id="jobCategoryMid" name="jobCategoryMidFilter" multiple required data-selected="${fn:escapeXml(param.jobCategoryMidFilter)}">
                               <option value="">선택하세요</option>
                           </select>
                       </div>
@@ -467,27 +467,9 @@
         genderFilter.val('${param.genderFilter}');
         countFilter.val('${param.pageRows}'==='' ? '10' : '${param.pageRows}');
 
-        // 직무 카테고리 - 대분류 먼저 설정
-        const jobCategoryLargeFilterValue = '${param.jobCategoryLargeFilter}';
-        const jobCategoryMidFilterValue = '${param.jobCategoryMidFilter}';
-
-        <%--jobCategoryLarge.val('${param.jobCategoryLargeFilter}' || '');--%>
-        <%--jobCategoryMid.val('${param.jobCategoryMidFilter}' || '');--%>
-
-        if (jobCategoryLargeFilterValue) {
-            jobCategoryLarge.val(jobCategoryLargeFilterValue);
-
-            // 대분류 선택 시 중분류 옵션을 생성하는 이벤트를 강제로 발생시킴
-            jobCategoryLarge.trigger('change');
-
-            // 중분류 옵션 생성이 완료된 후 값을 설정
-            // (옵션 생성이 비동기인 경우를 대비해 약간의 지연 추가)
-            setTimeout(function() {
-                if (jobCategoryMidFilterValue) {
-                    jobCategoryMid.val(jobCategoryMidFilterValue);
-                }
-            }, 100);
-        }
+        // 직무 카테고리(대분류/중분류) 선택값 복원은 jobCategorySelectRender()가
+        // <select>의 data-selected 속성을 읽어 옵션 생성 시점에 처리한다.
+        // (이전의 인라인 .val()/setTimeout 방식은 옵션 생성 전에 실행되어 복원에 실패했음)
 
         // JSTL을 사용해 컨트롤러에서 전달된 모든 searchAddressFilter 값을 JS 배열로 만듭니다.
         const searchAddressFilterValues = [
