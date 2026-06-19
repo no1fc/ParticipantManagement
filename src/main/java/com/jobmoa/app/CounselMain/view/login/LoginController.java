@@ -1,5 +1,6 @@
 package com.jobmoa.app.CounselMain.view.login;
 
+import com.jobmoa.app.CounselMain.biz.adminpage.PermissionService;
 import com.jobmoa.app.CounselMain.biz.bean.LoginBean;
 import com.jobmoa.app.CounselMain.biz.login.MemberDTO;
 import com.jobmoa.app.CounselMain.biz.login.MemberService;
@@ -15,6 +16,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * 로그인/로그아웃 페이지 컨트롤러.
  * <p>사용자 인증(로그인), 세션 관리, 로그아웃 처리를 담당한다.
@@ -27,6 +31,9 @@ public class LoginController {
 
     @Autowired
     private MemberService memberService;
+
+    @Autowired
+    private PermissionService permissionService;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -142,33 +149,59 @@ public class LoginController {
                             : rawPassword.equals(storedPassword);
 
                     if (passwordMatch) {
-                        log.info("loginController login Success user ID : [{}]", memberDTO.getMemberUserID());
+                        // 사이트 접속 게이트: 참여자관리(COUNSEL) 접속 허용 여부 확인 (미허용 시 세션 미생성)
+                        memberDTO.setMemberCondition("checkCounselSiteAccess");
+                        boolean counselAllowed = memberService.selectCount(memberDTO) > 0;
 
-                        String role = memberDTO.getMemberRole();
-                        boolean isManager = memberDTO.isMemberISManager();
-                        loginBean.setMemberUserID(memberDTO.getMemberUserID());
-                        loginBean.setMemberUserName(memberDTO.getMemberUserName());
-                        loginBean.setMemberBranch(memberDTO.getMemberBranch());
-                        loginBean.setMemberRole(role);
-                        loginBean.setMemberUniqueNumber(memberDTO.getMemberUniqueNumber());
-                        boolean branchRole = memberRoleCheck.checkBranchRole(role);
-                        boolean praRole = role.equals("PRA");
-                        String permissionGroup = MemberRoleCheck.getPermissionGroup(role).name();
-                        loginBean.setPermissionGroup(permissionGroup);
+                        if (!counselAllowed) {
+                            log.info("loginController site access denied user ID : [{}]", memberDTO.getMemberUserID());
+                            icon = "warning";
+                            title = "접근 권한 없음";
+                            message = "참여자관리 시스템 접근 권한이 없습니다. 관리자에게 문의하세요.";
+                        } else {
+                            log.info("loginController login Success user ID : [{}]", memberDTO.getMemberUserID());
 
-                        session.setAttribute("JOBMOA_LOGIN_DATA", loginBean);
-                        session.setAttribute("IS_BRANCH_MANAGER", branchRole);
-                        session.setAttribute("IS_MANAGER", isManager);
-                        session.setAttribute("IS_PRA_MANAGER", praRole);
-                        session.setAttribute("PERMISSION_GROUP", permissionGroup);
+                            // COUNSEL 실효 권한 해석: J_직원_사이트접속.사이트내권한(override) 우선, 없으면 재직.권한 상속
+                            String role = memberDTO.getMemberRole();
+                            boolean isManager = memberDTO.isMemberISManager();
+                            memberDTO.setMemberCondition("selectCounselSiteRole");
+                            MemberDTO siteRoleRow = memberService.selectOne(memberDTO);
+                            if (siteRoleRow != null && siteRoleRow.getMemberRole() != null
+                                    && !siteRoleRow.getMemberRole().isEmpty()) {
+                                role = siteRoleRow.getMemberRole();
+                                log.info("COUNSEL 사이트내권한 override 적용: [{}] → [{}]", memberDTO.getMemberRole(), role);
+                            }
+                            loginBean.setMemberUserID(memberDTO.getMemberUserID());
+                            loginBean.setMemberUserName(memberDTO.getMemberUserName());
+                            loginBean.setMemberBranch(memberDTO.getMemberBranch());
+                            loginBean.setMemberRole(role);
+                            loginBean.setMemberUniqueNumber(memberDTO.getMemberUniqueNumber());
+                            boolean branchRole = memberRoleCheck.checkBranchRole(role);
+                            boolean praRole = role.equals("PRA");
+                            String permissionGroup = MemberRoleCheck.getPermissionGroup(role).name();
+                            loginBean.setPermissionGroup(permissionGroup);
 
-                        session.setMaxInactiveInterval(21600);
-                        log.info("Session MaxInactiveInterval : [{}]", session.getMaxInactiveInterval());
-                        session.setAttribute("SESSION_TIME", System.currentTimeMillis());
+                            // 역할별 COUNSEL 메뉴 접근 맵 적재 (gnb 데이터 기반 게이팅용): 메뉴코드 → 접근레벨
+                            Map<String, String> menuAccess = new HashMap<>();
+                            for (Map<String, Object> menu : permissionService.getPermissionsByRole(role)) {
+                                menuAccess.put((String) menu.get("menuCode"), (String) menu.get("accessLevel"));
+                            }
 
-                        url = "dashboard.login";
-                        icon = "success";
-                        title = "로그인 성공";
+                            session.setAttribute("JOBMOA_LOGIN_DATA", loginBean);
+                            session.setAttribute("IS_BRANCH_MANAGER", branchRole);
+                            session.setAttribute("IS_MANAGER", isManager);
+                            session.setAttribute("IS_PRA_MANAGER", praRole);
+                            session.setAttribute("PERMISSION_GROUP", permissionGroup);
+                            session.setAttribute("MENU_ACCESS", menuAccess);
+
+                            session.setMaxInactiveInterval(21600);
+                            log.info("Session MaxInactiveInterval : [{}]", session.getMaxInactiveInterval());
+                            session.setAttribute("SESSION_TIME", System.currentTimeMillis());
+
+                            url = "dashboard.login";
+                            icon = "success";
+                            title = "로그인 성공";
+                        }
                     }
                 }
             }

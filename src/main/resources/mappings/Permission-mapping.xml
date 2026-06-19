@@ -4,50 +4,51 @@
 
 <mapper namespace="PermissionDAO">
 
-    <!-- 권한별 메뉴 접근 목록 조회 -->
+    <!-- 권한별 메뉴 접근 목록 조회 (참여자관리=COUNSEL 사이트). 멀티사이트 일반화 테이블 사용. -->
     <select id="selectPermissionsByRole" parameterType="map" resultType="map">
         SELECT
             메뉴코드 AS menuCode,
             접근레벨 AS accessLevel
-        FROM J_참여자관리_메뉴권한
-        WHERE 권한 = #{role}
+        FROM J_사이트_메뉴권한
+        WHERE 사이트코드 = N'COUNSEL' AND 권한 = #{role}
     </select>
 
-    <!-- 특정 권한의 특정 메뉴 접근 레벨 조회 -->
+    <!-- 특정 권한의 특정 메뉴 접근 레벨 조회 (참여자관리=COUNSEL 사이트). 멀티사이트 일반화 테이블 사용. -->
     <select id="selectMenuAccess" parameterType="map" resultType="string">
         SELECT 접근레벨
-        FROM J_참여자관리_메뉴권한
-        WHERE 권한 = #{role} AND 메뉴코드 = #{menuCode}
+        FROM J_사이트_메뉴권한
+        WHERE 사이트코드 = N'COUNSEL' AND 권한 = #{role} AND 메뉴코드 = #{menuCode}
     </select>
 
-    <!-- 전체 메뉴권한 목록 조회 (관리자용) -->
+    <!-- 전체 메뉴권한 목록 조회 (관리자용). 멀티사이트 일반화 테이블 사용. -->
     <select id="selectAllPermissions" resultType="map">
         SELECT
-            PK AS pk,
+            권한PK AS pk,
             권한 AS role,
             메뉴코드 AS menuCode,
             접근레벨 AS accessLevel
-        FROM J_참여자관리_메뉴권한
+        FROM J_사이트_메뉴권한
+        WHERE 사이트코드 = N'COUNSEL'
         ORDER BY 권한, 메뉴코드
     </select>
 
-    <!-- 메뉴권한 추가 -->
+    <!-- 메뉴권한 추가. 멀티사이트 일반화 테이블 사용. -->
     <insert id="insertPermission" parameterType="map">
-        INSERT INTO J_참여자관리_메뉴권한 (권한, 메뉴코드, 접근레벨)
-        VALUES (#{role}, #{menuCode}, #{accessLevel})
+        INSERT INTO J_사이트_메뉴권한 (사이트코드, 권한, 메뉴코드, 접근레벨)
+        VALUES (N'COUNSEL', #{role}, #{menuCode}, #{accessLevel})
     </insert>
 
-    <!-- 메뉴권한 수정 -->
+    <!-- 메뉴권한 수정. 멀티사이트 일반화 테이블 사용. -->
     <update id="updatePermission" parameterType="map">
-        UPDATE J_참여자관리_메뉴권한
+        UPDATE J_사이트_메뉴권한
         SET 접근레벨 = #{accessLevel}
-        WHERE PK = #{pk}
+        WHERE 권한PK = #{pk}
     </update>
 
-    <!-- 메뉴권한 삭제 -->
+    <!-- 메뉴권한 삭제. 멀티사이트 일반화 테이블 사용. -->
     <delete id="deletePermission" parameterType="map">
-        DELETE FROM J_참여자관리_메뉴권한
-        WHERE PK = #{pk}
+        DELETE FROM J_사이트_메뉴권한
+        WHERE 권한PK = #{pk}
     </delete>
 
 </mapper>

@@ -63,58 +63,107 @@
         WHERE 전담자번호 = #{memberNo}
     </select>
 
+    <!-- 신규 사용자 등록 → 기저 테이블 멀티 INSERT.
+         직원번호는 IDENTITY가 채우므로 명시 INSERT 제외. 아이디가 모든 자식 테이블 키. -->
     <insert id="insertUser">
-        INSERT INTO J_참여자관리_로그인정보 (
-            전담자번호, 지점, 이름, 아이디, 비밀번호, 권한, 관리자권한,
-            이메일, 전화번호, 아이디사용여부, 입사일, 최종발령일,
-            조회순서, 실적작성여부, 일일업무일지발급여부, 배정가중치
-        ) VALUES (
-            #{memberNo}, #{branch}, #{memberName}, #{userId}, #{password}, #{role}, #{isAdmin},
-            #{email}, #{phoneNumber}, #{useStatus}, #{hireDate}, #{lastAssignDate},
-            #{viewOrder}, #{performanceWrite}, #{dailyReportIssue}, #{assignWeight}
-        )
+        INSERT INTO J_직원 (아이디, 이름, 이메일, 전화번호, 최초입사일, 현재재직상태, 등록일, 수정일)
+        VALUES (#{userId}, #{memberName}, #{email}, #{phoneNumber}, #{hireDate}, N'재직', GETDATE(), GETDATE());
+
+        INSERT INTO J_직원_계정 (아이디, 비밀번호, 계정상태)
+        VALUES (#{userId}, #{password}, ISNULL(#{useStatus}, N'사용'));
+
+        INSERT INTO J_직원_재직 (아이디, 주부서코드, 지점명, 권한, 관리자권한, 최종발령일)
+        VALUES (#{userId},
+                (SELECT 부서코드 FROM J_부서 WHERE 지점명 = #{branch}),
+                #{branch}, ISNULL(#{role}, N'상담'), #{isAdmin}, #{lastAssignDate});
+
+        INSERT INTO J_직원_부서배치 (직원아이디, 부서코드, 주부서여부, 시작일)
+        VALUES (#{userId},
+                (SELECT 부서코드 FROM J_부서 WHERE 지점명 = #{branch}), 1, ISNULL(#{hireDate}, GETDATE()));
+
+        INSERT INTO J_직원_참여자관리_프로필 (직원아이디, 조회순서, 실적작성여부, 일일업무일지발급여부, 배정가중치)
+        VALUES (#{userId}, #{viewOrder}, #{performanceWrite}, #{dailyReportIssue}, #{assignWeight});
+
+        <!-- 참여자관리(COUNSEL) 사이트 접속 부여(사이트내권한 NULL=재직.권한 상속). 로그인 게이트 통과용 -->
+        INSERT INTO J_직원_사이트접속 (직원아이디, 사이트코드, 부서코드, 접속허용, 사이트내권한)
+        VALUES (#{userId}, N'COUNSEL', NULL, 1, NULL);
+
+        <!-- 입사일이 있으면 입퇴사 cycle(재직기간) 1행 생성 -->
+        <if test="hireDate != null and hireDate != ''">
+            INSERT INTO J_직원_재직기간 (직원아이디, 재직순번, 입사일)
+            VALUES (#{userId}, 1, #{hireDate});
+        </if>
     </insert>
 
+    <!-- 사용자 수정 → 컬럼별로 기저 테이블에 분배. 키(직원번호)로 아이디 해석.
+         아이디는 전 시스템 조인 키(불변 계약)이므로 수정 대상에서 제외. -->
     <update id="updateUser">
-        UPDATE J_참여자관리_로그인정보
-        SET
-            지점 = #{branch},
-            이름 = #{memberName},
-            아이디 = #{userId},
-            권한 = #{role},
-            관리자권한 = #{isAdmin},
+        DECLARE @아이디 nvarchar(20) = (SELECT 아이디 FROM J_직원 WHERE 직원번호 = #{memberNo});
+
+        UPDATE J_직원
+        SET 이름 = #{memberName},
             이메일 = #{email},
             전화번호 = #{phoneNumber},
-            아이디사용여부 = #{useStatus},
-            입사일 = #{hireDate},
+            최초입사일 = #{hireDate},
+            수정일 = GETDATE()
+        WHERE 아이디 = @아이디;
+
+        UPDATE J_직원_계정
+        SET 계정상태 = #{useStatus}
+        WHERE 아이디 = @아이디;
+
+        UPDATE J_직원_재직
+        SET 권한 = #{role},
+            관리자권한 = #{isAdmin},
             최종발령일 = #{lastAssignDate},
-            조회순서 = #{viewOrder},
+            지점명 = #{branch},
+            주부서코드 = (SELECT 부서코드 FROM J_부서 WHERE 지점명 = #{branch}),
+            수정일 = GETDATE()
+        WHERE 아이디 = @아이디;
+
+        UPDATE J_직원_참여자관리_프로필
+        SET 조회순서 = #{viewOrder},
             실적작성여부 = #{performanceWrite},
             일일업무일지발급여부 = #{dailyReportIssue},
             배정가중치 = #{assignWeight}
-        WHERE 전담자번호 = #{memberNo}
+        WHERE 직원아이디 = @아이디;
+
+        <!-- 지점(주부서) 변경 시 현재 주부서 배치 행도 동기화 -->
+        UPDATE J_직원_부서배치
+        SET 부서코드 = (SELECT 부서코드 FROM J_부서 WHERE 지점명 = #{branch})
+        WHERE 직원아이디 = @아이디 AND 종료일 IS NULL AND 주부서여부 = 1;
     </update>
 
+    <!-- 삭제 → soft-delete(현재재직상태='퇴사'). 물리 삭제 금지.
+         퇴사 트리거(TR_직원_재직상태_퇴사동기화)가 계정상태를 '정지'로 자동 전이. -->
     <delete id="deleteUser">
-        DELETE FROM J_참여자관리_로그인정보
-        WHERE 전담자번호 = #{memberNo}
+        DECLARE @아이디 nvarchar(20) = (SELECT 아이디 FROM J_직원 WHERE 직원번호 = #{memberNo});
+
+        UPDATE J_직원
+        SET 현재재직상태 = N'퇴사', 수정일 = GETDATE()
+        WHERE 아이디 = @아이디;
+
+        UPDATE J_직원_재직기간
+        SET 퇴사일 = CAST(GETDATE() AS date)
+        WHERE 직원아이디 = @아이디 AND 퇴사일 IS NULL;
     </delete>
 
     <update id="resetUserPassword">
-        UPDATE J_참여자관리_로그인정보
-        SET 비밀번호 = #{password}
-        WHERE 전담자번호 = #{memberNo}
+        UPDATE J_직원_계정
+        SET 비밀번호 = #{password}, 비밀번호변경일 = GETDATE()
+        WHERE 아이디 = (SELECT 아이디 FROM J_직원 WHERE 직원번호 = #{memberNo})
     </update>
 
     <update id="approveUser">
-        UPDATE J_참여자관리_로그인정보
-        SET 아이디사용여부 = #{useStatus}
-        WHERE 전담자번호 = #{memberNo}
+        UPDATE J_직원_계정
+        SET 계정상태 = #{useStatus}
+        WHERE 아이디 = (SELECT 아이디 FROM J_직원 WHERE 직원번호 = #{memberNo})
     </update>
 
     <!-- ===== 사용자 보조 ===== -->
+    <!-- 직원번호는 J_직원 IDENTITY가 채우므로 다음 값 예측치(폼 표시용)를 IDENT_CURRENT 기준으로 반환 -->
     <select id="selectNextMemberNo" resultType="int">
-        SELECT ISNULL(MAX(전담자번호), 0) + 1 FROM J_참여자관리_로그인정보
+        SELECT ISNULL(IDENT_CURRENT('dbo.J_직원'), 0) + 1
     </select>
 
     <select id="selectUserIdExists" resultType="int">
