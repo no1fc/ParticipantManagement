@@ -45,6 +45,7 @@ import java.util.concurrent.TimeUnit;
     "com.jobmoa.app.CounselMain.view.mailSend",
     "com.jobmoa.app.CounselMain.view.mypage",
     "com.jobmoa.app.CounselMain.view.adminpage",
+    "com.jobmoa.app.CounselMain.view.linkagePopup",
     "com.jobmoa.app.CounselMain.view.schedule",
     "com.jobmoa.app.CounselMain.view.schedulePublic",
     "com.jobmoa.app.jobPlacement.view.jobPlacement",

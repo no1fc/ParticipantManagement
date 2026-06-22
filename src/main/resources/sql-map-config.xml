@@ -39,6 +39,7 @@
         <typeAlias type="com.jobmoa.app.CounselMain.biz.recommend.JobCategoryDTO"          alias="jobCategory"/>
         <typeAlias type="com.jobmoa.app.CounselMain.biz.schedule.ScheduleDTO" alias="schedule" />
         <typeAlias type="com.jobmoa.app.CounselMain.biz.recommend.JobPostingCopyDTO" alias="jobPostingCopy"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.linkagePopup.LinkagePopupSettingDTO" alias="linkagePopupSetting"/>
 
     </typeAliases>
 
@@ -66,5 +67,6 @@
         <mapper resource="mappings/ParticipantJobRecommend-mapping.xml"/>
         <mapper resource="mappings/Schedule-mapping.xml"/>
         <mapper resource="mappings/Permission-mapping.xml"/>
+        <mapper resource="mappings/LinkagePopup-mapping.xml"/>
     </mappers>
 </configuration>

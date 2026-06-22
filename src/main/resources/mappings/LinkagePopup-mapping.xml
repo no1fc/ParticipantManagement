@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  국취 연계실적 독려 팝업 매퍼.
+  · 분모/연계 모집단 권한 = 상담/팀장/파트장/PRA/총괄/사원 (임원 제외).
+    이 권한 집합은 docs/sql/linkage-popup-ddl.sql 설계와 동기화할 것.
+-->
+<mapper namespace="LinkagePopupDAO">
+
+    <!-- ===== 팝업 설정 (단일 행, 최신 1건) ===== -->
+    <select id="selectSetting" resultType="linkagePopupSetting">
+        SELECT TOP 1
+            노출여부                          AS displayEnabled,
+            노출빈도일수                      AS displayIntervalDays,
+            목표분자                          AS targetNumerator,
+            평균배수                          AS averageMultiplier,
+            CONVERT(char(10), 집계시작일, 23) AS startDate,
+            CONVERT(char(10), 집계종료일, 23) AS endDate,
+            상담사수오버라이드                AS staffCountOverride,
+            단계1문구                         AS stage1Message,
+            단계2문구                         AS stage2Message,
+            단계3문구                         AS stage3Message,
+            단계4문구                         AS stage4Message,
+            단계5문구                         AS stage5Message,
+            단계6문구                         AS stage6Message
+        FROM J_참여자관리_연계실적팝업설정
+        ORDER BY 설정PK DESC
+    </select>
+
+    <!-- ===== 본인 연계 건수 ===== -->
+    <select id="selectMyLinkageCount" resultType="int">
+        SELECT COUNT(*)
+        FROM J_참여자관리 A
+        WHERE A.전담자_계정 = #{account}
+            AND A.연계유형 IS NOT NULL AND A.연계유형 != ''
+            AND <![CDATA[ A.연계일 >= #{startDate} ]]>
+            AND <![CDATA[ A.연계일 <= #{endDate} ]]>
+    </select>
+
+    <!-- ===== 전체 연계 합계 (국취 모집단, 테스트 지점 제외) ===== -->
+    <select id="selectTotalLinkageCount" resultType="int">
+        SELECT COUNT(*)
+        FROM J_참여자관리 A
+        JOIN J_참여자관리_로그인정보 B ON A.전담자_계정 = B.아이디
+        WHERE A.연계유형 IS NOT NULL AND A.연계유형 != ''
+            AND B.아이디사용여부 = '사용'
+            AND B.지점 != '테스트'
+            AND B.권한 IN ('상담', '팀장', '파트장', 'PRA', '총괄', '사원')
+            AND <![CDATA[ A.연계일 >= #{startDate} ]]>
+            AND <![CDATA[ A.연계일 <= #{endDate} ]]>
+    </select>
+
+    <!-- ===== 전체 국취 인원 N (평균 분모, 테스트 지점 제외) ===== -->
+    <select id="selectTotalStaffCount" resultType="int">
+        SELECT COUNT(*)
+        FROM J_참여자관리_로그인정보 B
+        WHERE B.아이디사용여부 = '사용'
+            AND B.지점 != '테스트'
+            AND B.권한 IN ('상담', '팀장', '파트장', 'PRA', '총괄', '사원')
+    </select>
+
+    <!-- ===== 본인 지점 국취 인원 (목표 분모) ===== -->
+    <select id="selectBranchStaffCount" resultType="int">
+        SELECT COUNT(*)
+        FROM J_참여자관리_로그인정보 B
+        WHERE B.아이디사용여부 = '사용'
+            AND B.지점 = #{branch}
+            AND B.권한 IN ('상담', '팀장', '파트장', 'PRA', '총괄', '사원')
+    </select>
+
+</mapper>

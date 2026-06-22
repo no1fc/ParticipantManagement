@@ -97,6 +97,10 @@
     <!-- Modern Design System -->
     <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
     <!-- 상담일정 뱃지 스타일은 dashboard_0.0.4.css에 통합 -->
+
+    <!-- 국취 연계실적 독려 팝업 (임시기능 ~2026-10-31) -->
+    <link rel="stylesheet" href="/css/participantCss/linkagePopup_0.0.4.css">
+    <script defer src="/js/linkagePopup_0.0.6.js"></script>
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 
@@ -315,6 +319,9 @@
     <mytag:footer/>
 
 </div>
+
+<%-- 국취 연계실적 독려 팝업 (임시기능 ~2026-10-31) --%>
+<jsp:include page="/WEB-INF/views/includeModal/linkagePopupModal.jsp"/>
 
 </body>
 <!--begin::Script-->
@@ -614,13 +621,16 @@ document.addEventListener('DOMContentLoaded', function () {
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         let scoreStatusData = ${scoreJson};
-        const nextRanginScore = scoreStatusData[0].pointsToNextGrade;
-        const nextRanking = scoreStatusData[0].nextGrade;
+        // 점수 데이터가 없는 계정/연도(신규 상담사 등)에서 scoreStatusData[0] 접근 시 TypeError 방지
+        const scoreRow = (scoreStatusData && scoreStatusData.length > 0) ? scoreStatusData[0] : null;
 
-        let $nextRanking = $('#nextRanking');
-        // $nextRanking.text("다음등급까지: "+ nextRanginScore + "점");
-        if(nextRanking !== 'x'){
-            $nextRanking.append("다음 등급 "+nextRanking);
+        if (scoreRow) {
+            const nextRanking = scoreRow.nextGrade;
+
+            let $nextRanking = $('#nextRanking');
+            if(nextRanking !== 'x'){
+                $nextRanking.append("다음 등급 "+nextRanking);
+            }
         }
 
         /* 취업률 등급 표 시작 */
@@ -652,38 +662,40 @@ document.addEventListener('DOMContentLoaded', function () {
         /* 알선 현황 등급 표 끝 */
 
         /* 점수 현황 표 및 텍스트 작성 시작 */
-        // 점수 현황 텍스트 추가 및 컬러 변경
-        const $myRanking = $('#myRanking');
-        let ranking = scoreStatusData[0].myRanking;
-        $myRanking.text(ranking);
-        // 등급에 따른 색지정
-        // 전체 등급 표기
-        $('#myTotalRanking').text(scoreStatusData[0].myTotalRanking);
-        // 등급 색갈 변경
-        rankingColorChange($myRanking, ranking);
+        if (scoreRow) {
+            // 점수 현황 텍스트 추가 및 컬러 변경
+            const $myRanking = $('#myRanking');
+            let ranking = scoreRow.myRanking;
+            $myRanking.text(ranking);
+            // 등급에 따른 색지정
+            // 전체 등급 표기
+            $('#myTotalRanking').text(scoreRow.myTotalRanking);
+            // 등급 색갈 변경
+            rankingColorChange($myRanking, ranking);
 
-        // 총점
-        let myTotalScore = scoreStatusData[0].myScore;
-        // 점수 현황
-        const scoreStatusRank = [48.7, 47, 45.8];
-        const scoreStatusOptions = PerformanceScoreStatus(scoreStatusData[0].data, '점수', '점',
-            [scoreChartColorChange(myTotalScore, scoreStatusRank)], ['내 점수'], '점수', 50, 35, 0.5, 30, 1,
-            '점수 현황', scoreStatusRank,
-            {dataPointSelection: function (event, chartContext, config) {
-                    // click 대신 dataPointSelection 사용
-                    const clickIndex = config.dataPointIndex;
-                    // const branchName = Datas.thisSuccess.branch[branchIndex];
+            // 총점
+            let myTotalScore = scoreRow.myScore;
+            // 점수 현황
+            const scoreStatusRank = [48.7, 47, 45.8];
+            const scoreStatusOptions = PerformanceScoreStatus(scoreRow.data, '점수', '점',
+                [scoreChartColorChange(myTotalScore, scoreStatusRank)], ['내 점수'], '점수', 50, 35, 0.5, 30, 1,
+                '점수 현황', scoreStatusRank,
+                {dataPointSelection: function (event, chartContext, config) {
+                        // click 대신 dataPointSelection 사용
+                        const clickIndex = config.dataPointIndex;
+                        // const branchName = Datas.thisSuccess.branch[branchIndex];
 
-                    // 총점 클릭시 모달 표시 or 페이지이동
-                    if (clickIndex === 0) {
-                        location.href = "scoreBranchDashboard.login";
+                        // 총점 클릭시 모달 표시 or 페이지이동
+                        if (clickIndex === 0) {
+                            location.href = "scoreBranchDashboard.login";
+                        }
                     }
-                }
-            })
+                })
 
-        // 점수 현황 차트 생성
-        const scoreStatusChart = new ApexCharts(document.querySelector("#scoreChart"), scoreStatusOptions);
-        scoreStatusChart.render();
+            // 점수 현황 차트 생성
+            const scoreStatusChart = new ApexCharts(document.querySelector("#scoreChart"), scoreStatusOptions);
+            scoreStatusChart.render();
+        }
         /* 점수 현황 표 및 텍스트 추가 끝 */
     });
 

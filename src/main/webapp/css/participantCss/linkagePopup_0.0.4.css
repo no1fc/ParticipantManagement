@@ -1,0 +1,302 @@
+/*
+ * 국취 연계실적 독려 팝업 (임시기능 ~2026-10-31) — 시안 picture.jpg 반영.
+ * 밝은 톤(흰 카드 + 파랑/주황 강조). 단계별 색은 --lp-accent로 "N단계"·게이지·알약에만 적용.
+ * 반응형: 데스크톱 좌우 2단 → 모바일 상하 1단 스택.
+ */
+
+.lp-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 16px;
+}
+
+/* 단계별 강조색 */
+.lp-stage-1 { --lp-accent: #10b981; }
+.lp-stage-2 { --lp-accent: #3b82f6; }
+.lp-stage-3 { --lp-accent: #6366f1; }
+.lp-stage-4 { --lp-accent: #f59e0b; }
+.lp-stage-5 { --lp-accent: #f97316; }
+.lp-stage-6 { --lp-accent: #ef4444; }
+
+.lp-modal {
+    width: 100%;
+    max-width: 920px;
+    max-height: 92vh;
+    overflow-y: auto;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 24px 60px rgba(30, 41, 59, 0.35);
+    animation: lpPopIn 0.22s ease-out;
+}
+
+@keyframes lpPopIn {
+    from { transform: translateY(14px) scale(0.985); opacity: 0; }
+    to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* ===== 헤더 ===== */
+.lp-header {
+    position: relative;
+    text-align: center;
+    padding: 26px 56px 18px;
+}
+.lp-title {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #1e3a5f;
+    letter-spacing: -0.5px;
+}
+.lp-subhead {
+    margin: 8px 0 0;
+    font-size: 0.92rem;
+    color: #64748b;
+}
+.lp-close {
+    position: absolute;
+    top: 22px;
+    right: 22px;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 1.2rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 6px;
+    border-radius: 8px;
+}
+.lp-close:hover { background: #f1f5f9; color: #475569; }
+
+/* ===== 본문 ===== */
+.lp-body {
+    display: flex;
+    gap: 20px;
+    padding: 8px 28px 8px;
+    align-items: stretch;
+}
+.lp-left { flex: 1 1 54%; min-width: 0; }
+.lp-right { flex: 1 1 46%; min-width: 0; display: flex; }
+
+.lp-section-label {
+    margin: 4px 2px 12px;
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: #334155;
+}
+.lp-name { color: #2563eb; font-weight: 800; }
+.lp-name-strong { color: #1e293b; font-weight: 700; }
+
+/* ===== 좌측 카드 ===== */
+.lp-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: #ffffff;
+    border: 1px solid #e9eef5;
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    margin-bottom: 10px;
+}
+.lp-card-icon {
+    flex: 0 0 auto;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 1.25rem;
+}
+.lp-ico-blue   { background: linear-gradient(135deg, #4f7cf6, #3b6fe0); }
+.lp-ico-green  { background: linear-gradient(135deg, #34d399, #10b981); }
+.lp-ico-orange { background: linear-gradient(135deg, #fb923c, #f97316); }
+.lp-ico-purple { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
+
+.lp-card-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lp-card-label { font-size: 0.95rem; font-weight: 700; color: #1f2937; }
+.lp-card-sub { font-size: 0.74rem; color: #94a3b8; }
+
+.lp-card-value { flex: 0 0 auto; white-space: nowrap; display: flex; align-items: baseline; gap: 3px; }
+.lp-card-value strong { font-size: 1.55rem; font-weight: 800; line-height: 1; }
+.lp-card-value .lp-unit { font-size: 0.82rem; color: #64748b; font-weight: 600; }
+.lp-val-blue strong   { color: #2563eb; }
+.lp-val-green strong  { color: #059669; }
+.lp-val-orange strong { color: #ea580c; }
+.lp-val-purple strong { color: #7c3aed; }
+
+/* 안내 박스 */
+.lp-notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #eef4ff;
+    border: 1px solid #dbe6ff;
+    border-radius: 12px;
+    margin-top: 4px;
+    font-size: 0.88rem;
+    color: #334155;
+}
+.lp-notice i { color: #3b82f6; font-size: 1.1rem; }
+.lp-notice-em { color: #2563eb; font-weight: 800; }
+
+/* ===== 우측 단계 패널 ===== */
+.lp-panel {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 22px 22px 18px;
+    background: #f8fafc;
+    border: 1px solid #e9eef5;
+    border-radius: 16px;
+    text-align: center;
+}
+.lp-stage-headline {
+    margin: 4px 0 0;
+    font-size: 1.18rem;
+    font-weight: 800;
+    color: #1f2937;
+}
+.lp-stage-sub {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ea580c;
+}
+.lp-divider {
+    width: 100%;
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    margin: 14px 0;
+}
+.lp-message {
+    margin: 0 0 12px;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #475569;
+    white-space: pre-line;
+    flex: 1 1 auto;
+}
+.lp-message .lp-msg-em { color: #ea580c; font-weight: 700; }
+
+/* ===== 게이지 (평균~목표 구간 내 본인 위치) ===== */
+.lp-gauge {
+    margin-top: auto;
+    padding: 2px 6px 4px;
+}
+.lp-gauge-track {
+    position: relative;
+    height: 10px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    margin: 30px 8px 12px;
+}
+.lp-gauge-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 0;
+    background: var(--lp-accent, #3b82f6);
+    border-radius: 999px;
+    transition: width 0.5s ease;
+}
+.lp-gauge-marker {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translate(-50%, -50%);
+    transition: left 0.5s ease;
+    z-index: 2;
+}
+.lp-gauge-marker-label {
+    position: absolute;
+    left: 50%;
+    bottom: 15px;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    background: var(--lp-accent, #3b82f6);
+    color: #ffffff;
+    font-size: 0.74rem;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 999px;
+}
+.lp-gauge-marker-label::after {
+    content: "";
+    position: absolute;
+    left: 50%; bottom: -4px;
+    transform: translateX(-50%);
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid var(--lp-accent, #3b82f6);
+}
+.lp-gauge-dot {
+    display: block;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 3px solid var(--lp-accent, #3b82f6);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25);
+}
+.lp-gauge-ends {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: #64748b;
+    padding: 0 2px;
+}
+.lp-gauge-ends b { color: #334155; font-weight: 800; }
+
+/* ===== 푸터 ===== */
+.lp-footer {
+    padding: 16px 28px 22px;
+    margin-top: 6px;
+    border-top: 1px solid #eef2f7;
+}
+.lp-footer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+}
+.lp-dont-show {
+    font-size: 0.86rem;
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+    cursor: pointer;
+}
+.lp-footer-close {
+    border: none;
+    background: #3b6fe0;
+    color: #ffffff;
+    padding: 9px 34px;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+.lp-footer-close:hover { background: #2f5fc8; }
+.lp-note {
+    margin: 14px 0 0;
+    text-align: center;
+    font-size: 0.76rem;
+    color: #94a3b8;
+}
+
+/* ===== 반응형 ===== */
+@media (max-width: 768px) {
+    .lp-body { flex-direction: column; }
+    .lp-left, .lp-right { flex-basis: auto; }
+    .lp-title { font-size: 1.3rem; }
+    .lp-footer-actions { flex-wrap: wrap; }
+}
