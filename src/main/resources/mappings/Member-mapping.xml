@@ -37,20 +37,23 @@
         WHERE 지점=#{memberBranch}
     </select>
 
+    <!-- 비밀번호 변경 → 인증 분리 테이블(J_직원_계정) 직격 -->
     <update id="changePassword">
-        UPDATE J_참여자관리_로그인정보
+        UPDATE J_직원_계정
         SET
-            비밀번호 = #{memberUserPW}
+            비밀번호 = #{memberUserPW},
+            비밀번호변경일 = GETDATE()
         WHERE
             아이디 = #{memberUserID}
     </update>
 
-    <!-- 연락처 정보 업데이트 (이메일, 전화번호) -->
+    <!-- 연락처 정보 업데이트 (이메일, 전화번호) → 신원 마스터(J_직원) 직격 -->
     <update id="updateContact">
-        UPDATE J_참여자관리_로그인정보
+        UPDATE J_직원
         SET
             전화번호 = #{memberPhoneNumber},
-            이메일 = #{memberEmail}
+            이메일 = #{memberEmail},
+            수정일 = GETDATE()
         WHERE
             아이디 = #{memberUserID}
     </update>
@@ -159,19 +162,25 @@
     </select>
 
     <update id="accountUpdate">
-        <!-- 1) 로그인정보 테이블: 비밀번호, 전화번호만 수정 -->
-        UPDATE J_참여자관리_로그인정보
+        <!-- 1) 비밀번호 변경(선택) → 인증 분리 테이블(J_직원_계정) 직격 -->
+        <if test="memberPasswordChange">
+            UPDATE J_직원_계정
+            SET
+                비밀번호 = #{memberUserChangePW},
+                비밀번호변경일 = GETDATE()
+            WHERE
+                아이디 = #{memberUserID};
+        </if>
+
+        <!-- 2) 전화번호 → 신원 마스터(J_직원) 직격 -->
+        UPDATE J_직원
         SET
-            <choose>
-                <when test="memberPasswordChange">
-                    비밀번호 = #{memberUserChangePW},
-                </when>
-            </choose>
-            전화번호 = #{memberPhoneNumber}
+            전화번호 = #{memberPhoneNumber},
+            수정일 = GETDATE()
         WHERE
             아이디 = #{memberUserID};
 
-        <!-- 2) 일일업무보고 테이블: 실적 UPSERT -->
+        <!-- 3) 일일업무보고 테이블: 실적 UPSERT -->
         IF EXISTS (
             SELECT 1 FROM J_참여자관리_일일업무보고
             WHERE 아이디 = #{memberUserID}
@@ -225,25 +234,62 @@
         WHERE 아이디 = #{memberUserID}
     </select>
 
-    <!-- 셀프 회원가입 (승인대기 상태로 등록) -->
+    <!-- 참여자관리(COUNSEL) 사이트 접속 허용 여부 (로그인 게이트). 접속허용=1 행 존재 시 통과 -->
+    <select id="checkCounselSiteAccess" parameterType="member" resultType="int">
+        SELECT COUNT(*)
+        FROM J_직원_사이트접속
+        WHERE 직원아이디 = #{memberUserID}
+          AND 사이트코드 = N'COUNSEL'
+          AND 접속허용 = 1
+    </select>
+
+    <!-- 참여자관리(COUNSEL) 사이트내권한(override) 조회. 부서코드 NULL 기본행 기준.
+         값이 있으면 그 권한으로 동작, NULL/행없음이면 호출부에서 재직.권한(memberRole)으로 폴백. -->
+    <select id="selectCounselSiteRole" parameterType="member" resultType="member">
+        SELECT TOP 1 사이트내권한 AS memberRole
+        FROM J_직원_사이트접속
+        WHERE 직원아이디 = #{memberUserID}
+          AND 사이트코드 = N'COUNSEL'
+          AND 부서코드 IS NULL
+    </select>
+
+    <!-- 셀프 회원가입 (승인대기 상태로 등록) → 기저 테이블 멀티 INSERT.
+         아이디가 모든 기저 테이블 키이므로 IDENTITY(직원번호) 회수 없이 단일 트랜잭션으로 처리.
+         재직기간(입사 cycle)은 실제 입사일 확정 시(승인/입사 처리) 생성한다. -->
     <insert id="registerUser" parameterType="member">
-        INSERT INTO J_참여자관리_로그인정보 (
-            이름, 아이디, 비밀번호, 지점, 권한,
-            이메일, 전화번호, 아이디사용여부, 등록일
-        ) VALUES (
-            #{memberUserName}, #{memberUserID}, #{memberUserPW}, #{memberBranch}, '상담',
-            #{memberEmail}, #{memberPhoneNumber}, '승인대기', GETDATE()
-        )
+        INSERT INTO J_직원 (아이디, 이름, 이메일, 전화번호, 현재재직상태, 등록일, 수정일)
+        VALUES (#{memberUserID}, #{memberUserName}, #{memberEmail}, #{memberPhoneNumber}, N'재직', GETDATE(), GETDATE());
+
+        INSERT INTO J_직원_계정 (아이디, 비밀번호, 계정상태)
+        VALUES (#{memberUserID}, #{memberUserPW}, N'승인대기');
+
+        INSERT INTO J_직원_재직 (아이디, 주부서코드, 지점명, 권한, 관리자권한)
+        VALUES (#{memberUserID},
+                (SELECT 부서코드 FROM J_부서 WHERE 지점명 = #{memberBranch}),
+                #{memberBranch}, N'상담', 0);
+
+        INSERT INTO J_직원_부서배치 (직원아이디, 부서코드, 주부서여부, 시작일)
+        VALUES (#{memberUserID},
+                (SELECT 부서코드 FROM J_부서 WHERE 지점명 = #{memberBranch}), 1, GETDATE());
+
+        INSERT INTO J_직원_참여자관리_프로필 (직원아이디)
+        VALUES (#{memberUserID});
+
+        <!-- 참여자관리(COUNSEL) 사이트 접속 부여(사이트내권한 NULL=재직.권한 상속).
+             로그인은 계정상태='사용'(승인) 전까지 차단되므로 미리 부여해도 무방. -->
+        INSERT INTO J_직원_사이트접속 (직원아이디, 사이트코드, 부서코드, 접속허용, 사이트내권한)
+        VALUES (#{memberUserID}, N'COUNSEL', NULL, 1, NULL);
     </insert>
 
+    <!-- 조회순서/일일업무일지발급여부 → 상담 전용 프로필(J_직원_참여자관리_프로필) 직격 -->
     <update id="memberOrderUpdate">
         <foreach collection="userIds" item="userId" index="index">
-                UPDATE J_참여자관리_로그인정보
+                UPDATE J_직원_참여자관리_프로필
                 SET
                     조회순서 = #{index},
                     일일업무일지발급여부 = #{memberDailyWorkDiaryIssuances[${index}], jdbcType=BOOLEAN}
                 WHERE
-                    아이디 = #{userId}
+                    직원아이디 = #{userId}
         </foreach>
     </update>
 

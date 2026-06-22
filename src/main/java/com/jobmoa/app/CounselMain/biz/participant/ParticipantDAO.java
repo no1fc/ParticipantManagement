@@ -1,6 +1,7 @@
 package com.jobmoa.app.CounselMain.biz.participant;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.session.ResultHandler;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -32,6 +33,18 @@ public class ParticipantDAO {
         log.info("ParticipantDTO ParticipantDAO selectAll condition : [{}]",participantDTO.getParticipantCondition());
         List<ParticipantDTO> datas = sqlSession.selectList(ns+participantDTO.getParticipantCondition(), participantDTO);
         return datas;
+    }
+
+    /**
+     * 조건에 맞는 참여자 목록을 스트리밍 방식으로 조회한다.
+     * 전체 결과를 List로 적재하지 않고, ResultHandler로 한 행씩 처리한다(엑셀 대량 다운로드용).
+     *
+     * @param participantDTO participantCondition(조회 조건)이 설정된 DTO
+     * @param handler        행 1건씩 전달받는 ResultHandler
+     */
+    public void selectAllStream(ParticipantDTO participantDTO, ResultHandler<ParticipantDTO> handler) {
+        log.info("ParticipantDTO ParticipantDAO selectAllStream condition : [{}]",participantDTO.getParticipantCondition());
+        sqlSession.select(ns+participantDTO.getParticipantCondition(), participantDTO, handler);
     }
 
     /**

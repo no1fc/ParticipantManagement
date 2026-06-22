@@ -1,6 +1,7 @@
 package com.jobmoa.app.CounselMain.biz.participant;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.session.ResultHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -32,6 +33,18 @@ public class ParticipantServiceImpl implements ParticipantService {
         sanitizeSearchTerm(participantDTO);
 
         return participantDAO.selectAll(participantDTO);
+    }
+
+    @Override
+    public void selectAllStream(ParticipantDTO participantDTO, ResultHandler<ParticipantDTO> handler) {
+        if(participantDTO == null || participantDTO.getParticipantCondition() == null) {
+            log.error("selectAllStream participantDTO null OR participantCondition null");
+            return;
+        }
+
+        sanitizeSearchTerm(participantDTO);
+
+        participantDAO.selectAllStream(participantDTO, handler);
     }
 
     private void sanitizeSearchTerm(ParticipantDTO participantDTO) {

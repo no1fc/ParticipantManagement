@@ -230,8 +230,10 @@
                     </ul>
                 </li>
                 <!--end::알선기업관리-->
-                <!--begin::지점관리-->
-                <c:if test="${IS_BRANCH_MANAGER or IS_MANAGER or IS_PRA_MANAGER}">
+                <!--begin::지점관리 (데이터 기반: J_사이트_메뉴권한 → 세션 MENU_ACCESS, 비역할 게이팅은 오버레이 유지) -->
+                <c:set var="branchMgmtAccess" value="${not empty MENU_ACCESS['BRANCH_MGMT'] or IS_MANAGER}"/>
+                <c:set var="randomAssignAccess" value="${not empty MENU_ACCESS['RANDOM_ASSIGNMENT'] or IS_PRA_MANAGER or JOBMOA_LOGIN_DATA.memberBranch eq '남부' or JOBMOA_LOGIN_DATA.memberBranch eq '관악' or JOBMOA_LOGIN_DATA.memberBranch eq '인천남부' or JOBMOA_LOGIN_DATA.memberBranch eq '인천' or JOBMOA_LOGIN_DATA.memberBranch eq '성남' or JOBMOA_LOGIN_DATA.memberBranch eq '테스트'}"/>
+                <c:if test="${branchMgmtAccess or randomAssignAccess}">
                     <li class="nav-item ${gnb_main_header eq '지점관리' ? 'menu-open' : ''}">
                         <a href="#" class="nav-link">
                             <i class="bi bi-building-fill-gear"></i>
@@ -241,7 +243,7 @@
                             </p>
                         </a>
                         <ul class="nav nav-treeview">
-                            <c:if test="${IS_BRANCH_MANAGER or IS_MANAGER}">
+                            <c:if test="${branchMgmtAccess}">
                                 <li class="nav-item">
                                     <a href="/branchParitic.login" class="nav-link">
                                         <small><p>지점 전체 참여자</p></small>
@@ -263,7 +265,7 @@
                                     </a>
                                 </li>
                             </c:if>
-                            <c:if test="${IS_PRA_MANAGER or JOBMOA_LOGIN_DATA.memberBranch eq '남부' or JOBMOA_LOGIN_DATA.memberBranch eq '관악' or JOBMOA_LOGIN_DATA.memberBranch eq '인천남부' or JOBMOA_LOGIN_DATA.memberBranch eq '인천' or JOBMOA_LOGIN_DATA.memberBranch eq '성남' or JOBMOA_LOGIN_DATA.memberBranch eq '테스트'}">
+                            <c:if test="${randomAssignAccess}">
                                 <li class="nav-item">
                                     <a href="/pra.login" class="nav-link">
                                         <small><p>참여자 랜덤 배정</p></small>

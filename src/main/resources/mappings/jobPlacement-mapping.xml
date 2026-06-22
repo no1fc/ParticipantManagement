@@ -50,7 +50,7 @@
                 AND 직무_카테고리_중 LIKE '%' + #{jobCategoryMidFilter} + '%'
             </if>
 
-            <if test="searchAddressFilter != null and searchAddressFilter.size() > 0">
+            <if test="searchAddressFilter != null and searchAddressFilter.length > 0">
                 AND
                 <foreach collection="searchAddressFilter" item="addr" open="(" close=")" separator=" OR ">
                     주소 LIKE '%' + #{addr} + '%'

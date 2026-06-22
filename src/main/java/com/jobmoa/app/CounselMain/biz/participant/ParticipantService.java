@@ -1,5 +1,7 @@
 package com.jobmoa.app.CounselMain.biz.participant;
 
+import org.apache.ibatis.session.ResultHandler;
+
 import java.util.List;
 
 /**
@@ -14,6 +16,14 @@ public interface ParticipantService {
      * @return 참여자 목록
      */
     List<ParticipantDTO> selectAll(ParticipantDTO participantDTO);
+
+    /**
+     * 참여자 목록을 스트리밍 방식으로 조회한다(엑셀 대량 다운로드용).
+     * 전체를 메모리에 적재하지 않고 ResultHandler로 한 행씩 콜백한다.
+     * @param participantDTO 검색 조건이 담긴 DTO
+     * @param handler 행 1건씩 전달받는 ResultHandler
+     */
+    void selectAllStream(ParticipantDTO participantDTO, ResultHandler<ParticipantDTO> handler);
 
     /**
      * 참여자 단건을 조회한다.

@@ -57,13 +57,15 @@
             <%-- 년도 (맨 앞) --%>
             <div class="d-flex align-items-center gap-2">
                 <span class="text-nowrap small fw-bold text-muted">년도:</span>
+                <%-- 연도 옵션: 하한 2022 고정, 상한=당해연도 자동확장(최신연도 우선). 2027 등 연도 롤오버 대비 --%>
+                <c:set var="yearFloor" value="2022"/>
+                <c:set var="yearNow" value="<%= java.time.Year.now().getValue() %>"/>
                 <select class="form-select form-select-sm shadow-sm" name="participantInItCons" id="year" style="width: auto;">
-                    <option ${param.participantInItCons.equals("All") ? 'selected' : ''} value="All">전체</option>
-                    <option ${param.participantInItCons.equals("2026") ? 'selected' : ''} value="2026">2026</option>
-                    <option ${param.participantInItCons.equals("2025") ? 'selected' : ''} value="2025">2025</option>
-                    <option ${param.participantInItCons.equals("2024") ? 'selected' : ''} value="2024">2024</option>
-                    <option ${param.participantInItCons.equals("2023") ? 'selected' : ''} value="2023">2023</option>
-                    <option ${param.participantInItCons.equals("2022") ? 'selected' : ''} value="2022">2022</option>
+                    <option ${empty param.participantInItCons or param.participantInItCons eq 'All' ? 'selected' : ''} value="All">전체</option>
+                    <c:forEach var="offset" begin="0" end="${yearNow - yearFloor}">
+                        <c:set var="y" value="${yearNow - offset}"/>
+                        <option ${param.participantInItCons eq y.toString() ? 'selected' : ''} value="${y}">${y}</option>
+                    </c:forEach>
                 </select>
             </div>
 
