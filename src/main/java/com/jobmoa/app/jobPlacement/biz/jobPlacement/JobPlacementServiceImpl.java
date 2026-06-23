@@ -34,7 +34,7 @@ public class JobPlacementServiceImpl implements JobPlacementService{
     public List<JobPlacementDTO> selectAll(JobPlacementDTO jobPlacementDTO) {
         String condition = jobPlacementDTO.getCondition();
         List<JobPlacementDTO> list = jobPlacementDAO.selectAll(jobPlacementDTO);
-        if ("selectExternalAll".equals(condition) || "selectStarbucksAll".equals(condition)) {
+        if ("selectExternalAll".equals(condition)) {
             for (JobPlacementDTO dto : list) {
                 JobPlacementDTO param = new JobPlacementDTO();
                 param.setJobNumber(dto.getJobNumber());
