@@ -1,7 +1,7 @@
 /**
  * 지점별 당해년도 운영 현황 대시보드 스타일
- * adminManagementDashboard_0.0.1.css
- * 2026-06-02
+ * adminManagementDashboard_0.0.2.css
+ * 2026-06-02 (0.0.2: 브랜드 인디고 #4f46e5 → adminCommon 남색 #1d3a5f 통일, 시맨틱 KPI색 유지)
  */
 
 /* ===== KPI 카드 ===== */
@@ -43,10 +43,10 @@
 
 /* KPI 카드 색상 변형 */
 .mgmt-kpi-card.accent-indigo {
-    border-left: 4px solid #4f46e5;
+    border-left: 4px solid #1d3a5f;
 }
 .mgmt-kpi-card.accent-indigo .mgmt-kpi-value {
-    color: #4f46e5;
+    color: #1d3a5f;
 }
 
 .mgmt-kpi-card.accent-emerald {
@@ -75,7 +75,7 @@
     display: inline-block;
     width: 4px;
     height: 20px;
-    background: #4f46e5;
+    background: #1d3a5f;
     border-radius: 2px;
     margin-right: 8px;
     vertical-align: middle;
@@ -98,16 +98,16 @@
 }
 
 .mgmt-th-highlight {
-    background-color: rgba(79, 70, 229, 0.05) !important;
-    color: #312e81 !important;
+    background-color: rgba(29, 58, 95, 0.05) !important;
+    color: #15293f !important;
 }
 
 .mgmt-td-highlight {
-    background-color: rgba(79, 70, 229, 0.04);
+    background-color: rgba(29, 58, 95, 0.04);
 }
 
 .mgmt-table-footer {
-    background-color: rgba(79, 70, 229, 0.06) !important;
+    background-color: rgba(29, 58, 95, 0.06) !important;
     border-top: 2px solid #cbd5e1 !important;
 }
 

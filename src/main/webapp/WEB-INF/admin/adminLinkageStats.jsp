@@ -50,7 +50,7 @@
     <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
 
     <!-- 페이지 전용 CSS -->
-    <link rel="stylesheet" href="/css/adminCss/adminLinkageStats_0.0.2.css">
+    <link rel="stylesheet" href="/css/adminCss/adminLinkageStats_0.0.3.css">
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 
@@ -267,7 +267,7 @@
 </script>
 
 <!-- 페이지 전용 JS -->
-<script defer src="/js/adminJs/adminLinkageStats_0.0.2.js"></script>
+<script defer src="/js/adminJs/adminLinkageStats_0.0.3.js"></script>
 
 </body>
 </html>

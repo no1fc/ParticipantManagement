@@ -1,6 +1,6 @@
 /**
  * @file 연계 현황 관리 (지점별/상담사별 연계 통계, 점수별 분류, 차트 렌더링)
- * @version 0.0.2
+ * @version 0.0.3
  * @requires jQuery, SweetAlert2, ApexCharts
  */
 
@@ -197,7 +197,7 @@ function renderBranchChart(data) {
         yaxis: {
             title: { text: '연계 건수' }
         },
-        colors: ['#4361ee'],
+        colors: ['#1d3a5f'],
         title: {
             text: '지점별 연계 현황',
             align: 'left',
@@ -330,7 +330,7 @@ function renderTypeChart(data) {
             height: 350
         },
         labels: labels,
-        colors: ['#4361ee', '#4cc9f0', '#06d6a0', '#ff9a3c', '#f72585', '#b5179e'],
+        colors: ['#1d3a5f', '#4cc9f0', '#06d6a0', '#ff9a3c', '#f72585', '#b5179e'],
         title: {
             text: '연계유형별 분포',
             align: 'left',
