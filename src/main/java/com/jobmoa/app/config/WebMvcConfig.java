@@ -2,6 +2,7 @@ package com.jobmoa.app.config;
 
 import com.jobmoa.app.CounselMain.biz.interceptor.LoginInterceptor;
 import com.jobmoa.app.CounselMain.view.adminpage.AdminApiInterceptor;
+import com.jobmoa.app.CounselMain.view.adminpage.AdminPageInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -79,6 +80,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
         // 관리자 REST API 공통 권한 인터셉터 (로그인 인터셉터보다 먼저 실행되어 미인증 시 401 JSON 응답)
         registry.addInterceptor(new AdminApiInterceptor())
                 .addPathPatterns("/admin/api/**");
+
+        // 관리자 페이지 공통 권한 인터셉터 (/admin/** 페이지, API 경로는 위 인터셉터가 담당하므로 제외)
+        // 컨트롤러별 hasAdminAccess 가드 누락 시에도 URL 직접입력 우회를 구조적으로 차단
+        registry.addInterceptor(new AdminPageInterceptor())
+                .addPathPatterns("/admin/**")
+                .excludePathPatterns("/admin/api/**");
 
         registry.addInterceptor(new LoginInterceptor())
                 .addPathPatterns("/**")
