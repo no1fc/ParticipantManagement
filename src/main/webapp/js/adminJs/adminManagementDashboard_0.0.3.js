@@ -1,6 +1,6 @@
 /**
  * @file 관리자 대시보드 - 지점별 당해년도 운영 현황 (다중 지점 선택, 차트, KPI)
- * @version 0.0.2
+ * @version 0.0.3
  * @requires jQuery, SweetAlert2, ApexCharts
  */
 
@@ -451,7 +451,7 @@ function renderChart2(data) {
                     toolbar: { show: false },
                     fontFamily: 'inherit'
                 },
-                colors: ['#4f46e5', '#94a3b8'],
+                colors: ['#1d3a5f', '#94a3b8'],
                 stroke: {
                     width: [3, 2],
                     curve: 'smooth',
@@ -503,7 +503,7 @@ function renderChart2(data) {
                     data: data.map(function (d) { return d.assignedCount; })
                 }],
                 chart: { type: 'line', height: 380, toolbar: { show: false }, fontFamily: 'inherit' },
-                colors: ['#4f46e5'],
+                colors: ['#1d3a5f'],
                 stroke: { width: 3, curve: 'smooth' },
                 markers: { size: 6, strokeWidth: 2, strokeColors: '#fff' },
                 xaxis: {

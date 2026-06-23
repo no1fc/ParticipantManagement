@@ -96,4 +96,24 @@ public class AdminAccessSupport {
             dto.setSearchBranch(login.getMemberBranch());
         }
     }
+
+    /**
+     * 특정 지점 데이터에 대한 접근 가능 여부를 확인한다.
+     * <p>
+     * 목록 조회는 {@link #enforceBranchScope(HttpSession, AdminDTO)}로 검색 범위가 제한되지만,
+     * 단건 조회·수정은 식별자(구직번호/등록번호)만으로 접근하므로 레코드의 소속 지점을 직접 검증해야 한다.
+     * 시스템 관리자는 전 지점, 지점관리자는 본인 소속 지점 데이터에만 접근을 허용한다.
+     * </p>
+     *
+     * @param session      HTTP 세션
+     * @param recordBranch 접근 대상 레코드의 소속 지점 (조회 결과의 {@code branch})
+     * @return 접근 가능하면 {@code true}
+     */
+    public static boolean canAccessBranch(HttpSession session, String recordBranch) {
+        if (isManager(session)) return true;
+        LoginBean login = getLoginBean(session);
+        if (login == null) return false;
+        String myBranch = login.getMemberBranch();
+        return myBranch != null && myBranch.equals(recordBranch);
+    }
 }

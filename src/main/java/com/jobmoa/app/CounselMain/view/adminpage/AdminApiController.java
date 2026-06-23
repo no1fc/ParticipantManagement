@@ -71,6 +71,24 @@ public class AdminApiController {
     }
 
     /**
+     * 단건 조회·수정 시 레코드의 소속 지점에 대한 접근 권한을 확인한다.
+     * <p>
+     * 목록 API는 {@link AdminAccessSupport#enforceBranchScope}로 범위가 제한되지만,
+     * 식별자 기반 단건 접근은 레코드의 지점을 직접 검증해야 타 지점 데이터 접근(IDOR)을 막을 수 있다.
+     * </p>
+     *
+     * @param session      HTTP 세션
+     * @param recordBranch 접근 대상 레코드의 소속 지점
+     * @return 접근 권한이 없으면 403 응답, 권한이 있으면 {@code null}
+     */
+    private ResponseEntity<Map<String, Object>> checkBranchAccess(HttpSession session, String recordBranch) {
+        if (!AdminAccessSupport.canAccessBranch(session, recordBranch)) {
+            return ResponseEntity.status(403).body(Map.of("message", "해당 지점 데이터에 접근 권한이 없습니다."));
+        }
+        return null;
+    }
+
+    /**
      * 대시보드 KPI 데이터를 조회한다.
      *
      * @param dto     검색 조건 DTO
@@ -375,9 +393,15 @@ public class AdminApiController {
      */
     @GetMapping("/participants/{jobNo}")
     public ResponseEntity<?> getParticipant(@PathVariable int jobNo, HttpSession session) {
-        log.info("GET /admin/api/participants/{}", jobNo);        AdminDTO dto = new AdminDTO();
+        log.info("GET /admin/api/participants/{}", jobNo);
+        AdminDTO dto = new AdminDTO();
         dto.setJobNo(jobNo);
-        return ResponseEntity.ok(adminParticipantService.getParticipantOne(dto));
+        AdminDTO one = adminParticipantService.getParticipantOne(dto);
+        if (one != null) {
+            ResponseEntity<Map<String, Object>> denied = checkBranchAccess(session, one.getBranch());
+            if (denied != null) return denied;
+        }
+        return ResponseEntity.ok(one);
     }
 
     /**
@@ -438,9 +462,15 @@ public class AdminApiController {
      */
     @GetMapping("/job-placements/{regNo}")
     public ResponseEntity<?> getJobPlacement(@PathVariable int regNo, HttpSession session) {
-        log.info("GET /admin/api/job-placements/{}", regNo);        AdminDTO dto = new AdminDTO();
+        log.info("GET /admin/api/job-placements/{}", regNo);
+        AdminDTO dto = new AdminDTO();
         dto.setRegistrationNo(regNo);
-        return ResponseEntity.ok(adminJobPlacementService.getJobPlacementOne(dto));
+        AdminDTO one = adminJobPlacementService.getJobPlacementOne(dto);
+        if (one != null) {
+            ResponseEntity<Map<String, Object>> denied = checkBranchAccess(session, one.getBranch());
+            if (denied != null) return denied;
+        }
+        return ResponseEntity.ok(one);
     }
 
     /**
@@ -469,7 +499,15 @@ public class AdminApiController {
      */
     @PutMapping("/job-placements/{regNo}")
     public ResponseEntity<?> updateJobPlacement(@PathVariable int regNo, @RequestBody AdminDTO dto, HttpSession session) {
-        log.info("PUT /admin/api/job-placements/{}", regNo);        dto.setRegistrationNo(regNo);
+        log.info("PUT /admin/api/job-placements/{}", regNo);
+        AdminDTO existing = new AdminDTO();
+        existing.setRegistrationNo(regNo);
+        AdminDTO one = adminJobPlacementService.getJobPlacementOne(existing);
+        if (one != null) {
+            ResponseEntity<Map<String, Object>> denied = checkBranchAccess(session, one.getBranch());
+            if (denied != null) return denied;
+        }
+        dto.setRegistrationNo(regNo);
         Map<String, Object> result = new HashMap<>();
         boolean success = adminJobPlacementService.modifyJobPlacement(dto);
         result.put("success", success);
@@ -521,9 +559,15 @@ public class AdminApiController {
      */
     @GetMapping("/resume-requests/{regNo}")
     public ResponseEntity<?> getResumeRequest(@PathVariable int regNo, HttpSession session) {
-        log.info("GET /admin/api/resume-requests/{}", regNo);        AdminDTO dto = new AdminDTO();
+        log.info("GET /admin/api/resume-requests/{}", regNo);
+        AdminDTO dto = new AdminDTO();
         dto.setResumeRegNo(regNo);
-        return ResponseEntity.ok(adminResumeRequestService.getResumeRequestOne(dto));
+        AdminDTO one = adminResumeRequestService.getResumeRequestOne(dto);
+        if (one != null) {
+            ResponseEntity<Map<String, Object>> denied = checkBranchAccess(session, one.getBranch());
+            if (denied != null) return denied;
+        }
+        return ResponseEntity.ok(one);
     }
 
     /**
@@ -536,7 +580,15 @@ public class AdminApiController {
      */
     @PutMapping("/resume-requests/{regNo}/status")
     public ResponseEntity<?> updateResumeStatus(@PathVariable int regNo, @RequestBody AdminDTO dto, HttpSession session) {
-        log.info("PUT /admin/api/resume-requests/{}/status", regNo);        dto.setResumeRegNo(regNo);
+        log.info("PUT /admin/api/resume-requests/{}/status", regNo);
+        AdminDTO existing = new AdminDTO();
+        existing.setResumeRegNo(regNo);
+        AdminDTO one = adminResumeRequestService.getResumeRequestOne(existing);
+        if (one != null) {
+            ResponseEntity<Map<String, Object>> denied = checkBranchAccess(session, one.getBranch());
+            if (denied != null) return denied;
+        }
+        dto.setResumeRegNo(regNo);
         Map<String, Object> result = new HashMap<>();
         boolean success = adminResumeRequestService.updateResumeStatus(dto);
         result.put("success", success);

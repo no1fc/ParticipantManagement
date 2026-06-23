@@ -40,14 +40,16 @@
 
     <select id="selectJobPlacementOne" resultType="admin">
         SELECT
-            등록번호 registrationNo,
-            구직번호 placementJobNo,
-            상세정보 detailInfo,
-            추천사 recommendation,
-            CONVERT(varchar, 등록일, 120) placementRegDate,
-            CONVERT(varchar, 수정일, 120) placementUpdateDate
-        FROM J_참여자관리_알선상세정보
-        WHERE 등록번호 = #{registrationNo}
+            A.등록번호 registrationNo,
+            A.구직번호 placementJobNo,
+            A.상세정보 detailInfo,
+            A.추천사 recommendation,
+            P.지점 branch,
+            CONVERT(varchar, A.등록일, 120) placementRegDate,
+            CONVERT(varchar, A.수정일, 120) placementUpdateDate
+        FROM J_참여자관리_알선상세정보 A
+        LEFT JOIN J_참여자관리 P ON A.구직번호 = P.구직번호
+        WHERE A.등록번호 = #{registrationNo}
     </select>
 
     <insert id="insertJobPlacement">

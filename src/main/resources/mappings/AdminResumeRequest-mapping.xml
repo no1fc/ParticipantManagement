@@ -46,21 +46,23 @@
 
     <select id="selectResumeRequestOne" resultType="admin">
         SELECT
-            등록번호 resumeRegNo,
-            구직번호 resumeJobNo,
-            기업명 companyName,
-            담당자명 managerName,
-            이메일 managerEmail,
-            비상연락처 emergencyContact,
-            기타요청사항 otherRequests,
-            상태 requestStatus,
-            기업개인정보처리동의 companyPrivacyConsent,
-            기업담당자개인정보처리동의 managerPrivacyConsent,
-            마케팅개인정보사용동의 marketingConsent,
-            CONVERT(varchar, 등록일, 120) resumeRegDate,
-            CONVERT(varchar, 수정일, 120) resumeUpdateDate
-        FROM J_참여자관리_이력서요청양식
-        WHERE 등록번호 = #{resumeRegNo}
+            R.등록번호 resumeRegNo,
+            R.구직번호 resumeJobNo,
+            R.기업명 companyName,
+            R.담당자명 managerName,
+            R.이메일 managerEmail,
+            R.비상연락처 emergencyContact,
+            R.기타요청사항 otherRequests,
+            R.상태 requestStatus,
+            R.기업개인정보처리동의 companyPrivacyConsent,
+            R.기업담당자개인정보처리동의 managerPrivacyConsent,
+            R.마케팅개인정보사용동의 marketingConsent,
+            P.지점 branch,
+            CONVERT(varchar, R.등록일, 120) resumeRegDate,
+            CONVERT(varchar, R.수정일, 120) resumeUpdateDate
+        FROM J_참여자관리_이력서요청양식 R
+        LEFT JOIN J_참여자관리 P ON R.구직번호 = P.구직번호
+        WHERE R.등록번호 = #{resumeRegNo}
     </select>
 
     <update id="updateResumeRequestStatus">

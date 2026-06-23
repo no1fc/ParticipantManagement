@@ -53,7 +53,7 @@
     <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
 
     <!-- 관리자 대시보드 전용 CSS -->
-    <link rel="stylesheet" href="/css/adminCss/adminManagementDashboard_0.0.1.css">
+    <link rel="stylesheet" href="/css/adminCss/adminManagementDashboard_0.0.2.css">
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 
@@ -281,7 +281,7 @@
 <script defer src="/js/adminlte.js"></script>
 
 <!-- 관리자 대시보드 전용 JS -->
-<script defer src="/js/adminJs/adminManagementDashboard_0.0.2.js"></script>
+<script defer src="/js/adminJs/adminManagementDashboard_0.0.3.js"></script>
 <!--end::Script-->
 
 </body>
