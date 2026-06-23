@@ -43,7 +43,7 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
   <!-- jobPlacementDetailJS -->
-  <script defer src="/js/jobPlacementJs/jobPlacementDetailJS_0.0.4.js"></script>
+  <script defer src="/js/jobPlacementJs/jobPlacementDetailJS_0.0.5.js"></script>
 
   <!-- datepicker CSS JS -->
   <!-- mouse pointer 모양 bootstrap 5 -->

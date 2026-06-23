@@ -19,7 +19,7 @@ public interface JobPlacementService {
 
     /**
      * 알선 정보 목록 조회.
-     * 외부/스타벅스 전체 조회 시 희망직무 목록을 함께 반환한다.
+     * 외부 전체 조회 시 희망직무 목록을 함께 반환한다.
      *
      * @param jobPlacementDTO 조회 조건이 담긴 DTO
      * @return 조건에 해당하는 알선 정보 목록

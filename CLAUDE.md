@@ -58,7 +58,7 @@ src/main/java/com/jobmoa/app/
 │       └── ...                     # login, dashboard, chatBot, mypage, etc.
 ├── jobPlacement/                   # Job placement module
 │   ├── biz/jobPlacement/           # Service + DAO
-│   └── view/                       # Controllers + WebSocket + starbucks
+│   └── view/                       # Controllers + WebSocket
 └── recruitmentFormation/           # Recruitment information module
     ├── biz/                        # RecruitmentService, DAO, Scheduler, DTOs
     └── view/jobinfo/               # jobinfoMainController, jobinfoApiController
@@ -82,7 +82,7 @@ src/main/webapp/
 
 **Three modules with explicit per-package component scanning:**
 - `CounselMain` — primary counseling management (participants, education, employment, reports, admin, AI recommend)
-- `jobPlacement` — job placement with async REST endpoints, WebSocket chat, and starbucks page
+- `jobPlacement` — job placement with async REST endpoints and WebSocket chat
 - `recruitmentFormation` — recruitment information with scheduled data sync (`RecruitmentScheduler`)
 
 **IMPORTANT: Component scanning is NOT wildcard-based.** New packages must be explicitly added to both `RootConfig.java` (for `biz/` services) and `WebMvcConfig.java` (for `view/` controllers), or Spring will not detect them.
@@ -116,7 +116,7 @@ src/main/webapp/
 
 **Authentication:**
 - `LoginInterceptor` checks `HTTPSession` attribute `JOBMOA_LOGIN_DATA` (a `LoginBean`)
-- Excludes: `/login.do`, `/jobinfo/**`, `/recruitmentInformation/**`, `/jobPlacement/**`, `/Starbucks/**`, static resources, WebSocket endpoints
+- Excludes: `/login.do`, `/jobinfo/**`, `/recruitmentInformation/**`, `/jobPlacement/**`, static resources, WebSocket endpoints
 
 **MyBatis mapper convention:**
 - Each DAO class has a corresponding `*-mapping.xml` in `mappings/`

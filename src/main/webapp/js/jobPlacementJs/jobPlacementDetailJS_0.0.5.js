@@ -1,6 +1,6 @@
 /**
  * @file 알선 상세정보 관리 (수정/저장, 희망직무 관리, 이력서 요청)
- * @version 0.0.4
+ * @version 0.0.5
  * @requires jQuery, Bootstrap, SweetAlert2
  */
 
@@ -13,17 +13,6 @@ function lineFeedChange(textData){
 
 function locationBack(page){
     let href = 'placementList'+searchHref(page);
-
-    // Starbucks 전용 url로 접속했다면 다시 해당 리스트로 이동
-    const url = new URL(window.location.href);
-    const urlParams = url.searchParams;
-    console.log(urlParams.get('Starbucks'));
-    if(urlParams.get('Starbucks') == 'true'){
-        urlParams.delete('jobNumber');
-        urlParams.delete('Starbucks');
-        window.location.href = window.location.origin + '/Starbucks?' + urlParams.toString();
-        return;
-    }
 
     window.location.href = href.lastIndexOf('jobNumber') > 0 ? href.substring(0,href.lastIndexOf('jobNumber')-1) : href;
 }

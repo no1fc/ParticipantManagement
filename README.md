@@ -13,7 +13,7 @@
 | 모듈 | 역할 | 대표 경로 |
 |------|------|-----------|
 | **CounselMain** | 상담관리 핵심 — 참여자/교육/취업/일지/관리자/AI추천/일정 | `/admin`, `/api/recommend`, `/api/schedule` |
-| **jobPlacement** | 알선 — 기업 대상 알선 페이지, WebSocket 채팅, 이력서 요청 | `/jobPlacement`, `/Starbucks` |
+| **jobPlacement** | 알선 — 기업 대상 알선 페이지, WebSocket 채팅, 이력서 요청 | `/jobPlacement` |
 | **recruitmentFormation** | 채용정보 — 고용24(WORK24) 채용공고 수집·동기화 | `/jobinfo`, `/recruitmentInformation` |
 
 요청은 항상 다음 흐름을 탑니다.
@@ -89,7 +89,7 @@ src/main/java/com/jobmoa/app/
 │   ├── SecurityConfig.java         # (빈 껍데기 — Spring Security 미사용)
 │   └── WebSocketConfig.java        # STOMP 엔드포인트·메시지 브로커
 ├── CounselMain/        biz/(서비스+DAO) · view/(컨트롤러)
-├── jobPlacement/       biz/ · view/(async, webSocket, starbucks)
+├── jobPlacement/       biz/ · view/(async, webSocket)
 └── recruitmentFormation/  biz/ · view/jobinfo
 
 src/main/resources/

@@ -51,7 +51,6 @@ import java.util.concurrent.TimeUnit;
     "com.jobmoa.app.jobPlacement.view.jobPlacement",
     "com.jobmoa.app.jobPlacement.view.async",
     "com.jobmoa.app.jobPlacement.view.webSocket",
-    "com.jobmoa.app.jobPlacement.view.starbucks",
     "com.jobmoa.app.recruitmentFormation.view.jobinfo"
 })
 public class WebMvcConfig implements WebMvcConfigurer {
@@ -99,8 +98,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/jobinfo/**",         // 채용공고 확인용(고용24)
                         "/recruitmentInformation/**", // 채용공고 검색 API (공개)
                         "/jobPlacement/**", // 참여자 정보 페이지
-                        "/Starbucks",
-                        "/Starbucks/**",
                         "/schedulePublic/**",  // 공개 일정 조회 (독립 인증)
                         "/register.do",        // 셀프 회원가입
                         "/register.api"        // 회원가입 API
