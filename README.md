@@ -106,21 +106,7 @@ src/main/webapp/
 
 ---
 
-## 5. OT 문서 (실습생 필독 순서)
-
-| 순서 | 문서 | 위치 |
-|------|------|------|
-| 1 | 본 README | (루트) |
-| 2 | 시스템 아키텍처 정의서 | [`docs/운영/시스템_아키텍처_정의서.md`](docs/운영/시스템_아키텍처_정의서.md) |
-| 3 | 데이터베이스 설계서 (ERD) | [`docs/기능명세/데이터베이스_설계서_ERD.md`](docs/기능명세/데이터베이스_설계서_ERD.md) |
-| 4 | API 명세서 | [`docs/기능명세/API_명세서.md`](docs/기능명세/API_명세서.md) |
-| 5 | 개발 표준 정의서 | [`docs/운영/개발_표준_정의서.md`](docs/운영/개발_표준_정의서.md) |
-
-> 코딩 규칙 원본: 프로젝트 루트 `CLAUDE.md`, `.claude/rules/{java-spring,mybatis,jsp-frontend}-conventions.md`
-
----
-
-## 6. 절대 하지 말 것 (핵심 금지사항)
+## 5. 절대 하지 말 것 (핵심 금지사항)
 
 - ❌ **JPA / Hibernate / Spring Data 도입** — SQL은 MyBatis XML 매퍼에만 작성
 - ❌ **`@Transactional` 어노테이션** — 트랜잭션은 `RootConfig`의 AOP 포인트컷이 전담
