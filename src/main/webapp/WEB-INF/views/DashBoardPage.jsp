@@ -99,8 +99,8 @@
     <!-- 상담일정 뱃지 스타일은 dashboard_0.0.4.css에 통합 -->
 
     <!-- 국취 연계실적 독려 팝업 (임시기능 ~2026-10-31) -->
-    <link rel="stylesheet" href="/css/participantCss/linkagePopup_0.0.4.css">
-    <script defer src="/js/linkagePopup_0.0.6.js"></script>
+    <link rel="stylesheet" href="/css/participantCss/linkagePopup_0.0.5.css">
+    <script defer src="/js/linkagePopup_0.0.7.js"></script>
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 

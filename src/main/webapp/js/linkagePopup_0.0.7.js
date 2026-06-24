@@ -3,7 +3,7 @@
  * - 대시보드 진입 시 /linkage-popup/summary 비동기 조회(비차단)로 렌더.
  * - 숨김 규칙: "오늘 하루 보지 않기" 체크 후 닫아야만 다음 날(자정 이후)까지 미노출.
  * - 카드1=상향 기준값(benchmark=평균×1.5), 카드2=1인당 목표, 카드3=본인, 카드4=잔여.
- * - 게이지=평균~목표 구간 내 본인 위치.
+ * - 게이지=목표 대비 달성률(현재 ÷ 목표)만 % 표기. 건수 끝 라벨/마커 라벨은 제거.
  */
 (function () {
     "use strict";
@@ -82,29 +82,22 @@
         el.innerHTML = html;
     }
 
-    // 게이지: 평균~목표 구간 내 본인 위치(0~100% clamp).
-    // 좌측 '평균' = 카드1과 동일한 상향 기준값(평균×1.5 = benchmarkCount).
+    // 게이지: 목표 대비 본인 달성률(현재 ÷ 목표, 0~100% clamp).
+    // 끝 라벨(평균/목표 N건)·본인 마커는 참고용으로 유지하고, 달성률 %를 별도 표기.
     function applyGauge(data) {
-        const avg = data.benchmarkCount;
         const target = data.targetCount;
         const my = data.myCount;
 
-        let pos;
-        if (target > avg) {
-            pos = (my - avg) / (target - avg);
-        } else {
-            pos = my >= target ? 1 : 0;
-        }
-        pos = Math.max(0, Math.min(1, pos));
-        const pct = (pos * 100).toFixed(1) + "%";
+        const pos = target > 0 ? my / target : 0;
+        const clamped = Math.max(0, Math.min(1, pos));
+        const pct = (clamped * 100).toFixed(1) + "%";
 
         const fill = document.getElementById("lpGaugeFill");
         const marker = document.getElementById("lpGaugeMarker");
         if (fill) fill.style.width = pct;
         if (marker) marker.style.left = pct;
-        setText("lpGaugeAvg", avg);
-        setText("lpGaugeTarget", target);
-        setText("lpGaugeMy", "본인 " + my + "건");
+
+        setText("lpGaugePct", Math.round(clamped * 100) + "%"); // 달성률 % (건수 라벨 제거)
     }
 
     function closePopup() {
@@ -134,8 +127,7 @@
         setText("lpTarget", data.targetCount);          // 카드2: 1인당 목표
         setText("lpMy", data.myCount);                  // 카드3: 본인
         setText("lpRemaining", data.remainingCount);    // 카드4: 잔여
-        setText("lpTargetBase", data.maxPointThreshold);
-        setText("lpMaxThreshold", data.maxPointThreshold);
+        setText("lpTargetBase", data.maxPointThreshold); // 카드2 분자(목표분자)
 
         // 우측 단계 패널 (단계 색은 modal 클래스 --lp-accent로만 반영, "N단계" 표기 제거)
         const copy = STAGE_COPY[data.stage] || { headline: "", sub: "" };

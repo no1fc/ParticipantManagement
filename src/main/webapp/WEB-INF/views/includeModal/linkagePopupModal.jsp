@@ -29,7 +29,6 @@
                     <div class="lp-card-icon lp-ico-blue"><i class="bi bi-people-fill"></i></div>
                     <div class="lp-card-text">
                         <span class="lp-card-label">전체 상담사 평균 연계 건수</span>
-                        <span class="lp-card-sub">(상담사 독려를 위해 상향 안내된 기준값)</span>
                     </div>
                     <div class="lp-card-value lp-val-blue"><strong id="lpBenchmark">0</strong><span class="lp-unit">건 내외</span></div>
                 </div>
@@ -40,15 +39,15 @@
                         <span class="lp-card-label">1인당 목표 연계 건수</span>
                         <span class="lp-card-sub">(<span id="lpTargetBase">40</span>건 &divide; 지점 상담사 수)</span>
                     </div>
-                    <div class="lp-card-value lp-val-green"><strong id="lpTarget">0</strong><span class="lp-unit">건 내외</span></div>
+                    <div class="lp-card-value lp-val-green"><strong id="lpTarget">0</strong><span class="lp-unit">건 이상</span></div>
                 </div>
 
-                <div class="lp-card">
+                <div class="lp-card lp-card-highlight">
                     <div class="lp-card-icon lp-ico-orange"><i class="bi bi-person-fill"></i></div>
                     <div class="lp-card-text">
                         <span class="lp-card-label"><span id="lpNameMy" class="lp-name-strong"></span>님의 현재 연계 건수</span>
                     </div>
-                    <div class="lp-card-value lp-val-orange"><strong id="lpMy">0</strong><span class="lp-unit">건</span></div>
+                    <div class="lp-card-value lp-val-accent"><strong id="lpMy">0</strong><span class="lp-unit">건</span></div>
                 </div>
 
                 <div class="lp-card">
@@ -60,8 +59,8 @@
                 </div>
 
                 <div class="lp-notice">
-                    <i class="bi bi-gift-fill"></i>
-                    <span><strong id="lpMaxThreshold">40</strong>건 이상 연계 시 <b class="lp-notice-em">최대 3점</b>의 가점이 부여됩니다!</span>
+                    <i class="bi bi-graph-up-arrow"></i>
+                    <span>연계 건수 실적은 <b class="lp-notice-em">업무담당자 성과평가(연봉테이블)</b>에 반영됩니다.</span>
                 </div>
             </div>
 
@@ -75,18 +74,14 @@
 
                     <p class="lp-message" id="lpMessage"></p>
 
-                    <!-- 게이지: 평균~목표 구간 내 본인 위치 -->
+                    <!-- 게이지: 목표 대비 달성률(현재 ÷ 목표) -->
                     <div class="lp-gauge">
+                        <p class="lp-gauge-pct">목표 달성률 <b id="lpGaugePct">0%</b></p>
                         <div class="lp-gauge-track">
                             <div class="lp-gauge-fill" id="lpGaugeFill"></div>
                             <div class="lp-gauge-marker" id="lpGaugeMarker">
-                                <span class="lp-gauge-marker-label" id="lpGaugeMy">본인 0건</span>
                                 <span class="lp-gauge-dot"></span>
                             </div>
-                        </div>
-                        <div class="lp-gauge-ends">
-                            <span class="lp-gauge-end">평균 <b id="lpGaugeAvg">0</b>건</span>
-                            <span class="lp-gauge-end">목표 <b id="lpGaugeTarget">0</b>건</span>
                         </div>
                     </div>
                 </div>
