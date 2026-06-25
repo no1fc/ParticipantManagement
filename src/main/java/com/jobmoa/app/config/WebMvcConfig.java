@@ -3,6 +3,8 @@ package com.jobmoa.app.config;
 import com.jobmoa.app.CounselMain.biz.interceptor.LoginInterceptor;
 import com.jobmoa.app.CounselMain.view.adminpage.AdminApiInterceptor;
 import com.jobmoa.app.CounselMain.view.adminpage.AdminPageInterceptor;
+import com.jobmoa.app.CounselMain.view.hr.HrApiInterceptor;
+import com.jobmoa.app.CounselMain.view.hr.HrPageInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -46,6 +48,7 @@ import java.util.concurrent.TimeUnit;
     "com.jobmoa.app.CounselMain.view.mailSend",
     "com.jobmoa.app.CounselMain.view.mypage",
     "com.jobmoa.app.CounselMain.view.adminpage",
+    "com.jobmoa.app.CounselMain.view.hr",
     "com.jobmoa.app.CounselMain.view.linkagePopup",
     "com.jobmoa.app.CounselMain.view.schedule",
     "com.jobmoa.app.CounselMain.view.schedulePublic",
@@ -87,6 +90,15 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .addPathPatterns("/admin/**")
                 .excludePathPatterns("/admin/api/**");
 
+        // HR REST API 공통 인증 인터셉터 (미인증 시 401 JSON)
+        registry.addInterceptor(new HrApiInterceptor())
+                .addPathPatterns("/hr/api/**");
+
+        // HR 페이지 공통 인증 인터셉터 (미인증 시 /hr/login 리다이렉트). 로그인 페이지·API는 제외.
+        registry.addInterceptor(new HrPageInterceptor())
+                .addPathPatterns("/hr/**")
+                .excludePathPatterns("/hr/api/**", "/hr/login");
+
         registry.addInterceptor(new LoginInterceptor())
                 .addPathPatterns("/**")
                 .excludePathPatterns(
@@ -106,6 +118,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/recruitmentInformation/**", // 채용공고 검색 API (공개)
                         "/jobPlacement/**", // 참여자 정보 페이지
                         "/schedulePublic/**",  // 공개 일정 조회 (독립 인증)
+                        "/hr/**",              // HR(입퇴사자관리) — HR 전용 인터셉터가 독립 인증 담당
                         "/register.do",        // 셀프 회원가입
                         "/register.api"        // 회원가입 API
                 );

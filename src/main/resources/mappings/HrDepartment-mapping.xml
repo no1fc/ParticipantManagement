@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- HR 부서/조직 관리 (J_부서) -->
+<mapper namespace="HrDepartmentDAO">
+
+    <select id="selectDepartmentList" resultType="hrDepartment">
+        SELECT
+            d.부서코드 deptCode,
+            d.부서명 deptName,
+            d.부서유형 deptType,
+            d.상위부서코드 parentDeptCode,
+            p.부서명 parentDeptName,
+            d.지점명 branchName,
+            d.사용여부 useStatus,
+            d.순서 deptOrder
+        FROM J_부서 d
+        LEFT JOIN J_부서 p ON d.상위부서코드 = p.부서코드
+        <where>
+            <if test="searchUseStatus == null or searchUseStatus == ''">
+                d.사용여부 = '사용'
+            </if>
+            <if test="searchUseStatus != null and searchUseStatus != ''">
+                d.사용여부 = #{searchUseStatus}
+            </if>
+            <if test="searchDeptName != null and searchDeptName != ''">
+                AND d.부서명 LIKE '%' + #{searchDeptName} + '%'
+            </if>
+            <if test="searchDeptType != null and searchDeptType != ''">
+                AND d.부서유형 = #{searchDeptType}
+            </if>
+        </where>
+        ORDER BY d.순서 ASC, d.부서코드 ASC
+    </select>
+
+    <select id="selectDepartmentOne" resultType="hrDepartment">
+        SELECT
+            d.부서코드 deptCode,
+            d.부서명 deptName,
+            d.부서유형 deptType,
+            d.상위부서코드 parentDeptCode,
+            p.부서명 parentDeptName,
+            d.지점명 branchName,
+            d.사용여부 useStatus,
+            d.순서 deptOrder
+        FROM J_부서 d
+        LEFT JOIN J_부서 p ON d.상위부서코드 = p.부서코드
+        WHERE d.부서코드 = #{deptCode}
+    </select>
+
+    <!-- 부서코드(PK) 중복 확인 -->
+    <select id="selectDeptCodeExists" parameterType="hrDepartment" resultType="int">
+        SELECT COUNT(*) FROM J_부서 WHERE 부서코드 = #{deptCode}
+    </select>
+
+    <insert id="insertDepartment">
+        INSERT INTO J_부서 (부서코드, 부서명, 부서유형, 상위부서코드, 지점명, 순서, 사용여부)
+        VALUES (
+            #{deptCode},
+            #{deptName},
+            #{deptType},
+            NULLIF(#{parentDeptCode,jdbcType=NVARCHAR}, N''),
+            NULLIF(#{branchName,jdbcType=NVARCHAR}, N''),
+            #{deptOrder},
+            '사용'
+        )
+    </insert>
+
+    <update id="updateDepartment">
+        UPDATE J_부서
+        SET
+            부서명 = #{deptName},
+            부서유형 = #{deptType},
+            상위부서코드 = NULLIF(#{parentDeptCode,jdbcType=NVARCHAR}, N''),
+            지점명 = NULLIF(#{branchName,jdbcType=NVARCHAR}, N''),
+            순서 = #{deptOrder}
+        WHERE 부서코드 = #{deptCode}
+    </update>
+
+    <!-- 소프트 삭제: 사용여부를 '미사용'으로 변경 (FK 보호) -->
+    <update id="softDeleteDepartment">
+        UPDATE J_부서 SET 사용여부 = '미사용' WHERE 부서코드 = #{deptCode}
+    </update>
+
+</mapper>

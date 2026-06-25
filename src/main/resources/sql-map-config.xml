@@ -40,6 +40,9 @@
         <typeAlias type="com.jobmoa.app.CounselMain.biz.schedule.ScheduleDTO" alias="schedule" />
         <typeAlias type="com.jobmoa.app.CounselMain.biz.recommend.JobPostingCopyDTO" alias="jobPostingCopy"/>
         <typeAlias type="com.jobmoa.app.CounselMain.biz.linkagePopup.LinkagePopupSettingDTO" alias="linkagePopupSetting"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrDepartmentDTO" alias="hrDepartment"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrAccountDTO" alias="hrAccount"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrSiteAccessDTO" alias="hrSiteAccess"/>
 
     </typeAliases>
 
@@ -68,5 +71,9 @@
         <mapper resource="mappings/Schedule-mapping.xml"/>
         <mapper resource="mappings/Permission-mapping.xml"/>
         <mapper resource="mappings/LinkagePopup-mapping.xml"/>
+        <mapper resource="mappings/HrDepartment-mapping.xml"/>
+        <mapper resource="mappings/HrAccount-mapping.xml"/>
+        <mapper resource="mappings/HrSiteAccess-mapping.xml"/>
+        <mapper resource="mappings/HrAuth-mapping.xml"/>
     </mappers>
 </configuration>

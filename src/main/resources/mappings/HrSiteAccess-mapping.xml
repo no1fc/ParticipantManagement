@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- HR 사이트 접속·권한 관리 (J_직원_사이트접속 ⋈ J_직원, J_사이트) -->
+<mapper namespace="HrSiteAccessDAO">
+
+    <select id="selectSiteAccessList" resultType="hrSiteAccess">
+        SELECT
+            sa.접속PK accessPk,
+            sa.직원아이디 userId,
+            e.이름 userName,
+            sa.사이트코드 siteCode,
+            s.사이트명 siteName,
+            sa.부서코드 deptCode,
+            sa.접속허용 accessAllowed,
+            sa.사이트내권한 siteRole,
+            CONVERT(varchar(10), sa.부여일, 120) grantDate
+        FROM J_직원_사이트접속 sa
+        JOIN J_직원 e ON sa.직원아이디 = e.아이디
+        JOIN J_사이트 s ON sa.사이트코드 = s.사이트코드
+        <where>
+            <if test="searchUserId != null and searchUserId != ''">
+                AND sa.직원아이디 LIKE '%' + #{searchUserId} + '%'
+            </if>
+            <if test="searchSiteCode != null and searchSiteCode != ''">
+                AND sa.사이트코드 = #{searchSiteCode}
+            </if>
+        </where>
+        ORDER BY sa.직원아이디 ASC, s.순서 ASC
+    </select>
+
+    <select id="selectSiteAccessOne" resultType="hrSiteAccess">
+        SELECT
+            sa.접속PK accessPk,
+            sa.직원아이디 userId,
+            e.이름 userName,
+            sa.사이트코드 siteCode,
+            s.사이트명 siteName,
+            sa.부서코드 deptCode,
+            sa.접속허용 accessAllowed,
+            sa.사이트내권한 siteRole,
+            CONVERT(varchar(10), sa.부여일, 120) grantDate
+        FROM J_직원_사이트접속 sa
+        JOIN J_직원 e ON sa.직원아이디 = e.아이디
+        JOIN J_사이트 s ON sa.사이트코드 = s.사이트코드
+        WHERE sa.접속PK = #{accessPk}
+    </select>
+
+    <!-- UNIQUE(직원아이디,사이트코드,부서코드) 충돌 확인. NULL 부서코드는 공통 기본행 -->
+    <select id="selectSiteAccessExists" parameterType="hrSiteAccess" resultType="int">
+        SELECT COUNT(*)
+        FROM J_직원_사이트접속
+        WHERE 직원아이디 = #{userId}
+          AND 사이트코드 = #{siteCode}
+          AND ISNULL(부서코드, N'') = ISNULL(NULLIF(#{deptCode,jdbcType=NVARCHAR}, N''), N'')
+    </select>
+
+    <insert id="insertSiteAccess">
+        INSERT INTO J_직원_사이트접속 (직원아이디, 사이트코드, 부서코드, 접속허용, 사이트내권한)
+        VALUES (
+            #{userId},
+            #{siteCode},
+            #{deptCode,jdbcType=NVARCHAR},
+            #{accessAllowed},
+            #{siteRole,jdbcType=NVARCHAR}
+        )
+    </insert>
+
+    <update id="updateSiteAccess">
+        UPDATE J_직원_사이트접속
+        SET 접속허용 = #{accessAllowed},
+            사이트내권한 = #{siteRole,jdbcType=NVARCHAR}
+        WHERE 접속PK = #{accessPk}
+    </update>
+
+    <delete id="deleteSiteAccess">
+        DELETE FROM J_직원_사이트접속 WHERE 접속PK = #{accessPk}
+    </delete>
+
+    <!-- 사이트 드롭다운 (J_사이트) -->
+    <select id="selectSiteList" resultType="hrSiteAccess">
+        SELECT 사이트코드 siteCode, 사이트명 siteName
+        FROM J_사이트
+        WHERE 사용여부 = '사용'
+        ORDER BY 순서 ASC
+    </select>
+
+</mapper>
