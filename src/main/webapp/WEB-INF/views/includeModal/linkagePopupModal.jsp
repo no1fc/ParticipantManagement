@@ -18,7 +18,7 @@
             </button>
         </div>
 
-        <!-- 본문: 좌측 지표 / 우측 단계 패널 -->
+        <!-- 본문: 좌측 지표 / 중앙 게이지 패널 / 우측 링크 채널 -->
         <div class="lp-body">
 
             <!-- 좌측 컬럼 -->
@@ -64,8 +64,8 @@
                 </div>
             </div>
 
-            <!-- 우측 단계 패널 -->
-            <div class="lp-right">
+            <!-- 중앙 단계 패널 -->
+            <div class="lp-center">
                 <div class="lp-panel">
                     <p class="lp-stage-headline" id="lpStageHeadline"></p>
                     <p class="lp-stage-sub" id="lpStageSub"></p>
@@ -84,6 +84,50 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- 우측: 연계실적 도움 문서 링크 채널 -->
+            <div class="lp-right">
+                <div class="lp-panel lp-links-panel">
+                    <p class="lp-links-title"><i class="bi bi-journal-text"></i> 연계실적 도움 자료</p>
+                    <p class="lp-links-desc">업무에 도움이 되는 안내 문서를 확인해 보세요.</p>
+
+                    <ul class="lp-link-list">
+                        <%-- TODO: href를 실제 내부 가이드 HTML URL(/resources/...)로 교체 --%>
+                        <li class="lp-link-item">
+                            <span class="lp-link-icon"><i class="bi bi-file-earmark-text"></i></span>
+                            <div class="lp-link-text">
+                                <span class="lp-link-name">국민취업지원제도 연계 안내</span>
+                                <span class="lp-link-sub">연계 실적 집계 기준과 처리 절차 안내</span>
+                            </div>
+                            <a class="lp-link-go" href="#" target="_blank" rel="noopener">바로가기 <i class="bi bi-box-arrow-up-right"></i></a>
+                        </li>
+                        <li class="lp-link-item">
+                            <span class="lp-link-icon"><i class="bi bi-briefcase"></i></span>
+                            <div class="lp-link-text">
+                                <span class="lp-link-name">일경험 연계 가이드</span>
+                                <span class="lp-link-sub">일경험 프로그램 연계 등록 방법 안내</span>
+                            </div>
+                            <a class="lp-link-go" href="#" target="_blank" rel="noopener">바로가기 <i class="bi bi-box-arrow-up-right"></i></a>
+                        </li>
+                        <li class="lp-link-item">
+                            <span class="lp-link-icon"><i class="bi bi-diagram-3"></i></span>
+                            <div class="lp-link-text">
+                                <span class="lp-link-name">타사업 연계 가이드</span>
+                                <span class="lp-link-sub">타사업 연계 대상·절차 및 유의사항</span>
+                            </div>
+                            <a class="lp-link-go" href="#" target="_blank" rel="noopener">바로가기 <i class="bi bi-box-arrow-up-right"></i></a>
+                        </li>
+                        <li class="lp-link-item">
+                            <span class="lp-link-icon"><i class="bi bi-question-circle"></i></span>
+                            <div class="lp-link-text">
+                                <span class="lp-link-name">자주 묻는 질문(FAQ)</span>
+                                <span class="lp-link-sub">연계실적 관련 자주 묻는 질문 모음</span>
+                            </div>
+                            <a class="lp-link-go" href="#" target="_blank" rel="noopener">바로가기 <i class="bi bi-box-arrow-up-right"></i></a>
+                        </li>
+                    </ul>
                 </div>
             </div>
 
