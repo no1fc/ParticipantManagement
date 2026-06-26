@@ -58,27 +58,36 @@
             </span>
         </a>
     </div>
+    <%-- 역할별 메뉴 게이팅: 로그인 시 적재된 세션 HR_MENU_ACCESS(메뉴코드→접근레벨) 기준.
+         맵이 비었으면(시드 미적용·구세션) 전 메뉴 노출하여 기존 동작 보존(네비 깨짐 방지). --%>
+    <c:set var="hrMenuEmpty" value="${empty HR_MENU_ACCESS}" />
     <div class="sidebar-wrapper" style="max-height: 700px; overflow: hidden;">
         <nav class="mt-2">
             <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+                <c:if test="${hrMenuEmpty or not empty HR_MENU_ACCESS['HR_DEPARTMENT']}">
                 <li class="nav-item">
                     <a href="/hr/departments" class="nav-link ${active eq 'departments' ? 'active' : ''}">
                         <i class="nav-icon bi bi-diagram-3"></i>
                         <p>부서/조직 관리</p>
                     </a>
                 </li>
+                </c:if>
+                <c:if test="${hrMenuEmpty or not empty HR_MENU_ACCESS['HR_ACCOUNT']}">
                 <li class="nav-item">
                     <a href="/hr/accounts" class="nav-link ${active eq 'accounts' ? 'active' : ''}">
                         <i class="nav-icon bi bi-key"></i>
                         <p>계정 관리</p>
                     </a>
                 </li>
+                </c:if>
+                <c:if test="${hrMenuEmpty or not empty HR_MENU_ACCESS['HR_SITE_ACCESS']}">
                 <li class="nav-item">
                     <a href="/hr/site-access" class="nav-link ${active eq 'site-access' ? 'active' : ''}">
                         <i class="nav-icon bi bi-shield-check"></i>
                         <p>사이트 접속·권한 관리</p>
                     </a>
                 </li>
+                </c:if>
             </ul>
         </nav>
     </div>
