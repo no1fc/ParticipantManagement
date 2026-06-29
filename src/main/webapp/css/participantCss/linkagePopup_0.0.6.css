@@ -25,7 +25,11 @@
 
 .lp-modal {
     width: 100%;
-    max-width: 1750px;
+    /* 2026-06-25 update: 960px 고정 등록 추후
+        연계실적 도움 문서 링크 채널 추가시
+        1600px로 수정 예정
+    */
+    max-width: 960px;
     max-height: 60rem;
     overflow-y: auto;
     background: #ffffff;

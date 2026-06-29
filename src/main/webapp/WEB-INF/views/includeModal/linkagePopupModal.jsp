@@ -87,14 +87,14 @@
                 </div>
             </div>
 
-            <!-- 우측: 연계실적 도움 문서 링크 채널 -->
+            <%--<!-- 우측: 연계실적 도움 문서 링크 채널 -->
             <div class="lp-right">
                 <div class="lp-panel lp-links-panel">
                     <p class="lp-links-title"><i class="bi bi-journal-text"></i> 연계실적 도움 자료</p>
                     <p class="lp-links-desc">업무에 도움이 되는 안내 문서를 확인해 보세요.</p>
 
                     <ul class="lp-link-list">
-                        <%-- TODO: href를 실제 내부 가이드 HTML URL(/resources/...)로 교체 --%>
+                        &lt;%&ndash; TODO: href를 실제 내부 가이드 HTML URL(/resources/...)로 교체 &ndash;%&gt;
                         <li class="lp-link-item">
                             <span class="lp-link-icon"><i class="bi bi-file-earmark-text"></i></span>
                             <div class="lp-link-text">
@@ -129,7 +129,7 @@
                         </li>
                     </ul>
                 </div>
-            </div>
+            </div>--%>
 
         </div>
 
