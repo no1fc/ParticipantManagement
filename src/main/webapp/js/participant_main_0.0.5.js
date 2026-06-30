@@ -111,6 +111,7 @@ $(document).ready(function () {
             'recent21': '최근상담일 21일',
             'jobExpire': '구직 만료 15일 도래자',
             'periodExpire': '기간 만료 15일 예정자',
+            'periodExpired': '기간 만료 도래·경과자',
             'employment': '취업자',
             'isIntesiveMediation': '집중알선인원'
         };

@@ -132,7 +132,7 @@
     <!-- 새로 분리한 JS 파일들 추가 -->
     <!-- 참여자조회 Js 코드들 -->
     <script defer src="/js/jobCategorySelectRenderText_0.0.2.js"></script>
-    <script defer src="/js/participant_main_0.0.4.js"></script>
+    <script defer src="/js/participant_main_0.0.5.js"></script>
     <script defer src="/js/participant_excel_download_0.0.1.js"></script>
 
     <link rel="stylesheet" href="/css/participantCss/participantMain_0.0.3.css">

@@ -503,6 +503,10 @@
             SUM(IIF(DATEDIFF(DAY, GETDATE(), 구직만료일) <![CDATA[<=]]> 15 AND 구직만료일 <![CDATA[<>]]> '', 1, 0)) AS dashBoardJobEX,
             -- 기간 만료일 15일 도래자
             SUM(IIF(DATEDIFF(DAY, GETDATE(), 기간만료일) <![CDATA[<=]]> 15 AND 기간만료일 <![CDATA[<>]]> '' AND 최근상담일 <![CDATA[<>]]> '', 1, 0))                           AS dashBoardEXPDate,
+            -- 기간 만료일 당일 도래자 (당일, DATEDIFF 0)
+            SUM(IIF(DATEDIFF(DAY, GETDATE(), 기간만료일) = 0 AND 기간만료일 <![CDATA[<>]]> '' AND 최근상담일 <![CDATA[<>]]> '', 1, 0)) AS dashBoardEXPDateToday,
+            -- 기간 만료일 경과자 (기간 지남, DATEDIFF 음수)
+            SUM(IIF(DATEDIFF(DAY, GETDATE(), 기간만료일) <![CDATA[<]]> 0 AND 기간만료일 <![CDATA[<>]]> '' AND 최근상담일 <![CDATA[<>]]> '', 1, 0)) AS dashBoardEXPDatePassed,
             -- 초기상담 미실시자
             SUM(IIF(진행단계 <![CDATA[<>]]> '취소' AND (초기상담일 = '' OR 초기상담일 IS NULL OR 초기상담일 <![CDATA[<=]]> '1900-01-01'), 1, 0)) AS dashBoardInItCons
         FROM J_참여자관리

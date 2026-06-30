@@ -90,6 +90,11 @@
                             AND A.기간만료일 <![CDATA[<>]]> ''
                             AND A.최근상담일 <![CDATA[<>]]> '')
                     </if>
+                    <if test="searchTypeList.contains('periodExpired')">
+                        OR (DATEDIFF(DAY, GETDATE(), A.기간만료일) <![CDATA[<=]]> 0
+                            AND A.기간만료일 <![CDATA[<>]]> ''
+                            AND A.최근상담일 <![CDATA[<>]]> '')
+                    </if>
                     <if test="searchTypeList.contains('employment')">
                         OR A.취창업일 <![CDATA[<>]]> ''
                     </if>
@@ -114,6 +119,11 @@
                     </when>
                     <when test="searchType != null and searchType == 'periodExpire'">
                         AND DATEDIFF(DAY, GETDATE(), A.기간만료일) <![CDATA[<=]]> 15
+                        AND A.기간만료일 <![CDATA[<>]]> ''
+                        AND A.최근상담일 <![CDATA[<>]]> ''
+                    </when>
+                    <when test="searchType != null and searchType == 'periodExpired'">
+                        AND DATEDIFF(DAY, GETDATE(), A.기간만료일) <![CDATA[<=]]> 0
                         AND A.기간만료일 <![CDATA[<>]]> ''
                         AND A.최근상담일 <![CDATA[<>]]> ''
                     </when>

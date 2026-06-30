@@ -11,6 +11,8 @@
 <c:set var="joinedEndDateList" value="${fn:join(paramValues.endDateOptionList, ',')}" />
 <c:set var="joinedPartTypeList" value="${fn:join(paramValues.participantPartTypeList, ',')}" />
 <c:set var="joinedSearchTypeList" value="${fn:join(paramValues.searchTypeList, ',')}" />
+<%-- 콤마 경계 매칭용 래핑값: 'periodExpire'가 'periodExpired'에 부분매칭되는 버그 방지 --%>
+<c:set var="wrappedSearchTypeList" value=",${joinedSearchTypeList}," />
 
 <!-- Search Section Card -->
 <div class="col-12 card-modern p-4 mb-4">
@@ -143,8 +145,12 @@
                 <label class="form-check-label" for="jobExpire15">구직 만료 15일 도래자</label>
             </div>
             <div class="form-check form-check-inline m-0">
-                <input class="form-check-input" type="checkbox" name="searchTypeList" id="periodExpire15" value="periodExpire" ${fn:contains(joinedSearchTypeList, 'periodExpire') ? 'checked' : ''}>
+                <input class="form-check-input" type="checkbox" name="searchTypeList" id="periodExpire15" value="periodExpire" ${fn:contains(wrappedSearchTypeList, ',periodExpire,') ? 'checked' : ''}>
                 <label class="form-check-label" for="periodExpire15">기간 만료 15일 예정자</label>
+            </div>
+            <div class="form-check form-check-inline m-0">
+                <input class="form-check-input" type="checkbox" name="searchTypeList" id="periodExpired0" value="periodExpired" ${fn:contains(wrappedSearchTypeList, ',periodExpired,') ? 'checked' : ''}>
+                <label class="form-check-label" for="periodExpired0">기간 만료 도래·경과자</label>
             </div>
             <div class="form-check form-check-inline m-0">
                 <input class="form-check-input" type="checkbox" name="searchTypeList" id="employment" value="employment" ${fn:contains(joinedSearchTypeList, 'employment') ? 'checked' : ''}>

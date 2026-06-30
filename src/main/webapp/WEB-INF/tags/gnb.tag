@@ -19,7 +19,7 @@
 
 <!-- GNB 알림 -->
 <link rel="stylesheet" href="/css/participantCss/gnb-notification_0.0.1.css">
-<script defer src="/js/gnb-notification_0.0.2.js"></script>
+<script defer src="/js/gnb-notification_0.0.3.js"></script>
 
 <!--begin::Header-->
 <nav class="app-header navbar navbar-expand bg-body">

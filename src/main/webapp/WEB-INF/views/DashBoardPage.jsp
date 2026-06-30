@@ -170,6 +170,14 @@
                                                 <span class="fs-7 fw-bold">기간 만료 예정</span>
                                                 <span class="badge bg-info rounded-pill">${dailyDashboard.dashBoardEXPDate}</span>
                                             </a>
+                                            <a href="/participant.login?searchTypeList=periodExpired&endDateOptionList=false"
+                                               class="work-list-item work-list-link text-decoration-none text-reset" title="해당 참여자 조회로 이동">
+                                                <span class="fs-7 fw-bold">기간 만료 도래·경과자</span>
+                                                <span class="d-flex align-items-center gap-2">
+                                                    <span class="fs-8 text-muted">당일 ${dailyDashboard.dashBoardEXPDateToday} | 지난 ${dailyDashboard.dashBoardEXPDatePassed}</span>
+                                                    <span class="badge bg-danger rounded-pill">${dailyDashboard.dashBoardEXPDateToday + dailyDashboard.dashBoardEXPDatePassed}</span>
+                                                </span>
+                                            </a>
                                         </c:when>
                                         <c:otherwise>
                                             <div class="text-center py-4 text-muted fs-7">확인할 내역이 없습니다.</div>

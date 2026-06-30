@@ -1,6 +1,6 @@
 /**
- * @file GNB 알림 관리 (WebSocket + 드롭다운 + 토스트)
- * @version 0.0.2
+ * @file GNB 알림 관리 (WebSocket + 드롭다운 + 토스트 + 기간만료 standing 알림)
+ * @version 0.0.3
  * @requires jQuery, SockJS, StompJS, Bootstrap
  */
 // ===========================
@@ -22,6 +22,11 @@
     let _stompClient = null;
     let _wsConnected = false;
     let _notifications = [];
+    // 기간만료 도래·경과자 standing 알림 (데이터 기반, 페이지 로드마다 라이브 재계산)
+    // _notifications(WebSocket 푸시)와 분리 관리: "모두 지우기"로 영구삭제되지 않고 미마감자는 지속 노출.
+    let _standingItems = [];
+    const PERIOD_EXPIRY_API = '/notification/period-expiry/summary';
+    const PERIOD_EXPIRY_LINK = '/participant.login?searchTypeList=periodExpired&endDateOptionList=false';
 
     function getStorageKey() {
         return 'gnbNotifications_' + (typeof JOBMOA_USER_ID !== 'undefined' ? JOBMOA_USER_ID : '');
@@ -182,14 +187,68 @@
 
         list.innerHTML = '';
 
-        if (_notifications.length === 0) {
+        if (_notifications.length === 0 && _standingItems.length === 0) {
             list.innerHTML = '<div class="gnb-notification-empty">알림이 없습니다</div>';
             return;
+        }
+
+        // standing 알림(기간만료)을 항상 최상단에 먼저 렌더
+        for (let s = 0; s < _standingItems.length; s++) {
+            renderStandingItem(_standingItems[s]);
         }
 
         for (let i = 0; i < _notifications.length; i++) {
             renderNotificationItem(_notifications[i], false);
         }
+    }
+
+    // 기간만료 standing 알림 1건 렌더 (anchor href로 직접 네비게이션 → preventDefault 안 함)
+    function renderStandingItem(item) {
+        const list = document.getElementById('gnbNotificationList');
+        if (!list) return;
+
+        const empty = list.querySelector('.gnb-notification-empty');
+        if (empty) empty.remove();
+
+        const el = document.createElement('a');
+        el.href = item.href;
+        el.className = 'gnb-notification-item standing unread';
+
+        el.innerHTML =
+            '<div class="d-flex align-items-start">' +
+                '<span class="gnb-notification-icon me-2"><i class="bi bi-exclamation-triangle-fill text-warning"></i></span>' +
+                '<div class="gnb-notification-content">' +
+                    '<p class="gnb-notification-name mb-0">기간 만료 도래·경과자</p>' +
+                    '<p class="gnb-notification-text mb-0">' + escapeHtml(item.message) + '</p>' +
+                '</div>' +
+            '</div>';
+
+        // standing 항목은 항상 리스트 맨 앞에 고정
+        list.insertBefore(el, list.firstChild);
+    }
+
+    // 페이지 로드 시 기간만료 도래·경과자 라이브 조회 → standing 알림 주입 (비차단)
+    function loadStandingNotifications() {
+        if (typeof JOBMOA_USER_ID === 'undefined' || !JOBMOA_USER_ID) return;
+        if (typeof $ === 'undefined') return;
+
+        $.ajax({ url: PERIOD_EXPIRY_API, method: 'GET', dataType: 'json' })
+            .done(function(data) {
+                if (!data || !data.count || data.count <= 0) {
+                    _standingItems = [];
+                    renderAll();
+                    updateNotificationBadge();
+                    return;
+                }
+                _standingItems = [{
+                    href: PERIOD_EXPIRY_LINK,
+                    message: data.count + '명 (당일 ' + (data.today || 0) + ' | 지난 ' + (data.passed || 0) + ')'
+                }];
+                renderAll();
+                updateNotificationBadge();
+                triggerBellAnimation();
+            })
+            .fail(function() { /* 알림 조회 실패는 무시 (지속성 기능, 비핵심) */ });
     }
 
     function renderNotificationItem(item, prepend) {
@@ -250,6 +309,8 @@
         for (let i = 0; i < _notifications.length; i++) {
             if (!_notifications[i].read) unreadCount++;
         }
+        // standing 알림(기간만료)은 항상 미처리 카운트에 포함 → 뱃지·벨 지속 유지
+        unreadCount += _standingItems.length;
 
         if (unreadCount > 0) {
             badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
@@ -378,6 +439,8 @@
         updateNotificationBadge();
         setupDropdownEvents();
         connectGnbWebSocket();
+        // 기간만료 도래·경과자 standing 알림 라이브 조회 (비차단)
+        loadStandingNotifications();
 
         // "모든 알림 지우기" 버튼 이벤트
         const clearBtn = document.getElementById('gnbNotifClearAll');
