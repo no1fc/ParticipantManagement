@@ -29,6 +29,7 @@ public class HrAccessSupport {
     public static final String MENU_DEPARTMENT = "HR_DEPARTMENT";
     public static final String MENU_ACCOUNT = "HR_ACCOUNT";
     public static final String MENU_SITE_ACCESS = "HR_SITE_ACCESS";
+    public static final String MENU_TENURE_POLICY = "HR_TENURE_POLICY";
 
     /** 접근레벨 (J_사이트_메뉴권한.접근레벨). 순서: 읽기 < 쓰기 < 전체. */
     public static final String LEVEL_READ = "읽기";
@@ -97,6 +98,7 @@ public class HrAccessSupport {
         if (uri.contains("/employees")) return MENU_EMPLOYEE;
         if (uri.contains("/departments")) return MENU_DEPARTMENT;
         if (uri.contains("/accounts")) return MENU_ACCOUNT;
+        if (uri.contains("/tenure-policies")) return MENU_TENURE_POLICY;
         if (uri.contains("/site-access") || uri.contains("/sites")) return MENU_SITE_ACCESS;
         return null;
     }
@@ -118,6 +120,7 @@ public class HrAccessSupport {
         if (hasRead(session, MENU_EMPLOYEE)) return "/hr/employees";
         if (hasRead(session, MENU_DEPARTMENT)) return "/hr/departments";
         if (hasRead(session, MENU_ACCOUNT)) return "/hr/accounts";
+        if (hasRead(session, MENU_TENURE_POLICY)) return "/hr/tenure-policies";
         if (hasRead(session, MENU_SITE_ACCESS)) return "/hr/site-access";
         return null;
     }

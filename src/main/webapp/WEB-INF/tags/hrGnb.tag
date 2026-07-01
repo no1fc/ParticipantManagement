@@ -96,6 +96,14 @@
                     </a>
                 </li>
                 </c:if>
+                <c:if test="${hrMenuEmpty or not empty HR_MENU_ACCESS['HR_TENURE_POLICY']}">
+                <li class="nav-item">
+                    <a href="/hr/tenure-policies" class="nav-link ${active eq 'tenure-policies' ? 'active' : ''}">
+                        <i class="nav-icon bi bi-percent"></i>
+                        <p>근속정책 관리</p>
+                    </a>
+                </li>
+                </c:if>
                 <c:if test="${hrMenuEmpty or not empty HR_MENU_ACCESS['HR_SITE_ACCESS']}">
                 <li class="nav-item">
                     <a href="/hr/site-access" class="nav-link ${active eq 'site-access' ? 'active' : ''}">

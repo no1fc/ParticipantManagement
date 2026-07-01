@@ -56,4 +56,11 @@ public class HrPageController {
         if (!HrAccessSupport.isAuthed(session)) return "redirect:/hr/login";
         return "hr/hrSiteAccessManagement";
     }
+
+    /** 근속정책 관리 페이지. */
+    @GetMapping("/tenure-policies")
+    public String tenurePolicies(HttpSession session) {
+        if (!HrAccessSupport.isAuthed(session)) return "redirect:/hr/login";
+        return "hr/hrTenurePolicyManagement";
+    }
 }

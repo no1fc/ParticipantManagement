@@ -9,6 +9,8 @@ import com.jobmoa.app.CounselMain.biz.hr.HrDepartmentDTO;
 import com.jobmoa.app.CounselMain.biz.hr.HrDepartmentService;
 import com.jobmoa.app.CounselMain.biz.hr.HrSiteAccessDTO;
 import com.jobmoa.app.CounselMain.biz.hr.HrSiteAccessService;
+import com.jobmoa.app.CounselMain.biz.hr.HrTenurePolicyDTO;
+import com.jobmoa.app.CounselMain.biz.hr.HrTenurePolicyService;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +46,9 @@ public class HrApiController {
 
     @Autowired
     private HrEmployeeService hrEmployeeService;
+
+    @Autowired
+    private HrTenurePolicyService hrTenurePolicyService;
 
     /** HR 로그인({@code HR_LOGIN_DATA}) 여부를 확인한다. 미인증이면 401, 인증이면 null.
      *  ({@link HrApiInterceptor}가 1차 차단하며 이 검증은 방어적 이중 확인이다.) */
@@ -292,5 +297,66 @@ public class HrApiController {
         ResponseEntity<Map<String, Object>> denied = checkManager(session);
         if (denied != null) return denied;
         return ResponseEntity.ok(hrSiteAccessService.getSiteList());
+    }
+
+    // ===== 근속정책 관리 =====
+    @GetMapping("/tenure-policies")
+    public ResponseEntity<?> getTenurePolicies(HrTenurePolicyDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrTenurePolicyService.getTenurePolicyList(dto));
+    }
+
+    @GetMapping("/tenure-policies/{policyKey}")
+    public ResponseEntity<?> getTenurePolicy(@PathVariable String policyKey, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrTenurePolicyDTO dto = new HrTenurePolicyDTO();
+        dto.setPolicyKey(policyKey);
+        return ResponseEntity.ok(hrTenurePolicyService.getTenurePolicyOne(dto));
+    }
+
+    @PostMapping("/tenure-policies")
+    public ResponseEntity<?> addTenurePolicy(@RequestBody HrTenurePolicyDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        if (dto.getPolicyKey() == null || dto.getPolicyKey().isBlank()) {
+            return ResponseEntity.ok(result(false, "정책키는 필수입니다."));
+        }
+        if (!isValidWeight(dto.getWeightPercent())) {
+            return ResponseEntity.ok(result(false, "가중퍼센트는 0~100 사이여야 합니다."));
+        }
+        if (hrTenurePolicyService.isPolicyKeyExists(dto)) {
+            return ResponseEntity.ok(result(false, "이미 존재하는 정책키입니다."));
+        }
+        boolean success = hrTenurePolicyService.addTenurePolicy(dto);
+        return ResponseEntity.ok(result(success, success ? "근속정책이 등록되었습니다." : "등록에 실패했습니다."));
+    }
+
+    @PutMapping("/tenure-policies/{policyKey}")
+    public ResponseEntity<?> updateTenurePolicy(@PathVariable String policyKey, @RequestBody HrTenurePolicyDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        if (!isValidWeight(dto.getWeightPercent())) {
+            return ResponseEntity.ok(result(false, "가중퍼센트는 0~100 사이여야 합니다."));
+        }
+        dto.setPolicyKey(policyKey);
+        boolean success = hrTenurePolicyService.modifyTenurePolicy(dto);
+        return ResponseEntity.ok(result(success, success ? "근속정책이 수정되었습니다." : "수정에 실패했습니다."));
+    }
+
+    @DeleteMapping("/tenure-policies/{policyKey}")
+    public ResponseEntity<?> deleteTenurePolicy(@PathVariable String policyKey, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrTenurePolicyDTO dto = new HrTenurePolicyDTO();
+        dto.setPolicyKey(policyKey);
+        boolean success = hrTenurePolicyService.removeTenurePolicy(dto);
+        return ResponseEntity.ok(result(success, success ? "근속정책이 비활성화되었습니다." : "비활성화에 실패했습니다."));
+    }
+
+    /** 가중퍼센트 범위 검증 (0~100, CHECK 제약 사전 방어). */
+    private boolean isValidWeight(Integer weight) {
+        return weight != null && weight >= 0 && weight <= 100;
     }
 }

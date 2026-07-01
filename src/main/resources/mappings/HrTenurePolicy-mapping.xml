@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- HR 근속정책 관리 (J_근속산정정책) -->
+<mapper namespace="HrTenurePolicyDAO">
+
+    <select id="selectTenurePolicyList" resultType="hrTenurePolicy">
+        SELECT
+            정책키 policyKey,
+            가중퍼센트 weightPercent,
+            적용범위 scope,
+            사용여부 useStatus,
+            비고 remark
+        FROM J_근속산정정책
+        <where>
+            <if test="searchUseStatus == null or searchUseStatus == ''">
+                사용여부 = '사용'
+            </if>
+            <if test="searchUseStatus != null and searchUseStatus != ''">
+                사용여부 = #{searchUseStatus}
+            </if>
+            <if test="searchScope != null and searchScope != ''">
+                AND 적용범위 LIKE '%' + #{searchScope} + '%'
+            </if>
+        </where>
+        ORDER BY 정책키 ASC
+    </select>
+
+    <select id="selectTenurePolicyOne" resultType="hrTenurePolicy">
+        SELECT
+            정책키 policyKey,
+            가중퍼센트 weightPercent,
+            적용범위 scope,
+            사용여부 useStatus,
+            비고 remark
+        FROM J_근속산정정책
+        WHERE 정책키 = #{policyKey}
+    </select>
+
+    <!-- 정책키(UNIQUE 논리키) 중복 확인 -->
+    <select id="selectPolicyKeyExists" parameterType="hrTenurePolicy" resultType="int">
+        SELECT COUNT(*) FROM J_근속산정정책 WHERE 정책키 = #{policyKey}
+    </select>
+
+    <insert id="insertTenurePolicy">
+        INSERT INTO J_근속산정정책 (정책키, 가중퍼센트, 적용범위, 비고, 사용여부)
+        VALUES (
+            #{policyKey},
+            #{weightPercent},
+            NULLIF(#{scope,jdbcType=NVARCHAR}, N''),
+            NULLIF(#{remark,jdbcType=NVARCHAR}, N''),
+            '사용'
+        )
+    </insert>
+
+    <update id="updateTenurePolicy">
+        UPDATE J_근속산정정책
+        SET
+            가중퍼센트 = #{weightPercent},
+            적용범위 = NULLIF(#{scope,jdbcType=NVARCHAR}, N''),
+            비고 = NULLIF(#{remark,jdbcType=NVARCHAR}, N'')
+        WHERE 정책키 = #{policyKey}
+    </update>
+
+    <!-- 소프트 삭제: 사용여부를 '미사용'으로 변경 (근속함수 참조 이력 보호) -->
+    <update id="softDeleteTenurePolicy">
+        UPDATE J_근속산정정책 SET 사용여부 = '미사용' WHERE 정책키 = #{policyKey}
+    </update>
+
+</mapper>
