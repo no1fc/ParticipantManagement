@@ -153,4 +153,20 @@
         WHERE 직원아이디 = #{userId} AND 퇴사일 IS NULL;
     </update>
 
+    <!-- 복직(오처리 취소): 현재재직상태='재직' + 자동 정지된 계정 재활성화 + 마지막 재직기간 퇴사일 초기화.
+         퇴사 트리거의 역방향은 자동 처리되지 않으므로 계정은 '정지'→'사용'만 수동 복원. -->
+    <update id="reactivateEmployee">
+        UPDATE J_직원
+        SET 현재재직상태 = N'재직', 수정일 = GETDATE()
+        WHERE 아이디 = #{userId};
+
+        UPDATE J_직원_계정
+        SET 계정상태 = N'사용'
+        WHERE 아이디 = #{userId} AND 계정상태 = N'정지';
+
+        UPDATE J_직원_재직기간
+        SET 퇴사일 = NULL
+        WHERE 재직PK = (SELECT MAX(재직PK) FROM J_직원_재직기간 WHERE 직원아이디 = #{userId});
+    </update>
+
 </mapper>

@@ -128,6 +128,16 @@ public class HrApiController {
         return ResponseEntity.ok(result(success, success ? "직원이 퇴사 처리되었습니다.(계정 자동 정지)" : "퇴사 처리에 실패했습니다."));
     }
 
+    @PostMapping("/employees/{userId}/reactivate")
+    public ResponseEntity<?> reactivateEmployee(@PathVariable String userId, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrEmployeeDTO dto = new HrEmployeeDTO();
+        dto.setUserId(userId);
+        boolean success = hrEmployeeService.reactivateEmployee(dto);
+        return ResponseEntity.ok(result(success, success ? "직원이 복직 처리되었습니다.(계정 재활성화)" : "복직 처리에 실패했습니다."));
+    }
+
     // ===== 부서/조직 관리 =====
     @GetMapping("/departments")
     public ResponseEntity<?> getDepartments(HrDepartmentDTO dto, HttpSession session) {

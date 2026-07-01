@@ -48,4 +48,9 @@ public class HrEmployeeDAO {
         log.info("HrEmployeeDAO resignEmployee (soft) userId={}", dto.getUserId());
         return sqlSession.update(ns + "resignEmployee", dto) > 0;
     }
+
+    public boolean reactivateEmployee(HrEmployeeDTO dto) {
+        log.info("HrEmployeeDAO reactivateEmployee userId={}", dto.getUserId());
+        return sqlSession.update(ns + "reactivateEmployee", dto) > 0;
+    }
 }

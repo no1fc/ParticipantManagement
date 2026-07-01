@@ -90,7 +90,10 @@ function accountStatusBadge(status) {
 
 function actionButtons(item) {
     const edit = '<button class="btn btn-sm btn-warning" onclick="editEmployee(\'' + item.userId + '\')"><i class="bi bi-pencil"></i> 수정</button>';
-    if (item.empStatus === '퇴사') return edit;
+    if (item.empStatus === '퇴사') {
+        const reactivate = ' <button class="btn btn-sm btn-success" onclick="reactivateEmployee(\'' + item.userId + '\', \'' + (item.name || '') + '\')"><i class="bi bi-arrow-counterclockwise"></i> 복직</button>';
+        return edit + reactivate;
+    }
     const resign = ' <button class="btn btn-sm btn-danger" onclick="resignEmployee(\'' + item.userId + '\', \'' + (item.name || '') + '\')"><i class="bi bi-box-arrow-right"></i> 퇴사</button>';
     return edit + resign;
 }
@@ -186,6 +189,30 @@ function saveEmployee() {
             else { Swal.fire('오류', res.message, 'error'); }
         },
         error: function () { Swal.fire('오류', '저장 중 오류가 발생했습니다.', 'error'); }
+    });
+}
+
+function reactivateEmployee(userId, name) {
+    Swal.fire({
+        title: '복직 처리 확인',
+        html: (name || userId) + ' 직원을 <b>복직</b> 처리하시겠습니까?<br><small class="text-muted">현재재직상태가 \'재직\'으로 바뀌고, 정지된 계정이 \'사용\'으로 재활성화됩니다.</small>',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: '복직 처리',
+        cancelButtonText: '취소',
+        confirmButtonColor: '#198754'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '/hr/api/employees/' + encodeURIComponent(userId) + '/reactivate',
+                method: 'POST',
+                success: function (res) {
+                    Swal.fire(res.success ? '완료' : '오류', res.message, res.success ? 'success' : 'error');
+                    loadEmployees();
+                },
+                error: function () { Swal.fire('오류', '복직 처리 중 오류가 발생했습니다.', 'error'); }
+            });
+        }
     });
 }
 

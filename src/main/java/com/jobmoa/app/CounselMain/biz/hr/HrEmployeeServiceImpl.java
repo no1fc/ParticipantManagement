@@ -56,4 +56,9 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
     public boolean resignEmployee(HrEmployeeDTO dto) {
         return hrEmployeeDAO.resignEmployee(dto);
     }
+
+    @Override
+    public boolean reactivateEmployee(HrEmployeeDTO dto) {
+        return hrEmployeeDAO.reactivateEmployee(dto);
+    }
 }
