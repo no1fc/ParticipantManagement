@@ -22,6 +22,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/hr")
 public class HrPageController {
 
+    /** 인원현황 대시보드 페이지(읽기전용). 로그인 후 기본 랜딩. */
+    @GetMapping("/dashboard")
+    public String dashboard(HttpSession session) {
+        if (!HrAccessSupport.isAuthed(session)) return "redirect:/hr/login";
+        return "hr/hrDashboard";
+    }
+
     /** 부서/조직 관리 페이지. */
     @GetMapping("/departments")
     public String departments(HttpSession session) {

@@ -2,6 +2,7 @@ package com.jobmoa.app.CounselMain.view.hr;
 
 import com.jobmoa.app.CounselMain.biz.hr.HrAccountDTO;
 import com.jobmoa.app.CounselMain.biz.hr.HrAccountService;
+import com.jobmoa.app.CounselMain.biz.hr.HrDashboardService;
 import com.jobmoa.app.CounselMain.biz.hr.HrDepartmentDTO;
 import com.jobmoa.app.CounselMain.biz.hr.HrDepartmentService;
 import com.jobmoa.app.CounselMain.biz.hr.HrSiteAccessDTO;
@@ -36,6 +37,9 @@ public class HrApiController {
     @Autowired
     private HrSiteAccessService hrSiteAccessService;
 
+    @Autowired
+    private HrDashboardService hrDashboardService;
+
     /** HR 로그인({@code HR_LOGIN_DATA}) 여부를 확인한다. 미인증이면 401, 인증이면 null.
      *  ({@link HrApiInterceptor}가 1차 차단하며 이 검증은 방어적 이중 확인이다.) */
     private ResponseEntity<Map<String, Object>> checkManager(HttpSession session) {
@@ -50,6 +54,14 @@ public class HrApiController {
         map.put("success", success);
         map.put("message", message);
         return map;
+    }
+
+    // ===== 인원현황 대시보드 (읽기전용) =====
+    @GetMapping("/dashboard")
+    public ResponseEntity<?> getDashboard(HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrDashboardService.getDashboard());
     }
 
     // ===== 부서/조직 관리 =====

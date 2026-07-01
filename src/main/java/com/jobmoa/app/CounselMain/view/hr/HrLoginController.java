@@ -29,11 +29,12 @@ public class HrLoginController {
     @Autowired
     private HrAuthService hrAuthService;
 
-    /** HR 로그인 페이지. 이미 인증 상태면 부서 관리로 이동. */
+    /** HR 로그인 페이지. 이미 인증 상태면 접근 가능한 첫 화면(대시보드 우선)으로 이동. */
     @GetMapping("/hr/login")
     public String loginPage(HttpSession session) {
         if (HrAccessSupport.isAuthed(session)) {
-            return "redirect:/hr/departments";
+            String landing = HrAccessSupport.firstAccessiblePage(session);
+            return "redirect:" + (landing != null ? landing : "/hr/dashboard");
         }
         return "hr/hrLogin";
     }
@@ -56,8 +57,9 @@ public class HrLoginController {
         session.setAttribute(HrAccessSupport.HR_LOGIN_DATA, result.getLoginBean());
         session.setAttribute(HrAccessSupport.HR_MENU_ACCESS, result.getMenuAccess());
 
+        String landing = HrAccessSupport.firstAccessiblePage(session);
         response.put("success", true);
-        response.put("redirect", "/hr/departments");
+        response.put("redirect", landing != null ? landing : "/hr/dashboard");
         return response;
     }
 

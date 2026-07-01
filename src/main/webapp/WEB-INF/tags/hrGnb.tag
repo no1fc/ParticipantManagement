@@ -52,7 +52,7 @@
 <!--begin::Sidebar-->
 <aside class="app-sidebar shadow" data-bs-theme="dark">
     <div class="sidebar-brand" style="height: 90px;">
-        <a href="/hr/departments" class="brand-link h-100 d-flex align-items-center justify-content-center">
+        <a href="/hr/dashboard" class="brand-link h-100 d-flex align-items-center justify-content-center">
             <span class="brand-text fw-light" style="color:#fff;">
                 <i class="bi bi-person-vcard"></i> 입퇴사자관리(HR)
             </span>
@@ -64,6 +64,14 @@
     <div class="sidebar-wrapper" style="max-height: 700px; overflow: hidden;">
         <nav class="mt-2">
             <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+                <c:if test="${hrMenuEmpty or not empty HR_MENU_ACCESS['HR_DASHBOARD']}">
+                <li class="nav-item">
+                    <a href="/hr/dashboard" class="nav-link ${active eq 'dashboard' ? 'active' : ''}">
+                        <i class="nav-icon bi bi-speedometer2"></i>
+                        <p>인원현황 대시보드</p>
+                    </a>
+                </li>
+                </c:if>
                 <c:if test="${hrMenuEmpty or not empty HR_MENU_ACCESS['HR_DEPARTMENT']}">
                 <li class="nav-item">
                     <a href="/hr/departments" class="nav-link ${active eq 'departments' ? 'active' : ''}">

@@ -23,7 +23,8 @@ public class HrAccessSupport {
     /** HR 메뉴 접근맵 세션 속성 키 (메뉴코드 → 접근레벨). */
     public static final String HR_MENU_ACCESS = "HR_MENU_ACCESS";
 
-    /** 데모 3화면 메뉴코드 (J_사이트_메뉴.메뉴코드). */
+    /** 화면 메뉴코드 (J_사이트_메뉴.메뉴코드). */
+    public static final String MENU_DASHBOARD = "HR_DASHBOARD";
     public static final String MENU_DEPARTMENT = "HR_DEPARTMENT";
     public static final String MENU_ACCOUNT = "HR_ACCOUNT";
     public static final String MENU_SITE_ACCESS = "HR_SITE_ACCESS";
@@ -91,6 +92,7 @@ public class HrAccessSupport {
      */
     public static String menuCodeForPath(String uri) {
         if (uri == null) return null;
+        if (uri.contains("/dashboard")) return MENU_DASHBOARD;
         if (uri.contains("/departments")) return MENU_DEPARTMENT;
         if (uri.contains("/accounts")) return MENU_ACCOUNT;
         if (uri.contains("/site-access") || uri.contains("/sites")) return MENU_SITE_ACCESS;
@@ -110,6 +112,7 @@ public class HrAccessSupport {
      * <p>페이지 접근 거부 시 무한 리다이렉트를 피하기 위한 안전한 이동 대상으로 쓴다.</p>
      */
     public static String firstAccessiblePage(HttpSession session) {
+        if (hasRead(session, MENU_DASHBOARD)) return "/hr/dashboard";
         if (hasRead(session, MENU_DEPARTMENT)) return "/hr/departments";
         if (hasRead(session, MENU_ACCOUNT)) return "/hr/accounts";
         if (hasRead(session, MENU_SITE_ACCESS)) return "/hr/site-access";

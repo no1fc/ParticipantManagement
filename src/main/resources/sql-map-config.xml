@@ -43,6 +43,7 @@
         <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrDepartmentDTO" alias="hrDepartment"/>
         <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrAccountDTO" alias="hrAccount"/>
         <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrSiteAccessDTO" alias="hrSiteAccess"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrDashboardDTO" alias="hrDashboard"/>
 
     </typeAliases>
 
@@ -75,5 +76,6 @@
         <mapper resource="mappings/HrAccount-mapping.xml"/>
         <mapper resource="mappings/HrSiteAccess-mapping.xml"/>
         <mapper resource="mappings/HrAuth-mapping.xml"/>
+        <mapper resource="mappings/HrDashboard-mapping.xml"/>
     </mappers>
 </configuration>
