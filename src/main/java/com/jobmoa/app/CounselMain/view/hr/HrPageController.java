@@ -29,6 +29,13 @@ public class HrPageController {
         return "hr/hrDashboard";
     }
 
+    /** 직원 관리 페이지. */
+    @GetMapping("/employees")
+    public String employees(HttpSession session) {
+        if (!HrAccessSupport.isAuthed(session)) return "redirect:/hr/login";
+        return "hr/hrEmployeeManagement";
+    }
+
     /** 부서/조직 관리 페이지. */
     @GetMapping("/departments")
     public String departments(HttpSession session) {

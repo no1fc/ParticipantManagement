@@ -25,6 +25,7 @@ public class HrAccessSupport {
 
     /** 화면 메뉴코드 (J_사이트_메뉴.메뉴코드). */
     public static final String MENU_DASHBOARD = "HR_DASHBOARD";
+    public static final String MENU_EMPLOYEE = "HR_EMPLOYEE";
     public static final String MENU_DEPARTMENT = "HR_DEPARTMENT";
     public static final String MENU_ACCOUNT = "HR_ACCOUNT";
     public static final String MENU_SITE_ACCESS = "HR_SITE_ACCESS";
@@ -93,6 +94,7 @@ public class HrAccessSupport {
     public static String menuCodeForPath(String uri) {
         if (uri == null) return null;
         if (uri.contains("/dashboard")) return MENU_DASHBOARD;
+        if (uri.contains("/employees")) return MENU_EMPLOYEE;
         if (uri.contains("/departments")) return MENU_DEPARTMENT;
         if (uri.contains("/accounts")) return MENU_ACCOUNT;
         if (uri.contains("/site-access") || uri.contains("/sites")) return MENU_SITE_ACCESS;
@@ -113,6 +115,7 @@ public class HrAccessSupport {
      */
     public static String firstAccessiblePage(HttpSession session) {
         if (hasRead(session, MENU_DASHBOARD)) return "/hr/dashboard";
+        if (hasRead(session, MENU_EMPLOYEE)) return "/hr/employees";
         if (hasRead(session, MENU_DEPARTMENT)) return "/hr/departments";
         if (hasRead(session, MENU_ACCOUNT)) return "/hr/accounts";
         if (hasRead(session, MENU_SITE_ACCESS)) return "/hr/site-access";

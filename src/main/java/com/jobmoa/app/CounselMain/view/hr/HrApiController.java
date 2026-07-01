@@ -3,6 +3,8 @@ package com.jobmoa.app.CounselMain.view.hr;
 import com.jobmoa.app.CounselMain.biz.hr.HrAccountDTO;
 import com.jobmoa.app.CounselMain.biz.hr.HrAccountService;
 import com.jobmoa.app.CounselMain.biz.hr.HrDashboardService;
+import com.jobmoa.app.CounselMain.biz.hr.HrEmployeeDTO;
+import com.jobmoa.app.CounselMain.biz.hr.HrEmployeeService;
 import com.jobmoa.app.CounselMain.biz.hr.HrDepartmentDTO;
 import com.jobmoa.app.CounselMain.biz.hr.HrDepartmentService;
 import com.jobmoa.app.CounselMain.biz.hr.HrSiteAccessDTO;
@@ -40,6 +42,9 @@ public class HrApiController {
     @Autowired
     private HrDashboardService hrDashboardService;
 
+    @Autowired
+    private HrEmployeeService hrEmployeeService;
+
     /** HR 로그인({@code HR_LOGIN_DATA}) 여부를 확인한다. 미인증이면 401, 인증이면 null.
      *  ({@link HrApiInterceptor}가 1차 차단하며 이 검증은 방어적 이중 확인이다.) */
     private ResponseEntity<Map<String, Object>> checkManager(HttpSession session) {
@@ -62,6 +67,65 @@ public class HrApiController {
         ResponseEntity<Map<String, Object>> denied = checkManager(session);
         if (denied != null) return denied;
         return ResponseEntity.ok(hrDashboardService.getDashboard());
+    }
+
+    // ===== 직원 관리 =====
+    @GetMapping("/employees")
+    public ResponseEntity<?> getEmployees(HrEmployeeDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrEmployeeService.getEmployeeList(dto));
+    }
+
+    @GetMapping("/employees/{userId}")
+    public ResponseEntity<?> getEmployee(@PathVariable String userId, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrEmployeeDTO dto = new HrEmployeeDTO();
+        dto.setUserId(userId);
+        return ResponseEntity.ok(hrEmployeeService.getEmployeeOne(dto));
+    }
+
+    @PostMapping("/employees")
+    public ResponseEntity<?> addEmployee(@RequestBody HrEmployeeDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        if (dto.getUserId() == null || dto.getUserId().isBlank()) {
+            return ResponseEntity.ok(result(false, "아이디는 필수입니다."));
+        }
+        if (dto.getName() == null || dto.getName().isBlank()) {
+            return ResponseEntity.ok(result(false, "이름은 필수입니다."));
+        }
+        if (dto.getPassword() == null || dto.getPassword().isBlank()) {
+            return ResponseEntity.ok(result(false, "비밀번호는 필수입니다."));
+        }
+        if (dto.getDeptCode() == null || dto.getDeptCode().isBlank()) {
+            return ResponseEntity.ok(result(false, "주부서는 필수입니다."));
+        }
+        if (hrEmployeeService.isUserIdExists(dto)) {
+            return ResponseEntity.ok(result(false, "이미 존재하는 아이디입니다."));
+        }
+        boolean success = hrEmployeeService.addEmployee(dto);
+        return ResponseEntity.ok(result(success, success ? "직원이 등록되었습니다." : "등록에 실패했습니다."));
+    }
+
+    @PutMapping("/employees/{userId}")
+    public ResponseEntity<?> updateEmployee(@PathVariable String userId, @RequestBody HrEmployeeDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        dto.setUserId(userId);
+        boolean success = hrEmployeeService.modifyEmployee(dto);
+        return ResponseEntity.ok(result(success, success ? "직원 정보가 수정되었습니다." : "수정에 실패했습니다."));
+    }
+
+    @DeleteMapping("/employees/{userId}")
+    public ResponseEntity<?> resignEmployee(@PathVariable String userId, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrEmployeeDTO dto = new HrEmployeeDTO();
+        dto.setUserId(userId);
+        boolean success = hrEmployeeService.resignEmployee(dto);
+        return ResponseEntity.ok(result(success, success ? "직원이 퇴사 처리되었습니다.(계정 자동 정지)" : "퇴사 처리에 실패했습니다."));
     }
 
     // ===== 부서/조직 관리 =====

@@ -72,6 +72,14 @@
                     </a>
                 </li>
                 </c:if>
+                <c:if test="${hrMenuEmpty or not empty HR_MENU_ACCESS['HR_EMPLOYEE']}">
+                <li class="nav-item">
+                    <a href="/hr/employees" class="nav-link ${active eq 'employees' ? 'active' : ''}">
+                        <i class="nav-icon bi bi-people"></i>
+                        <p>직원 관리</p>
+                    </a>
+                </li>
+                </c:if>
                 <c:if test="${hrMenuEmpty or not empty HR_MENU_ACCESS['HR_DEPARTMENT']}">
                 <li class="nav-item">
                     <a href="/hr/departments" class="nav-link ${active eq 'departments' ? 'active' : ''}">

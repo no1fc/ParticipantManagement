@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- HR 직원 관리 (J_직원 및 관련 테이블) -->
+<mapper namespace="HrEmployeeDAO">
+
+    <!-- 목록: 신원 ⋈ 재직 ⋈ 주부서 ⋈ 계정. 날짜는 CONVERT(23)로 ISO 문자열 반환. -->
+    <select id="selectEmployeeList" resultType="hrEmployee">
+        SELECT
+            e.직원번호 empNo,
+            e.아이디 userId,
+            e.이름 name,
+            CONVERT(CHAR(10), e.최초입사일, 23) hireDate,
+            e.현재재직상태 empStatus,
+            r.주부서코드 deptCode,
+            d.부서명 deptName,
+            r.직급 position,
+            r.권한 role,
+            r.관리자권한 isAdmin,
+            a.계정상태 accountStatus
+        FROM J_직원 e
+        LEFT JOIN J_직원_재직 r ON e.아이디 = r.아이디
+        LEFT JOIN J_부서 d ON r.주부서코드 = d.부서코드
+        LEFT JOIN J_직원_계정 a ON e.아이디 = a.아이디
+        <where>
+            <choose>
+                <when test="searchEmpStatus == null or searchEmpStatus == ''">
+                    e.현재재직상태 = N'재직'
+                </when>
+                <when test="searchEmpStatus == 'ALL'">
+                    1 = 1
+                </when>
+                <otherwise>
+                    e.현재재직상태 = #{searchEmpStatus}
+                </otherwise>
+            </choose>
+            <if test="searchName != null and searchName != ''">
+                AND e.이름 LIKE '%' + #{searchName} + '%'
+            </if>
+            <if test="searchUserId != null and searchUserId != ''">
+                AND e.아이디 LIKE '%' + #{searchUserId} + '%'
+            </if>
+            <if test="searchDeptCode != null and searchDeptCode != ''">
+                AND r.주부서코드 = #{searchDeptCode}
+            </if>
+        </where>
+        ORDER BY e.현재재직상태 ASC, e.이름 ASC
+    </select>
+
+    <!-- 단건: 상세 탭(신원/재직/계정)용 조인 1행 -->
+    <select id="selectEmployeeOne" resultType="hrEmployee">
+        SELECT
+            e.직원번호 empNo,
+            e.아이디 userId,
+            e.이름 name,
+            e.이메일 email,
+            e.전화번호 phone,
+            CONVERT(CHAR(10), e.최초입사일, 23) hireDate,
+            e.현재재직상태 empStatus,
+            e.다우사번 daouNo,
+            e.비고 note,
+            r.주부서코드 deptCode,
+            d.부서명 deptName,
+            r.지점명 branchName,
+            r.직급 position,
+            r.권한 role,
+            r.관리자권한 isAdmin,
+            CONVERT(CHAR(10), r.최종발령일, 23) lastAssignDate,
+            a.계정상태 accountStatus
+        FROM J_직원 e
+        LEFT JOIN J_직원_재직 r ON e.아이디 = r.아이디
+        LEFT JOIN J_부서 d ON r.주부서코드 = d.부서코드
+        LEFT JOIN J_직원_계정 a ON e.아이디 = a.아이디
+        WHERE e.아이디 = #{userId}
+    </select>
+
+    <!-- 아이디(UNIQUE) 중복 확인 -->
+    <select id="selectUserIdExists" resultType="int">
+        SELECT COUNT(*) FROM J_직원 WHERE 아이디 = #{userId}
+    </select>
+
+    <!-- 신규 등록 → 직원 마스터 6테이블 다중 INSERT (단일 트랜잭션).
+         AdminUser insertUser 미러. COUNSEL 결합(참여자관리_프로필·COUNSEL 사이트접속)은 제외 →
+         사이트 접근은 HR_SITE_ACCESS 화면에서 별도 부여(로그인 게이트 무영향). -->
+    <insert id="insertEmployee">
+        INSERT INTO J_직원 (아이디, 이름, 이메일, 전화번호, 최초입사일, 현재재직상태, 다우사번, 비고, 등록일, 수정일)
+        VALUES (#{userId}, #{name}, #{email,jdbcType=NVARCHAR}, #{phone,jdbcType=NVARCHAR}, #{hireDate,jdbcType=DATE}, N'재직',
+                NULLIF(#{daouNo,jdbcType=NVARCHAR}, N''), #{note,jdbcType=NVARCHAR}, GETDATE(), GETDATE());
+
+        INSERT INTO J_직원_계정 (아이디, 비밀번호, 계정상태)
+        VALUES (#{userId}, #{password}, N'사용');
+
+        INSERT INTO J_직원_재직 (아이디, 주부서코드, 지점명, 직급, 권한, 관리자권한, 최종발령일)
+        VALUES (#{userId},
+                #{deptCode},
+                (SELECT 지점명 FROM J_부서 WHERE 부서코드 = #{deptCode}),
+                #{position,jdbcType=NVARCHAR},
+                ISNULL(#{role}, N'상담'),
+                ISNULL(#{isAdmin}, 0),
+                #{hireDate,jdbcType=DATE});
+
+        INSERT INTO J_직원_부서배치 (직원아이디, 부서코드, 주부서여부, 시작일)
+        VALUES (#{userId}, #{deptCode}, 1, ISNULL(#{hireDate,jdbcType=DATE}, GETDATE()));
+
+        <if test="hireDate != null and hireDate != ''">
+            INSERT INTO J_직원_재직기간 (직원아이디, 재직순번, 입사일)
+            VALUES (#{userId}, 1, #{hireDate,jdbcType=DATE});
+        </if>
+
+        INSERT INTO J_직원_발령이력 (아이디, 발령유형, 발령일, 신규부서코드, 사유, 등록일시)
+        VALUES (#{userId}, N'입사', ISNULL(#{hireDate,jdbcType=DATE}, GETDATE()), #{deptCode}, N'HR 신규 등록', GETDATE());
+    </insert>
+
+    <!-- 수정 → 신원·재직·계정상태 분배. 아이디는 조인 키(불변)라 제외. -->
+    <update id="updateEmployee">
+        UPDATE J_직원
+        SET 이름 = #{name},
+            이메일 = #{email,jdbcType=NVARCHAR},
+            전화번호 = #{phone,jdbcType=NVARCHAR},
+            최초입사일 = #{hireDate,jdbcType=DATE},
+            다우사번 = NULLIF(#{daouNo,jdbcType=NVARCHAR}, N''),
+            비고 = #{note,jdbcType=NVARCHAR},
+            수정일 = GETDATE()
+        WHERE 아이디 = #{userId};
+
+        <if test="accountStatus != null and accountStatus != ''">
+            UPDATE J_직원_계정 SET 계정상태 = #{accountStatus} WHERE 아이디 = #{userId};
+        </if>
+
+        UPDATE J_직원_재직
+        SET 직급 = #{position,jdbcType=NVARCHAR},
+            권한 = ISNULL(#{role}, N'상담'),
+            관리자권한 = ISNULL(#{isAdmin}, 0),
+            주부서코드 = #{deptCode},
+            지점명 = (SELECT 지점명 FROM J_부서 WHERE 부서코드 = #{deptCode}),
+            최종발령일 = #{lastAssignDate,jdbcType=DATE},
+            수정일 = GETDATE()
+        WHERE 아이디 = #{userId};
+
+        UPDATE J_직원_부서배치
+        SET 부서코드 = #{deptCode}
+        WHERE 직원아이디 = #{userId} AND 종료일 IS NULL AND 주부서여부 = 1;
+    </update>
+
+    <!-- 퇴사(soft-delete): 현재재직상태='퇴사' + 재직기간 종료. 트리거가 계정을 '정지'로 전이. -->
+    <update id="resignEmployee">
+        UPDATE J_직원
+        SET 현재재직상태 = N'퇴사', 수정일 = GETDATE()
+        WHERE 아이디 = #{userId};
+
+        UPDATE J_직원_재직기간
+        SET 퇴사일 = CAST(GETDATE() AS date)
+        WHERE 직원아이디 = #{userId} AND 퇴사일 IS NULL;
+    </update>
+
+</mapper>
