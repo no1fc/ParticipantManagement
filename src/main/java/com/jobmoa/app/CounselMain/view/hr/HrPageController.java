@@ -36,6 +36,13 @@ public class HrPageController {
         return "hr/hrEmployeeManagement";
     }
 
+    /** 입퇴사 관리 페이지(재입사/퇴사/cycle 편집). */
+    @GetMapping("/employments")
+    public String employments(HttpSession session) {
+        if (!HrAccessSupport.isAuthed(session)) return "redirect:/hr/login";
+        return "hr/hrEmployment";
+    }
+
     /** 부서/조직 관리 페이지. */
     @GetMapping("/departments")
     public String departments(HttpSession session) {

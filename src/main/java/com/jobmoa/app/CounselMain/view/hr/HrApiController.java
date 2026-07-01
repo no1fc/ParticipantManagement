@@ -5,6 +5,8 @@ import com.jobmoa.app.CounselMain.biz.hr.HrAccountService;
 import com.jobmoa.app.CounselMain.biz.hr.HrDashboardService;
 import com.jobmoa.app.CounselMain.biz.hr.HrEmployeeDTO;
 import com.jobmoa.app.CounselMain.biz.hr.HrEmployeeService;
+import com.jobmoa.app.CounselMain.biz.hr.HrEmploymentDTO;
+import com.jobmoa.app.CounselMain.biz.hr.HrEmploymentService;
 import com.jobmoa.app.CounselMain.biz.hr.HrDepartmentDTO;
 import com.jobmoa.app.CounselMain.biz.hr.HrDepartmentService;
 import com.jobmoa.app.CounselMain.biz.hr.HrSiteAccessDTO;
@@ -49,6 +51,9 @@ public class HrApiController {
 
     @Autowired
     private HrTenurePolicyService hrTenurePolicyService;
+
+    @Autowired
+    private HrEmploymentService hrEmploymentService;
 
     /** HR 로그인({@code HR_LOGIN_DATA}) 여부를 확인한다. 미인증이면 401, 인증이면 null.
      *  ({@link HrApiInterceptor}가 1차 차단하며 이 검증은 방어적 이중 확인이다.) */
@@ -141,6 +146,68 @@ public class HrApiController {
         dto.setUserId(userId);
         boolean success = hrEmployeeService.reactivateEmployee(dto);
         return ResponseEntity.ok(result(success, success ? "직원이 복직 처리되었습니다.(계정 재활성화)" : "복직 처리에 실패했습니다."));
+    }
+
+    // ===== 입퇴사 관리 (재입사/퇴사/cycle 편집) =====
+    @GetMapping("/employments")
+    public ResponseEntity<?> getEmployments(HrEmploymentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrEmploymentService.getEmployeeList(dto));
+    }
+
+    @GetMapping("/employments/{userId}/cycles")
+    public ResponseEntity<?> getEmploymentCycles(@PathVariable String userId, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrEmploymentDTO dto = new HrEmploymentDTO();
+        dto.setUserId(userId);
+        return ResponseEntity.ok(hrEmploymentService.getCycleList(dto));
+    }
+
+    @PostMapping("/employments/{userId}/rehire")
+    public ResponseEntity<?> rehire(@PathVariable String userId, @RequestBody HrEmploymentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        dto.setUserId(userId);
+        if (dto.getHireDate() == null || dto.getHireDate().isBlank()) {
+            return ResponseEntity.ok(result(false, "재입사 입사일은 필수입니다."));
+        }
+        if (!isValidWeightNullable(dto.getWeightPercent())) {
+            return ResponseEntity.ok(result(false, "가중퍼센트는 0~100 사이여야 합니다."));
+        }
+        if (hrEmploymentService.hasOpenCycle(dto)) {
+            return ResponseEntity.ok(result(false, "이미 재직 중입니다. 재입사는 퇴사 상태에서만 가능합니다."));
+        }
+        boolean success = hrEmploymentService.rehire(dto);
+        return ResponseEntity.ok(result(success, success ? "재입사 처리되었습니다.(새 재직 cycle 생성 · 계정 재활성화)" : "재입사 처리에 실패했습니다."));
+    }
+
+    @PostMapping("/employments/{userId}/resign")
+    public ResponseEntity<?> resignEmployment(@PathVariable String userId, @RequestBody HrEmploymentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        dto.setUserId(userId);
+        if (!hrEmploymentService.hasOpenCycle(dto)) {
+            return ResponseEntity.ok(result(false, "재직 중인 cycle이 없어 퇴사 처리할 수 없습니다."));
+        }
+        boolean success = hrEmploymentService.resign(dto);
+        return ResponseEntity.ok(result(success, success ? "퇴사 처리되었습니다.(계정 자동 정지)" : "퇴사 처리에 실패했습니다."));
+    }
+
+    @PutMapping("/employments/cycle/{cyclePk}")
+    public ResponseEntity<?> updateEmploymentCycle(@PathVariable int cyclePk, @RequestBody HrEmploymentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        if (dto.getUserId() == null || dto.getUserId().isBlank()) {
+            return ResponseEntity.ok(result(false, "직원아이디가 필요합니다."));
+        }
+        if (!isValidWeightNullable(dto.getWeightPercent())) {
+            return ResponseEntity.ok(result(false, "가중퍼센트는 0~100 사이여야 합니다."));
+        }
+        dto.setCyclePk(cyclePk);
+        boolean success = hrEmploymentService.updateCycle(dto);
+        return ResponseEntity.ok(result(success, success ? "cycle 정보가 수정되었습니다." : "수정에 실패했습니다."));
     }
 
     // ===== 부서/조직 관리 =====
@@ -358,5 +425,10 @@ public class HrApiController {
     /** 가중퍼센트 범위 검증 (0~100, CHECK 제약 사전 방어). */
     private boolean isValidWeight(Integer weight) {
         return weight != null && weight >= 0 && weight <= 100;
+    }
+
+    /** 가중퍼센트 범위 검증 - NULL 허용(정책 상속). NULL이거나 0~100이면 유효. */
+    private boolean isValidWeightNullable(Integer weight) {
+        return weight == null || (weight >= 0 && weight <= 100);
     }
 }

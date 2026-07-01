@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- HR 입퇴사 관리 (J_직원_재직기간 cycle + 재입사/퇴사 다중 테이블) -->
+<mapper namespace="HrEmploymentDAO">
+
+    <!-- 직원 목록: 신원 ⋈ 재직 ⋈ 주부서 + 총근속일(가중 반영) + cycle 개수.
+         재입사 대상 퇴사자도 보여야 하므로 기본(검색 미지정)은 전체 조회. -->
+    <select id="selectEmployeeList" resultType="hrEmployment">
+        SELECT
+            e.직원번호 empNo,
+            e.아이디 userId,
+            e.이름 name,
+            e.현재재직상태 empStatus,
+            d.부서명 deptName,
+            dbo.fn_직원_총근속일(e.아이디) tenureDays,
+            (SELECT COUNT(*) FROM J_직원_재직기간 p WHERE p.직원아이디 = e.아이디) cycleCount
+        FROM J_직원 e
+        LEFT JOIN J_직원_재직 r ON e.아이디 = r.아이디
+        LEFT JOIN J_부서 d ON r.주부서코드 = d.부서코드
+        <where>
+            <choose>
+                <when test="searchEmpStatus == null or searchEmpStatus == '' or searchEmpStatus == 'ALL'">
+                    1 = 1
+                </when>
+                <otherwise>
+                    e.현재재직상태 = #{searchEmpStatus}
+                </otherwise>
+            </choose>
+            <if test="searchName != null and searchName != ''">
+                AND e.이름 LIKE '%' + #{searchName} + '%'
+            </if>
+            <if test="searchUserId != null and searchUserId != ''">
+                AND e.아이디 LIKE '%' + #{searchUserId} + '%'
+            </if>
+        </where>
+        ORDER BY e.현재재직상태 ASC, e.이름 ASC
+    </select>
+
+    <!-- 특정 직원의 재직 cycle 목록. 날짜는 CONVERT(23)로 ISO 문자열 반환. -->
+    <select id="selectCycleList" resultType="hrEmployment">
+        SELECT
+            재직PK cyclePk,
+            재직순번 seq,
+            CONVERT(CHAR(10), 입사일, 23) hireDate,
+            CONVERT(CHAR(10), 퇴사일, 23) resignDate,
+            퇴사사유 resignReason,
+            가중퍼센트 weightPercent,
+            직급반영여부 reflectPosition
+        FROM J_직원_재직기간
+        WHERE 직원아이디 = #{userId}
+        ORDER BY 재직순번 ASC
+    </select>
+
+    <!-- 열린 cycle(재직중) 개수. 재입사/퇴사 가드용. -->
+    <select id="selectOpenCycleCount" resultType="int">
+        SELECT COUNT(*) FROM J_직원_재직기간 WHERE 직원아이디 = #{userId} AND 퇴사일 IS NULL
+    </select>
+
+    <!-- 재입사: 새 cycle(재직순번 MAX+1) + 직원 '재직' 복구 + 계정 '정지'→'사용' + 발령이력 '재입사'.
+         J_직원 → '재직' 전이는 퇴사 트리거(TR_직원_재직상태_퇴사동기화)를 발동시키지 않으므로
+         계정 재활성화는 여기서 명시적으로 수행한다. -->
+    <insert id="rehire">
+        INSERT INTO J_직원_재직기간 (직원아이디, 재직순번, 입사일, 가중퍼센트, 직급반영여부)
+        VALUES (#{userId},
+                (SELECT ISNULL(MAX(재직순번), 0) + 1 FROM J_직원_재직기간 WHERE 직원아이디 = #{userId}),
+                #{hireDate,jdbcType=DATE},
+                #{weightPercent,jdbcType=INTEGER},
+                ISNULL(#{reflectPosition}, 0));
+
+        UPDATE J_직원 SET 현재재직상태 = N'재직', 수정일 = GETDATE() WHERE 아이디 = #{userId};
+
+        UPDATE J_직원_계정 SET 계정상태 = N'사용' WHERE 아이디 = #{userId} AND 계정상태 = N'정지';
+
+        INSERT INTO J_직원_발령이력 (아이디, 발령유형, 발령일, 사유, 등록일시)
+        VALUES (#{userId}, N'재입사', #{hireDate,jdbcType=DATE}, #{reason,jdbcType=NVARCHAR}, GETDATE());
+    </insert>
+
+    <!-- 퇴사: 열린 cycle에 퇴사일·퇴사사유 기록 + 직원 '퇴사'(트리거가 계정 자동 정지) + 발령이력 '퇴사'. -->
+    <update id="resign">
+        UPDATE J_직원 SET 현재재직상태 = N'퇴사', 수정일 = GETDATE() WHERE 아이디 = #{userId};
+
+        UPDATE J_직원_재직기간
+        SET 퇴사일 = ISNULL(#{resignDate,jdbcType=DATE}, CAST(GETDATE() AS date)),
+            퇴사사유 = #{resignReason,jdbcType=NVARCHAR}
+        WHERE 직원아이디 = #{userId} AND 퇴사일 IS NULL;
+
+        INSERT INTO J_직원_발령이력 (아이디, 발령유형, 발령일, 사유, 등록일시)
+        VALUES (#{userId}, N'퇴사', ISNULL(#{resignDate,jdbcType=DATE}, CAST(GETDATE() AS date)),
+                #{resignReason,jdbcType=NVARCHAR}, GETDATE());
+    </update>
+
+    <!-- 종료 cycle의 가중퍼센트·직급반영여부 수정 (HR 건별 지정). 가중퍼센트 NULL이면 정책 상속. -->
+    <update id="updateCycle">
+        UPDATE J_직원_재직기간
+        SET 가중퍼센트 = #{weightPercent,jdbcType=INTEGER},
+            직급반영여부 = ISNULL(#{reflectPosition}, 0)
+        WHERE 재직PK = #{cyclePk} AND 직원아이디 = #{userId}
+    </update>
+
+</mapper>
