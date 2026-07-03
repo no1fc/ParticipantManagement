@@ -32,6 +32,7 @@ public class HrAccessSupport {
     public static final String MENU_SITE_ACCESS = "HR_SITE_ACCESS";
     public static final String MENU_TENURE_POLICY = "HR_TENURE_POLICY";
     public static final String MENU_ASSIGNMENT = "HR_ASSIGNMENT";
+    public static final String MENU_TRANSFER = "HR_TRANSFER";
 
     /** 접근레벨 (J_사이트_메뉴권한.접근레벨). 순서: 읽기 < 쓰기 < 전체. */
     public static final String LEVEL_READ = "읽기";
@@ -101,6 +102,7 @@ public class HrAccessSupport {
         // `/assignments/employees`가 `/employees` 부분문자열에 오매칭되어 HR_EMPLOYEE로
         // 잘못 가드되는 것을 방지(부서배치 목록은 HR_ASSIGNMENT로 가드).
         if (uri.contains("/assignments")) return MENU_ASSIGNMENT;
+        if (uri.contains("/transfers")) return MENU_TRANSFER;
         if (uri.contains("/employments")) return MENU_EMPLOYMENT;
         if (uri.contains("/employees")) return MENU_EMPLOYEE;
         if (uri.contains("/departments")) return MENU_DEPARTMENT;
@@ -127,6 +129,7 @@ public class HrAccessSupport {
         if (hasRead(session, MENU_EMPLOYEE)) return "/hr/employees";
         if (hasRead(session, MENU_EMPLOYMENT)) return "/hr/employments";
         if (hasRead(session, MENU_ASSIGNMENT)) return "/hr/assignments";
+        if (hasRead(session, MENU_TRANSFER)) return "/hr/transfers";
         if (hasRead(session, MENU_DEPARTMENT)) return "/hr/departments";
         if (hasRead(session, MENU_ACCOUNT)) return "/hr/accounts";
         if (hasRead(session, MENU_TENURE_POLICY)) return "/hr/tenure-policies";

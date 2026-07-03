@@ -48,6 +48,7 @@
         <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrTenurePolicyDTO" alias="hrTenurePolicy"/>
         <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrEmploymentDTO" alias="hrEmployment"/>
         <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrAssignmentDTO" alias="hrAssignment"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrTransferDTO" alias="hrTransfer"/>
 
     </typeAliases>
 
@@ -85,5 +86,6 @@
         <mapper resource="mappings/HrTenurePolicy-mapping.xml"/>
         <mapper resource="mappings/HrEmployment-mapping.xml"/>
         <mapper resource="mappings/HrAssignment-mapping.xml"/>
+        <mapper resource="mappings/HrTransfer-mapping.xml"/>
     </mappers>
 </configuration>

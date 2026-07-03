@@ -4,6 +4,8 @@ import com.jobmoa.app.CounselMain.biz.hr.HrAccountDTO;
 import com.jobmoa.app.CounselMain.biz.hr.HrAccountService;
 import com.jobmoa.app.CounselMain.biz.hr.HrAssignmentDTO;
 import com.jobmoa.app.CounselMain.biz.hr.HrAssignmentService;
+import com.jobmoa.app.CounselMain.biz.hr.HrTransferDTO;
+import com.jobmoa.app.CounselMain.biz.hr.HrTransferService;
 import com.jobmoa.app.CounselMain.biz.hr.HrDashboardService;
 import com.jobmoa.app.CounselMain.biz.hr.HrEmployeeDTO;
 import com.jobmoa.app.CounselMain.biz.hr.HrEmployeeService;
@@ -59,6 +61,9 @@ public class HrApiController {
 
     @Autowired
     private HrAssignmentService hrAssignmentService;
+
+    @Autowired
+    private HrTransferService hrTransferService;
 
     /** HR 로그인({@code HR_LOGIN_DATA}) 여부를 확인한다. 미인증이면 401, 인증이면 null.
      *  ({@link HrApiInterceptor}가 1차 차단하며 이 검증은 방어적 이중 확인이다.) */
@@ -496,6 +501,75 @@ public class HrApiController {
         boolean success = hrAssignmentService.endAssignment(dto);
         return ResponseEntity.ok(result(success,
                 success ? "겸직 배치가 종료되었습니다." : "종료에 실패했습니다.(주부서·이미 종료된 배치는 불가)"));
+    }
+
+    // ===== 발령 관리 =====
+    /** 직원 목록 (직급·주부서명·발령건수). */
+    @GetMapping("/transfers/employees")
+    public ResponseEntity<?> getTransferEmployees(HrTransferDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrTransferService.getEmployeeList(dto));
+    }
+
+    /** 직급 드롭다운 목록 (기존 직급 값). */
+    @GetMapping("/transfers/positions")
+    public ResponseEntity<?> getTransferPositions(HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrTransferService.getPositionList());
+    }
+
+    /** 특정 직원의 발령 타임라인. */
+    @GetMapping("/transfers/{userId}")
+    public ResponseEntity<?> getTransfers(@PathVariable String userId, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrTransferDTO dto = new HrTransferDTO();
+        dto.setUserId(userId);
+        return ResponseEntity.ok(hrTransferService.getTransferList(dto));
+    }
+
+    /** 직급변경(재직자): 재직 직급 갱신 + 발령이력 '직급변경'. */
+    @PutMapping("/transfers/{userId}/position")
+    public ResponseEntity<?> changePosition(@PathVariable String userId, @RequestBody HrTransferDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        dto.setUserId(userId);
+        if (dto.getNewPosition() == null || dto.getNewPosition().isBlank()) {
+            return ResponseEntity.ok(result(false, "변경할 직급은 필수입니다."));
+        }
+        if (!"재직".equals(hrTransferService.getCurrentStatus(dto))) {
+            return ResponseEntity.ok(result(false, "직급변경은 재직 중인 직원만 가능합니다."));
+        }
+        boolean success = hrTransferService.changePosition(dto);
+        return ResponseEntity.ok(result(success, success ? "직급이 변경되었습니다." : "직급변경에 실패했습니다."));
+    }
+
+    /** 휴직(재직→휴직): 재직상태 전이 + 계정 정지 + 발령이력 '휴직'. */
+    @PutMapping("/transfers/{userId}/leave")
+    public ResponseEntity<?> startLeave(@PathVariable String userId, @RequestBody HrTransferDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        dto.setUserId(userId);
+        if (!"재직".equals(hrTransferService.getCurrentStatus(dto))) {
+            return ResponseEntity.ok(result(false, "휴직은 재직 중인 직원만 가능합니다."));
+        }
+        boolean success = hrTransferService.startLeave(dto);
+        return ResponseEntity.ok(result(success, success ? "휴직 처리되었습니다.(계정 자동 정지)" : "휴직 처리에 실패했습니다."));
+    }
+
+    /** 복직(휴직→재직): 재직상태 전이 + 계정 사용 + 발령이력 '복직'. */
+    @PutMapping("/transfers/{userId}/return")
+    public ResponseEntity<?> returnFromLeave(@PathVariable String userId, @RequestBody HrTransferDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        dto.setUserId(userId);
+        if (!"휴직".equals(hrTransferService.getCurrentStatus(dto))) {
+            return ResponseEntity.ok(result(false, "복직은 휴직 중인 직원만 가능합니다."));
+        }
+        boolean success = hrTransferService.returnFromLeave(dto);
+        return ResponseEntity.ok(result(success, success ? "복직 처리되었습니다.(계정 재활성화)" : "복직 처리에 실패했습니다."));
     }
 
     /** 가중퍼센트 범위 검증 (0~100, CHECK 제약 사전 방어). */

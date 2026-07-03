@@ -77,4 +77,11 @@ public class HrPageController {
         if (!HrAccessSupport.isAuthed(session)) return "redirect:/hr/login";
         return "hr/hrAssignmentManagement";
     }
+
+    /** 발령 관리 페이지. */
+    @GetMapping("/transfers")
+    public String transfers(HttpSession session) {
+        if (!HrAccessSupport.isAuthed(session)) return "redirect:/hr/login";
+        return "hr/hrTransferManagement";
+    }
 }
