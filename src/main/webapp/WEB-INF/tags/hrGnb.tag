@@ -96,6 +96,14 @@
                     </a>
                 </li>
                 </c:if>
+                <c:if test="${hrMenuEmpty or not empty HR_MENU_ACCESS['HR_ASSIGNMENT']}">
+                <li class="nav-item">
+                    <a href="/hr/assignments" class="nav-link ${active eq 'assignments' ? 'active' : ''}">
+                        <i class="nav-icon bi bi-arrow-left-right"></i>
+                        <p>부서배치·겸직 관리</p>
+                    </a>
+                </li>
+                </c:if>
                 <c:if test="${hrMenuEmpty or not empty HR_MENU_ACCESS['HR_ACCOUNT']}">
                 <li class="nav-item">
                     <a href="/hr/accounts" class="nav-link ${active eq 'accounts' ? 'active' : ''}">

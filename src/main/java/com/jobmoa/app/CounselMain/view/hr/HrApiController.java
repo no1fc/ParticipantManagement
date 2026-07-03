@@ -2,6 +2,8 @@ package com.jobmoa.app.CounselMain.view.hr;
 
 import com.jobmoa.app.CounselMain.biz.hr.HrAccountDTO;
 import com.jobmoa.app.CounselMain.biz.hr.HrAccountService;
+import com.jobmoa.app.CounselMain.biz.hr.HrAssignmentDTO;
+import com.jobmoa.app.CounselMain.biz.hr.HrAssignmentService;
 import com.jobmoa.app.CounselMain.biz.hr.HrDashboardService;
 import com.jobmoa.app.CounselMain.biz.hr.HrEmployeeDTO;
 import com.jobmoa.app.CounselMain.biz.hr.HrEmployeeService;
@@ -54,6 +56,9 @@ public class HrApiController {
 
     @Autowired
     private HrEmploymentService hrEmploymentService;
+
+    @Autowired
+    private HrAssignmentService hrAssignmentService;
 
     /** HR 로그인({@code HR_LOGIN_DATA}) 여부를 확인한다. 미인증이면 401, 인증이면 null.
      *  ({@link HrApiInterceptor}가 1차 차단하며 이 검증은 방어적 이중 확인이다.) */
@@ -420,6 +425,77 @@ public class HrApiController {
         dto.setPolicyKey(policyKey);
         boolean success = hrTenurePolicyService.removeTenurePolicy(dto);
         return ResponseEntity.ok(result(success, success ? "근속정책이 비활성화되었습니다." : "비활성화에 실패했습니다."));
+    }
+
+    // ===== 부서배치·겸직 관리 =====
+    /** 직원 목록 (주부서명·현재 배치 개수). */
+    @GetMapping("/assignments/employees")
+    public ResponseEntity<?> getAssignmentEmployees(HrAssignmentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrAssignmentService.getEmployeeList(dto));
+    }
+
+    /** 부서 드롭다운 목록 (사용중 부서). */
+    @GetMapping("/assignments/depts")
+    public ResponseEntity<?> getAssignmentDepts(HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrAssignmentService.getDeptList());
+    }
+
+    /** 특정 직원의 부서배치 목록. */
+    @GetMapping("/assignments/{userId}")
+    public ResponseEntity<?> getAssignments(@PathVariable String userId, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrAssignmentDTO dto = new HrAssignmentDTO();
+        dto.setUserId(userId);
+        return ResponseEntity.ok(hrAssignmentService.getAssignmentList(dto));
+    }
+
+    /** 겸직 추가: 부서배치 행(주부서여부=0) 추가. */
+    @PostMapping("/assignments/{userId}")
+    public ResponseEntity<?> addAssignment(@PathVariable String userId, @RequestBody HrAssignmentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        dto.setUserId(userId);
+        if (dto.getDeptCode() == null || dto.getDeptCode().isBlank()) {
+            return ResponseEntity.ok(result(false, "부서는 필수입니다."));
+        }
+        if (hrAssignmentService.hasOpenAssignmentToDept(dto)) {
+            return ResponseEntity.ok(result(false, "이미 해당 부서에 현재 배치되어 있습니다."));
+        }
+        boolean success = hrAssignmentService.addAssignment(dto);
+        return ResponseEntity.ok(result(success, success ? "겸직 부서가 배치되었습니다." : "배치에 실패했습니다."));
+    }
+
+    /** 주부서 변경: 대상 겸직 배치를 주부서로 승격(재직 주부서코드 동기화). */
+    @PutMapping("/assignments/{assignPk}/primary")
+    public ResponseEntity<?> changePrimary(@PathVariable int assignPk, @RequestBody HrAssignmentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        if (dto.getUserId() == null || dto.getUserId().isBlank()) {
+            return ResponseEntity.ok(result(false, "직원아이디가 필요합니다."));
+        }
+        dto.setAssignPk(assignPk);
+        boolean success = hrAssignmentService.changePrimary(dto);
+        return ResponseEntity.ok(result(success,
+                success ? "주부서가 변경되었습니다." : "변경에 실패했습니다.(현재 겸직 배치만 주부서로 지정 가능)"));
+    }
+
+    /** 배치 종료(겸직해제): 겸직(주부서여부=0) 배치에 종료일 기록. */
+    @PutMapping("/assignments/{assignPk}/end")
+    public ResponseEntity<?> endAssignment(@PathVariable int assignPk, @RequestBody HrAssignmentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        if (dto.getUserId() == null || dto.getUserId().isBlank()) {
+            return ResponseEntity.ok(result(false, "직원아이디가 필요합니다."));
+        }
+        dto.setAssignPk(assignPk);
+        boolean success = hrAssignmentService.endAssignment(dto);
+        return ResponseEntity.ok(result(success,
+                success ? "겸직 배치가 종료되었습니다." : "종료에 실패했습니다.(주부서·이미 종료된 배치는 불가)"));
     }
 
     /** 가중퍼센트 범위 검증 (0~100, CHECK 제약 사전 방어). */

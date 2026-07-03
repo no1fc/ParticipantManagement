@@ -70,4 +70,11 @@ public class HrPageController {
         if (!HrAccessSupport.isAuthed(session)) return "redirect:/hr/login";
         return "hr/hrTenurePolicyManagement";
     }
+
+    /** 부서배치·겸직 관리 페이지. */
+    @GetMapping("/assignments")
+    public String assignments(HttpSession session) {
+        if (!HrAccessSupport.isAuthed(session)) return "redirect:/hr/login";
+        return "hr/hrAssignmentManagement";
+    }
 }

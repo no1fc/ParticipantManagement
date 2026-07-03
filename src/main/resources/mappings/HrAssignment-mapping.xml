@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- HR 부서배치·겸직 관리 (J_직원_부서배치 M:N + 주부서변경 시 J_직원_재직·J_직원_발령이력) -->
+<mapper namespace="HrAssignmentDAO">
+
+    <!-- 직원 목록: 신원 ⋈ 재직(주부서코드) ⋈ 부서 + 현재(종료일 NULL) 배치 개수.
+         주부서명은 J_직원_재직.주부서코드 기준(다른 HR 화면과 동일 denormalized 소스). -->
+    <select id="selectEmployeeList" resultType="hrAssignment">
+        SELECT
+            e.직원번호 empNo,
+            e.아이디 userId,
+            e.이름 name,
+            e.현재재직상태 empStatus,
+            d.부서명 deptName,
+            (SELECT COUNT(*) FROM J_직원_부서배치 a WHERE a.직원아이디 = e.아이디 AND a.종료일 IS NULL) assignCount
+        FROM J_직원 e
+        LEFT JOIN J_직원_재직 r ON e.아이디 = r.아이디
+        LEFT JOIN J_부서 d ON r.주부서코드 = d.부서코드
+        <where>
+            <choose>
+                <when test="searchEmpStatus == null or searchEmpStatus == ''">
+                    e.현재재직상태 = N'재직'
+                </when>
+                <when test="searchEmpStatus == 'ALL'">
+                    1 = 1
+                </when>
+                <otherwise>
+                    e.현재재직상태 = #{searchEmpStatus}
+                </otherwise>
+            </choose>
+            <if test="searchName != null and searchName != ''">
+                AND e.이름 LIKE '%' + #{searchName} + '%'
+            </if>
+            <if test="searchUserId != null and searchUserId != ''">
+                AND e.아이디 LIKE '%' + #{searchUserId} + '%'
+            </if>
+        </where>
+        ORDER BY e.현재재직상태 ASC, e.이름 ASC
+    </select>
+
+    <!-- 특정 직원의 부서배치 목록. 현재 배치(종료일 NULL)·주부서 우선. 날짜는 CONVERT(23) ISO. -->
+    <select id="selectAssignmentList" resultType="hrAssignment">
+        SELECT
+            a.배치PK assignPk,
+            a.부서코드 deptCode,
+            d.부서명 deptName,
+            a.주부서여부 isPrimary,
+            CONVERT(CHAR(10), a.시작일, 23) startDate,
+            CONVERT(CHAR(10), a.종료일, 23) endDate
+        FROM J_직원_부서배치 a
+        LEFT JOIN J_부서 d ON a.부서코드 = d.부서코드
+        WHERE a.직원아이디 = #{userId}
+        ORDER BY (CASE WHEN a.종료일 IS NULL THEN 0 ELSE 1 END) ASC,
+                 a.주부서여부 DESC,
+                 a.시작일 DESC
+    </select>
+
+    <!-- 부서 드롭다운 (사용중). -->
+    <select id="selectDeptList" resultType="hrAssignment">
+        SELECT 부서코드 deptCode, 부서명 deptName
+        FROM J_부서
+        WHERE 사용여부 = N'사용'
+        ORDER BY 순서 ASC, 부서명 ASC
+    </select>
+
+    <!-- 해당 직원이 이미 그 부서에 현재(종료일 NULL) 배치되어 있는지 카운트. 겸직 추가 중복 가드. -->
+    <select id="selectOpenAssignmentToDeptCount" resultType="int">
+        SELECT COUNT(*) FROM J_직원_부서배치
+        WHERE 직원아이디 = #{userId} AND 부서코드 = #{deptCode} AND 종료일 IS NULL
+    </select>
+
+    <!-- 겸직 추가: 부서배치 행(주부서여부=0) 추가 + 발령이력 '겸직추가'. 시작일 미지정=오늘. -->
+    <insert id="addAssignment">
+        INSERT INTO J_직원_부서배치 (직원아이디, 부서코드, 주부서여부, 시작일, 종료일)
+        VALUES (#{userId}, #{deptCode}, 0,
+                ISNULL(#{startDate,jdbcType=DATE}, CAST(GETDATE() AS date)), NULL);
+
+        INSERT INTO J_직원_발령이력 (아이디, 발령유형, 발령일, 신규부서코드, 사유, 등록일시)
+        VALUES (#{userId}, N'겸직추가',
+                ISNULL(#{startDate,jdbcType=DATE}, CAST(GETDATE() AS date)),
+                #{deptCode}, #{reason,jdbcType=NVARCHAR}, GETDATE());
+    </insert>
+
+    <!-- 주부서 변경: 대상 겸직(주부서여부=0, 종료일 NULL)을 주부서로 승격.
+         발령이력 INSERT를 먼저 실행(변경 전 주부서를 이전부서코드로 캡처 + 반환 카운트 신뢰) →
+         기존 주부서 해제 → 대상 승격 → J_직원_재직.주부서코드 동기화 순.
+         모든 변경 문장에 대상 유효성 가드(EXISTS)를 걸어 무효 대상 시 마스터를 훼손하지 않는다.
+         필터드 UNIQUE(종료일 NULL AND 주부서여부=1) 전이 위반을 피하려 해제→승격 순서 유지. -->
+    <update id="changePrimary">
+        INSERT INTO J_직원_발령이력 (아이디, 발령유형, 발령일, 이전부서코드, 신규부서코드, 사유, 등록일시)
+        SELECT #{userId}, N'부서이동', CAST(GETDATE() AS date),
+               (SELECT TOP 1 부서코드 FROM J_직원_부서배치
+                 WHERE 직원아이디 = #{userId} AND 종료일 IS NULL AND 주부서여부 = 1),
+               t.부서코드, #{reason,jdbcType=NVARCHAR}, GETDATE()
+        FROM J_직원_부서배치 t
+        WHERE t.배치PK = #{assignPk} AND t.직원아이디 = #{userId}
+          AND t.종료일 IS NULL AND t.주부서여부 = 0;
+
+        UPDATE J_직원_부서배치
+        SET 주부서여부 = 0
+        WHERE 직원아이디 = #{userId} AND 종료일 IS NULL AND 주부서여부 = 1
+          AND EXISTS (SELECT 1 FROM J_직원_부서배치 t
+                       WHERE t.배치PK = #{assignPk} AND t.직원아이디 = #{userId}
+                         AND t.종료일 IS NULL AND t.주부서여부 = 0);
+
+        UPDATE J_직원_부서배치
+        SET 주부서여부 = 1
+        WHERE 배치PK = #{assignPk} AND 직원아이디 = #{userId}
+          AND 종료일 IS NULL AND 주부서여부 = 0;
+
+        UPDATE J_직원_재직
+        SET 주부서코드 = (SELECT 부서코드 FROM J_직원_부서배치 WHERE 배치PK = #{assignPk}),
+            지점명 = (SELECT b.지점명 FROM J_부서 b
+                       WHERE b.부서코드 = (SELECT 부서코드 FROM J_직원_부서배치 WHERE 배치PK = #{assignPk})),
+            최종발령일 = CAST(GETDATE() AS date),
+            수정일 = GETDATE()
+        WHERE 아이디 = #{userId}
+          AND EXISTS (SELECT 1 FROM J_직원_부서배치 t
+                       WHERE t.배치PK = #{assignPk} AND t.직원아이디 = #{userId} AND t.주부서여부 = 1);
+    </update>
+
+    <!-- 배치 종료(겸직해제): 겸직(주부서여부=0, 종료일 NULL) 배치에 종료일 기록.
+         발령이력 INSERT를 먼저 실행(변경 전 부서코드 캡처 + 반환 카운트 신뢰). 종료일 미지정=오늘.
+         주부서·이미 종료된 배치는 가드로 제외(0행 → 실패 반환). -->
+    <update id="endAssignment">
+        INSERT INTO J_직원_발령이력 (아이디, 발령유형, 발령일, 이전부서코드, 사유, 등록일시)
+        SELECT #{userId}, N'겸직해제',
+               ISNULL(#{endDate,jdbcType=DATE}, CAST(GETDATE() AS date)),
+               t.부서코드, #{reason,jdbcType=NVARCHAR}, GETDATE()
+        FROM J_직원_부서배치 t
+        WHERE t.배치PK = #{assignPk} AND t.직원아이디 = #{userId}
+          AND t.종료일 IS NULL AND t.주부서여부 = 0;
+
+        UPDATE J_직원_부서배치
+        SET 종료일 = ISNULL(#{endDate,jdbcType=DATE}, CAST(GETDATE() AS date))
+        WHERE 배치PK = #{assignPk} AND 직원아이디 = #{userId}
+          AND 종료일 IS NULL AND 주부서여부 = 0;
+    </update>
+
+</mapper>
