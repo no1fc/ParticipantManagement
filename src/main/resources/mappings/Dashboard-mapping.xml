@@ -497,8 +497,10 @@
         --21일 기준 최근상담일,
         --15일 기준 구직만료일, 기간만료일 전체 데이터
         SELECT
-            -- 최근 상담일 21일 도래자
-            SUM(IIF(DATEDIFF(DAY, 최근상담일, GETDATE()) <![CDATA[>=]]> 21 AND 최근상담일 <![CDATA[<>]]> '', 1, 0)) AS dashBoardLastCons,
+            -- 최근 상담일 26일 이상 경과자
+            SUM(IIF(DATEDIFF(DAY, 최근상담일, GETDATE()) <![CDATA[>=]]> 26 AND 최근상담일 <![CDATA[<>]]> '', 1, 0)) AS dashBoardLastCons,
+            -- 최근 상담일 한달(30일) 이상 경과자
+            SUM(IIF(DATEDIFF(DAY, 최근상담일, GETDATE()) <![CDATA[>=]]> 30 AND 최근상담일 <![CDATA[<>]]> '', 1, 0)) AS dashBoardLastConsMonth,
             -- 구직 만료일 15일 도래자
             SUM(IIF(DATEDIFF(DAY, GETDATE(), 구직만료일) <![CDATA[<=]]> 15 AND 구직만료일 <![CDATA[<>]]> '', 1, 0)) AS dashBoardJobEX,
             -- 기간 만료일 15일 도래자

@@ -1,6 +1,6 @@
 /**
- * @file GNB 알림 관리 (WebSocket + 드롭다운 + 토스트 + 기간만료 standing 알림)
- * @version 0.0.3
+ * @file GNB 알림 관리 (WebSocket + 드롭다운 + 토스트 + 기간만료/최근상담일 standing 알림)
+ * @version 0.0.4
  * @requires jQuery, SockJS, StompJS, Bootstrap
  */
 // ===========================
@@ -22,11 +22,16 @@
     let _stompClient = null;
     let _wsConnected = false;
     let _notifications = [];
-    // 기간만료 도래·경과자 standing 알림 (데이터 기반, 페이지 로드마다 라이브 재계산)
+    // 기간만료·최근상담일 경과자 standing 알림 (데이터 기반, 페이지 로드마다 라이브 재계산)
     // _notifications(WebSocket 푸시)와 분리 관리: "모두 지우기"로 영구삭제되지 않고 미마감자는 지속 노출.
+    // 알림 유형별로 소스 배열을 분리 관리하고, rebuildStanding()으로 _standingItems에 병합한다.
     let _standingItems = [];
+    let _expiryStanding = [];
+    let _recentCounselStanding = [];
     const PERIOD_EXPIRY_API = '/notification/period-expiry/summary';
     const PERIOD_EXPIRY_LINK = '/participant.login?searchTypeList=periodExpired&endDateOptionList=false';
+    const RECENT_COUNSEL_API = '/notification/recent-counsel/summary';
+    const RECENT_COUNSEL_LINK = '/participant.login?searchTypeList=recent26&endDateOptionList=false';
 
     function getStorageKey() {
         return 'gnbNotifications_' + (typeof JOBMOA_USER_ID !== 'undefined' ? JOBMOA_USER_ID : '');
@@ -202,7 +207,7 @@
         }
     }
 
-    // 기간만료 standing 알림 1건 렌더 (anchor href로 직접 네비게이션 → preventDefault 안 함)
+    // standing 알림 1건 렌더 (anchor href로 직접 네비게이션 → preventDefault 안 함)
     function renderStandingItem(item) {
         const list = document.getElementById('gnbNotificationList');
         if (!list) return;
@@ -214,17 +219,27 @@
         el.href = item.href;
         el.className = 'gnb-notification-item standing unread';
 
+        const title = item.title || '기간 만료 도래·경과자';
+        const icon = item.icon || '<i class="bi bi-exclamation-triangle-fill text-warning"></i>';
+
         el.innerHTML =
             '<div class="d-flex align-items-start">' +
-                '<span class="gnb-notification-icon me-2"><i class="bi bi-exclamation-triangle-fill text-warning"></i></span>' +
+                '<span class="gnb-notification-icon me-2">' + icon + '</span>' +
                 '<div class="gnb-notification-content">' +
-                    '<p class="gnb-notification-name mb-0">기간 만료 도래·경과자</p>' +
+                    '<p class="gnb-notification-name mb-0">' + escapeHtml(title) + '</p>' +
                     '<p class="gnb-notification-text mb-0">' + escapeHtml(item.message) + '</p>' +
                 '</div>' +
             '</div>';
 
         // standing 항목은 항상 리스트 맨 앞에 고정
         list.insertBefore(el, list.firstChild);
+    }
+
+    // 유형별 standing 소스를 _standingItems에 병합 후 재렌더/뱃지 갱신
+    function rebuildStanding() {
+        _standingItems = _expiryStanding.concat(_recentCounselStanding);
+        renderAll();
+        updateNotificationBadge();
     }
 
     // 페이지 로드 시 기간만료 도래·경과자 라이브 조회 → standing 알림 주입 (비차단)
@@ -235,17 +250,41 @@
         $.ajax({ url: PERIOD_EXPIRY_API, method: 'GET', dataType: 'json' })
             .done(function(data) {
                 if (!data || !data.count || data.count <= 0) {
-                    _standingItems = [];
-                    renderAll();
-                    updateNotificationBadge();
+                    _expiryStanding = [];
+                    rebuildStanding();
                     return;
                 }
-                _standingItems = [{
+                _expiryStanding = [{
                     href: PERIOD_EXPIRY_LINK,
+                    title: '기간 만료 도래·경과자',
+                    icon: '<i class="bi bi-exclamation-triangle-fill text-warning"></i>',
                     message: data.count + '명 (당일 ' + (data.today || 0) + ' | 지난 ' + (data.passed || 0) + ')'
                 }];
-                renderAll();
-                updateNotificationBadge();
+                rebuildStanding();
+                triggerBellAnimation();
+            })
+            .fail(function() { /* 알림 조회 실패는 무시 (지속성 기능, 비핵심) */ });
+    }
+
+    // 페이지 로드 시 최근상담일 26일 이상 경과자 라이브 조회 → standing 알림 주입 (비차단)
+    function loadRecentCounselStanding() {
+        if (typeof JOBMOA_USER_ID === 'undefined' || !JOBMOA_USER_ID) return;
+        if (typeof $ === 'undefined') return;
+
+        $.ajax({ url: RECENT_COUNSEL_API, method: 'GET', dataType: 'json' })
+            .done(function(data) {
+                if (!data || !data.count || data.count <= 0) {
+                    _recentCounselStanding = [];
+                    rebuildStanding();
+                    return;
+                }
+                _recentCounselStanding = [{
+                    href: RECENT_COUNSEL_LINK,
+                    title: '최근상담일 26일 경과',
+                    icon: '<i class="bi bi-clock-history text-danger"></i>',
+                    message: data.count + '명 (한달 이상 ' + (data.month || 0) + ')'
+                }];
+                rebuildStanding();
                 triggerBellAnimation();
             })
             .fail(function() { /* 알림 조회 실패는 무시 (지속성 기능, 비핵심) */ });
@@ -439,8 +478,9 @@
         updateNotificationBadge();
         setupDropdownEvents();
         connectGnbWebSocket();
-        // 기간만료 도래·경과자 standing 알림 라이브 조회 (비차단)
+        // 기간만료 도래·경과자 / 최근상담일 26일 경과자 standing 알림 라이브 조회 (비차단)
         loadStandingNotifications();
+        loadRecentCounselStanding();
 
         // "모든 알림 지우기" 버튼 이벤트
         const clearBtn = document.getElementById('gnbNotifClearAll');

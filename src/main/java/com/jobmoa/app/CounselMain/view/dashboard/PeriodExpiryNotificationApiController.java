@@ -4,6 +4,7 @@ import com.jobmoa.app.CounselMain.biz.bean.LoginBean;
 import com.jobmoa.app.CounselMain.biz.dashboard.DashboardDTO;
 import com.jobmoa.app.CounselMain.biz.dashboard.DashboardServiceImpl;
 import com.jobmoa.app.CounselMain.biz.dashboard.PeriodExpiryNoticeDTO;
+import com.jobmoa.app.CounselMain.biz.dashboard.RecentCounselNoticeDTO;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,34 @@ public class PeriodExpiryNotificationApiController {
             result.setToday(today);
             result.setPassed(passed);
             result.setCount(today + passed);
+        }
+        return result;
+    }
+
+    /**
+     * 로그인 상담사의 최근상담일 경과자 요약을 조회한다.
+     *
+     * @param session HTTP 세션 (로그인 정보)
+     * @return 26일 이상 경과자 합계/한달(30일) 이상 경과자 카운트 (비로그인 시 count=0)
+     */
+    @GetMapping("/notification/recent-counsel/summary")
+    public RecentCounselNoticeDTO recentCounselSummary(HttpSession session) {
+        RecentCounselNoticeDTO result = new RecentCounselNoticeDTO();
+
+        LoginBean login = (LoginBean) session.getAttribute("JOBMOA_LOGIN_DATA");
+        if (login == null) {
+            return result; // count=month=0
+        }
+
+        DashboardDTO param = new DashboardDTO();
+        param.setDashboardUserID(login.getMemberUserID());
+        param.setDashboardBranch(login.getMemberBranch());
+        param.setDashboardCondition("selectDailyDashboard");
+
+        DashboardDTO daily = dashboardService.selectOne(param);
+        if (daily != null) {
+            result.setCount(daily.getDashBoardLastCons());
+            result.setMonth(daily.getDashBoardLastConsMonth());
         }
         return result;
     }

@@ -137,8 +137,8 @@
                 <label class="form-check-label" for="noInitialConsult">초기상담 미실시자</label>
             </div>
             <div class="form-check form-check-inline m-0">
-                <input class="form-check-input" type="checkbox" name="searchTypeList" id="recentConsult21" value="recent21" ${fn:contains(joinedSearchTypeList, 'recent21') ? 'checked' : ''}>
-                <label class="form-check-label" for="recentConsult21">최근상담일 21일</label>
+                <input class="form-check-input" type="checkbox" name="searchTypeList" id="recentConsult26" value="recent26" ${fn:contains(joinedSearchTypeList, 'recent26') ? 'checked' : ''}>
+                <label class="form-check-label" for="recentConsult26">최근상담일 26일 경과</label>
             </div>
             <div class="form-check form-check-inline m-0">
                 <input class="form-check-input" type="checkbox" name="searchTypeList" id="jobExpire15" value="jobExpire" ${fn:contains(joinedSearchTypeList, 'jobExpire') ? 'checked' : ''}>
