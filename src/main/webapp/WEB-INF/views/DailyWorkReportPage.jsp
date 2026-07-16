@@ -92,8 +92,8 @@
     <!-- Chart.js CDN -->
     <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-    <!-- DailyWorkReportPageJS_0.0.1.js -->
-    <script defer src="/js/DailyWorkReportPageJS_0.0.1.js"></script>
+    <!-- DailyWorkReportPageJS_0.0.2.js -->
+    <script defer src="/js/DailyWorkReportPageJS_0.0.2.js"></script>
 
     <!-- Employment Rate Charts JS -->
     <script defer src="/js/employmentRateCharts.js"></script>
@@ -476,17 +476,18 @@ document.addEventListener('DOMContentLoaded', function () {
         datepicker_on.on('change', function () {
             dateValue = $(this).val();
             const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-            console.log(dateValue);
             if (!datePattern.test(dateValue)) {
                 $(this).val(''); // 날짜형식이 아니면 삭제
-                console.log('Invalid date format, value cleared.');
             } else {
-                console.log('datepicker_on');
-                //console.log(dateValue);
+                // 선택한 날짜에 저장된 일일보고 스냅샷을 불러와 폼을 채운다.
+                loadDailyReportByDate(dateValue);
             }
         });
 
         default_datepicker(datepicker_on);
+
+        // 초기 진입 시 선택 날짜(오늘)의 저장 데이터를 로드해 폼을 채운다.
+        loadDailyReportByDate($('#dailyReportDate').val());
         /* datepicker JS End */
 
         /* dailyReportUpdate JS Start */

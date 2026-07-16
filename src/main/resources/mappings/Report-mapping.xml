@@ -171,6 +171,39 @@
         ORDER BY A.조회순서
     </select>
 
+    <!-- 선택 날짜(업무보고일) 스냅샷 조회.
+         선택일 이하(<=)의 상담사별 최신 저장 1건을 이월해 반환:
+           - 누적(금주/금월/금년)은 이전 저장값 그대로 이월
+           - 금일(유형1/2, 금일일반/금일알선 취업)은 정확히 선택일 저장분일 때만 표시, 이월 시 0
+         저장 이력이 전혀 없는 상담사는 ISNULL 로 전부 0. -->
+    <select id="dailyReportSelectByDate" resultType="report">
+        SELECT
+            A.이름 counselorName,
+            A.아이디 UserID,
+            CASE WHEN C.업무보고일 = CONVERT(CHAR(10), #{dailyUpdateStatusDate}, 23) THEN ISNULL(C.유형1, 0) ELSE 0 END todayPersonnelOneType,
+            CASE WHEN C.업무보고일 = CONVERT(CHAR(10), #{dailyUpdateStatusDate}, 23) THEN ISNULL(C.유형2, 0) ELSE 0 END todayPersonnelTwoType,
+            CASE WHEN C.업무보고일 = CONVERT(CHAR(10), #{dailyUpdateStatusDate}, 23) THEN ISNULL(C.금일일반취업, 0) ELSE 0 END memberTodayEmployment,
+            CASE WHEN C.업무보고일 = CONVERT(CHAR(10), #{dailyUpdateStatusDate}, 23) THEN ISNULL(C.금일알선취업, 0) ELSE 0 END memberTodayPlacement,
+            ISNULL(C.금주일반취업, 0) memberToWeekEmployment,
+            ISNULL(C.금주알선취업, 0) memberToWeekPlacement,
+            ISNULL(C.금월일반취업, 0) memberToMonthEmployment,
+            ISNULL(C.금월알선취업, 0) memberToMonthPlacement,
+            ISNULL(C.금년일반취업, 0) memberToYearEmployment,
+            ISNULL(C.금년알선취업, 0) memberToYearPlacement,
+            ISNULL(C.업무보고일, '1900-01-01') endUpdateStatus,
+            A.일일업무일지발급여부 memberDailyWorkDiaryIssuance
+        FROM J_참여자관리_로그인정보 A
+        LEFT JOIN (
+            -- 선택일 이하 상담사별 최신 업무보고 1건
+            SELECT *,
+                   ROW_NUMBER() OVER (PARTITION BY 지점, 아이디 ORDER BY 업무보고일 DESC) as rn
+            FROM J_참여자관리_일일업무보고
+            WHERE 업무보고일 <![CDATA[ <= ]]> CONVERT(CHAR(10), #{dailyUpdateStatusDate}, 23)
+        ) C ON A.지점 = C.지점 AND A.아이디 = C.아이디 AND C.rn = 1
+        WHERE A.지점=#{branch}
+        ORDER BY A.조회순서
+    </select>
+
     <!-- 지점 전체 일일배정인원 조회 -->
     <select id="dailyBranchReportSelect" resultType="report">
         SELECT

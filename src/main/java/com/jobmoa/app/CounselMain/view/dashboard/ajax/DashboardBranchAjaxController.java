@@ -1,5 +1,6 @@
 package com.jobmoa.app.CounselMain.view.dashboard.ajax;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.jobmoa.app.CounselMain.biz.bean.LoginBean;
 import com.jobmoa.app.CounselMain.biz.login.MemberDTO;
@@ -13,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * 대시보드 지점 관련 Ajax 컨트롤러.
@@ -133,6 +136,61 @@ public class DashboardBranchAjaxController {
             log.error("Error updating member order", e);
             jsonObject.addProperty("flag", false);
             jsonObject.addProperty("message", "순서 저장중 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+            return ResponseEntity.status(500).body(jsonObject);
+        }
+    }
+
+    /**
+     * 선택한 날짜의 지점 일일보고 데이터를 조회한다.
+     * <p>날짜(dailyUpdateStatusDate)로 저장된 상담사별 스냅샷과 지점 합계를 반환한다.
+     * 해당 날짜에 저장 이력이 없는 상담사는 실적이 0으로 채워진다.</p>
+     * @param session   HTTP 세션 (로그인 정보 확인용)
+     * @param reportDTO 조회 조건 (dailyUpdateStatusDate)
+     * @return 상담사별 실적 목록 및 지점 합계를 담은 JSON 응답
+     */
+    @PostMapping(value = "/dashboard/branchReportSelect.login",
+            consumes = "application/json; charset=utf-8",
+            produces = "application/json; charset=utf-8")
+    public ResponseEntity<JsonObject> branchReportSelect(HttpSession session, @RequestBody(required = false) ReportDTO reportDTO) {
+        LoginBean loginBean = (LoginBean) session.getAttribute("JOBMOA_LOGIN_DATA");
+
+        JsonObject jsonObject = new JsonObject();
+
+        if (loginBean == null) {
+            jsonObject.addProperty("flag", false);
+            jsonObject.addProperty("message", "로그인 정보가 없습니다. 로그인 후 다시 시도해주세요.");
+            return ResponseEntity.status(401).body(jsonObject);
+        }
+
+        if (reportDTO == null || reportDTO.getDailyUpdateStatusDate() == null) {
+            jsonObject.addProperty("flag", false);
+            jsonObject.addProperty("message", "조회할 날짜가 없습니다.");
+            return ResponseEntity.status(400).body(jsonObject);
+        }
+
+        try {
+            String branch = loginBean.getMemberBranch();
+            reportDTO.setBranch(branch);
+
+            // 선택 날짜의 상담사별 스냅샷
+            reportDTO.setReportCondition("dailyReportSelectByDate");
+            List<ReportDTO> users = reportService.selectAll(reportDTO);
+
+            // 선택 날짜의 지점 배정 합계(유형1/유형2)
+            reportDTO.setReportCondition("dailyBranchReportSelect");
+            ReportDTO branchTotal = reportService.selectOne(reportDTO);
+
+            Gson gson = new Gson();
+            jsonObject.addProperty("flag", true);
+            jsonObject.add("users", gson.toJsonTree(users));
+            jsonObject.addProperty("branchType1", branchTotal == null ? 0 : branchTotal.getBranchType1());
+            jsonObject.addProperty("branchType2", branchTotal == null ? 0 : branchTotal.getBranchType2());
+            return ResponseEntity.status(200).body(jsonObject);
+        }
+        catch (Exception e) {
+            log.error("Error selecting branch report by date", e);
+            jsonObject.addProperty("flag", false);
+            jsonObject.addProperty("message", "일일보고 조회중 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
             return ResponseEntity.status(500).body(jsonObject);
         }
     }
