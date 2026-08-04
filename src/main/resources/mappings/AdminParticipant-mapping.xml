@@ -66,9 +66,22 @@
             CONVERT(varchar, A.등록일, 23) participantRegDate,
             A.메모 memo,
             A.마감 closed,
-            CONVERT(varchar, A.연계일, 23) linkDate,
-            A.연계유형 linkType,
-            A.연계비고 linkNote
+            -- 연계 정보는 J_참여자관리_연계(다중)에서 집계하여 콤마 구분 문자열로 표시 (읽기 전용 상세)
+            STUFF((SELECT ', ' + CONVERT(varchar, L.연계일, 23)
+                   FROM J_참여자관리_연계 L
+                   WHERE L.구직번호 = A.구직번호 AND L.연계일 IS NOT NULL
+                   ORDER BY L.연계일 DESC
+                   FOR XML PATH(''), TYPE).value('.', 'nvarchar(max)'), 1, 2, '') linkDate,
+            STUFF((SELECT ', ' + L.연계유형
+                   FROM J_참여자관리_연계 L
+                   WHERE L.구직번호 = A.구직번호 AND ISNULL(L.연계유형, '') <![CDATA[<>]]> ''
+                   ORDER BY L.연계일 DESC
+                   FOR XML PATH(''), TYPE).value('.', 'nvarchar(max)'), 1, 2, '') linkType,
+            STUFF((SELECT ', ' + L.연계비고
+                   FROM J_참여자관리_연계 L
+                   WHERE L.구직번호 = A.구직번호 AND ISNULL(L.연계비고, '') <![CDATA[<>]]> ''
+                   ORDER BY L.연계일 DESC
+                   FOR XML PATH(''), TYPE).value('.', 'nvarchar(max)'), 1, 2, '') linkNote
         FROM J_참여자관리 A
         WHERE A.구직번호 = #{jobNo}
     </select>

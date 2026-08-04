@@ -10,6 +10,7 @@ import com.jobmoa.app.CounselMain.biz.participantBasic.BasicDTO;
 import com.jobmoa.app.CounselMain.biz.participantBasic.BasicServiceImpl;
 import com.jobmoa.app.CounselMain.biz.participantCounsel.CounselDTO;
 import com.jobmoa.app.CounselMain.biz.participantCounsel.CounselServiceImpl;
+import com.jobmoa.app.CounselMain.biz.participantCounsel.LinkageDTO;
 import com.jobmoa.app.CounselMain.biz.participantCounsel.WishJobDTO;
 import com.jobmoa.app.CounselMain.biz.participantEmployment.EmploymentDTO;
 import com.jobmoa.app.CounselMain.biz.participantEmployment.EmploymentServiceImpl;
@@ -120,9 +121,21 @@ public class UpdateController {
                     + "\"education\":\"" + dto.getEducation() + "\"}";
         });
 
+        // 다중 타사연계 리스트를 JSON 배열로 변환하여 전달
+        String linkageArr = "[]";
+        if (counselDTO != null && counselDTO.getLinkageList() != null && !counselDTO.getLinkageList().isEmpty()) {
+            linkageArr = changeJson.convertListToJsonArray(counselDTO.getLinkageList(), item -> {
+                LinkageDTO dto = (LinkageDTO) item;
+                return "{\"linkDate\":\"" + (dto.getLinkDate() != null ? dto.getLinkDate() : "") + "\","
+                        + "\"linkType\":\"" + jsonEscape(dto.getLinkType()) + "\","
+                        + "\"linkNote\":\"" + jsonEscape(dto.getLinkNote()) + "\"}";
+            });
+        }
+
         //불러온 상담 정보를 전달한다.
         model.addAttribute("educations",educationArr);
         model.addAttribute("counsel", counselDTO);
+        model.addAttribute("linkages", linkageArr);
         return "views/UpdateCounselPage";
     }
 
@@ -250,6 +263,14 @@ public class UpdateController {
             //상담정보 업데이트로 데이터를 전달하고
             counselDTO.setCounselCondition("counselUpdate");
             flag = counselService.update(counselDTO);
+
+            // 다중 타사연계 저장 (delete-then-insert 패턴)
+            counselDTO.setCounselCondition("counselLinkDelete");
+            counselService.delete(counselDTO);
+            if (counselDTO.getLinkageList() != null && !counselDTO.getLinkageList().isEmpty()) {
+                counselDTO.setCounselCondition("counselLinkInsert");
+                flag = counselService.insert(counselDTO) && flag;
+            }
 
             //자격증 확인용 flag
             boolean educationFlag = false;
@@ -451,6 +472,17 @@ public class UpdateController {
             });
         }
 
+        // 다중 타사연계 리스트를 JSON 배열로 변환하여 전달 (linkNote 자유 텍스트는 이스케이프)
+        String linkageArr = "[]";
+        if (counselDTO != null && counselDTO.getLinkageList() != null && !counselDTO.getLinkageList().isEmpty()) {
+            linkageArr = changeJson.convertListToJsonArray(counselDTO.getLinkageList(), item -> {
+                LinkageDTO dto = (LinkageDTO) item;
+                return "{\"linkDate\":\"" + (dto.getLinkDate() != null ? dto.getLinkDate() : "") + "\","
+                        + "\"linkType\":\"" + jsonEscape(dto.getLinkType()) + "\","
+                        + "\"linkNote\":\"" + jsonEscape(dto.getLinkNote()) + "\"}";
+            });
+        }
+
         //조회된 내용을 정리하여 페이지로 전달.
         log.info("basicDTO : [{}]", basicDTO);
         log.info("basicDTO.getBasicEducation() : [{}]", basicDTO.getBasicEducation());
@@ -461,10 +493,27 @@ public class UpdateController {
         model.addAttribute("educations", educationArr);
         model.addAttribute("particcertifs", particcertifArr);
         model.addAttribute("wishJobs", wishJobArr);
+        model.addAttribute("linkages", linkageArr);
         // 관리자 페이지 전환을 위해 전달
         model.addAttribute("branchManagementPageFlag", branchManagementPageFlag);
 
         return "views/UpdateParticipantsPage";
+    }
+
+    /**
+     * JSON 문자열 값에 포함될 수 있는 역슬래시/큰따옴표/개행을 이스케이프한다.
+     *
+     * @param value 원본 문자열 (null 허용)
+     * @return 이스케이프된 문자열 (null이면 빈 문자열)
+     */
+    private String jsonEscape(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\r", "")
+                .replace("\n", " ");
     }
 
 

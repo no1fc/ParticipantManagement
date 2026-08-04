@@ -54,6 +54,10 @@ public class CounselServiceImpl implements CounselService {
 
     @Override
     public boolean delete(CounselDTO counselDTO) {
-        return false;
+        boolean flag = false;
+        if(counselDTO != null && counselDTO.getCounselCondition() != null) {
+            flag = counselDAO.delete(counselDTO);
+        }
+        return flag;
     }
 }

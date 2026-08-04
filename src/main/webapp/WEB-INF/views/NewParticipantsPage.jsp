@@ -157,6 +157,8 @@
     <script defer src="/js/jobCategorySelectRenderText_0.0.2.js"></script>
     <!-- 다중 희망직무 관리 JS -->
     <script defer src="/js/jobWishListManager_0.0.1.js"></script>
+    <!-- 다중 타사연계 관리 JS -->
+    <script defer src="/js/linkageListManager_0.0.1.js"></script>
     <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
     <link rel="stylesheet" href="/css/participantCss/participantTable_0.0.2.css">
 </head>
@@ -279,22 +281,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //page 로딩시 알선 상세정보 입력란을 숨김
         JobPlacementDetail(hiddenDiv);
 
-        // 연계비고: 기타 유형 선택 시에만 표시
-        (function () {
-            const $linkType = $("#counselLinkType");
-            const $linkNote = $("#counselLinkNote");
-            const $linkNoteLabel = $("#counselLinkNoteLabel");
-            const LINK_NOTE_TYPES = new Set(["기타 일경험", "기타"]);
-
-            function toggleLinkNote() {
-                const show = LINK_NOTE_TYPES.has($linkType.val());
-                $linkNote.toggle(show);
-                $linkNoteLabel.toggle(show);
-                if (!show) { $linkNote.val(""); }
-            }
-            $linkType.on("change", toggleLinkNote);
-            toggleLinkNote();
-        })();
+        <%-- 연계 정보는 다중(linkageListManager)으로 전환됨: 유형/비고 토글은 각 행에서 처리 --%>
 
     });
 </script>

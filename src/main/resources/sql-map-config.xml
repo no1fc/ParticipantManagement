@@ -14,6 +14,7 @@
         <typeAlias type="com.jobmoa.app.CounselMain.biz.participantBasic.BasicDTO" alias="basic" />
         <typeAlias type="com.jobmoa.app.CounselMain.biz.participantCounsel.CounselDTO" alias="counsel" />
         <typeAlias type="com.jobmoa.app.CounselMain.biz.participantCounsel.WishJobDTO" alias="wishJob" />
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.participantCounsel.LinkageDTO" alias="linkage" />
         <typeAlias type="com.jobmoa.app.CounselMain.biz.participantEmployment.EmploymentDTO" alias="employment" />
         <typeAlias type="com.jobmoa.app.CounselMain.biz.particcertif.ParticcertifDTO" alias="particcertif" />
         <typeAlias type="com.jobmoa.app.CounselMain.biz.participantEducation.EducationDTO" alias="education" />
