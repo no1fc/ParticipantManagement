@@ -57,15 +57,44 @@
         )
     </sql>
 
+    <!--
+      알선 카드 스칼라 집계 (전체 알선 건수 + 전월 대비 달성률).
+      ※ 공동 순위 지원을 위해 1/2위 지점 정보는 arrangementRankBranches(다중 행)로 분리 조회한다.
+    -->
     <select id="arrangementCardData" resultType="arrangement">
         <include refid="arrangementCardDataCommon"/>
         ,지점별집계 AS (
             SELECT
                 지점,
-                -- 2026년 1월 (당월)
+                -- 당월 건수
                 COUNT(CASE WHEN 실제종료일 >= #{arrangementStartDate} AND 실제종료일 <![CDATA[<=]]> #{arrangementEndDate} THEN 1 END) AS 당월건수,
-                -- 2025년 12월 (전월) - 달성률 계산용
+                -- 전월 건수 - 달성률 계산용
                 COUNT(CASE WHEN 실제종료일 >= #{arrangementPreviousMonthStartDate} AND 실제종료일 <![CDATA[<=]]> #{arrangementPreviousMonthEndDate} THEN 1 END) AS 전월건수
+            FROM 기초데이터
+            GROUP BY 지점
+        )
+        SELECT
+            -- 1. 전체 알선 건수 (당월 전체 합계)
+            (SELECT SUM(당월건수) FROM 지점별집계) AS arrangementTotal,
+            -- 2. 전월 대비 달성률 (전월 0건일 경우 0% 처리)
+            ROUND(
+                CASE
+                    WHEN (SELECT SUM(전월건수) FROM 지점별집계) = 0 THEN 0
+                    ELSE (SELECT SUM(당월건수) FROM 지점별집계) * 100.0 / (SELECT SUM(전월건수) FROM 지점별집계)
+                END, 1
+            ) AS arrangementPreviousMonthAchievementRate
+    </select>
+
+    <!--
+      공동 1·2위 지점 목록 (동점 시 여러 지점이 같은 순위로 반환).
+      DENSE_RANK 기준 순위 1, 2인 모든 지점 행을 반환한다.
+    -->
+    <select id="arrangementRankBranches" resultType="arrangement">
+        <include refid="arrangementCardDataCommon"/>
+        ,지점별집계 AS (
+            SELECT
+                지점,
+                COUNT(CASE WHEN 실제종료일 >= #{arrangementStartDate} AND 실제종료일 <![CDATA[<=]]> #{arrangementEndDate} THEN 1 END) AS 당월건수
             FROM 기초데이터
             GROUP BY 지점
         ),
@@ -73,8 +102,6 @@
             SELECT
                 A.지점,
                 B.당월건수,
-                B.전월건수,
-                A.알선건수,
                 A.점수퍼센트,
                 A.순위
             FROM
@@ -85,24 +112,13 @@
                 A.지점 = B.지점
         )
         SELECT
-            -- 1. 전체 알선 건수 (당월 전체 합계)
-            (SELECT SUM(당월건수) FROM 지점별집계) AS arrangementTotal,
-            -- 2. 1위 지점 정보
-            MAX(CASE WHEN 순위 = 1 THEN 지점 END) AS arrangementFirstRankBranch,
-            MAX(CASE WHEN 순위 = 1 THEN 당월건수 END) AS arrangementFirstRankCount,
-            MAX(CASE WHEN 순위 = 1 THEN 점수퍼센트 END) AS arrangementFirstRankScorePercent,
-            -- 3. 2위 지점 정보 (2위가 없을 경우 NULL 반환)
-            MAX(CASE WHEN 순위 = 2 THEN 지점 END) AS arrangementSecondRankBranch,
-            MAX(CASE WHEN 순위 = 2 THEN 당월건수 END) AS arrangementSecondRankCount,
-            MAX(CASE WHEN 순위 = 2 THEN 점수퍼센트 END) AS arrangementSecondRankScorePercent,
-            -- 4. 전월 대비 달성률 (전월 0건일 경우 0% 처리)
-            ROUND(
-                CASE
-                    WHEN (SELECT SUM(전월건수) FROM 지점별집계) = 0 THEN 0
-                    ELSE (SELECT SUM(당월건수) FROM 지점별집계) * 100.0 / (SELECT SUM(전월건수) FROM 지점별집계)
-                END, 1
-            ) AS arrangementPreviousMonthAchievementRate
+            지점 AS arrangementBranch,
+            당월건수 AS arrangementCount,
+            점수퍼센트 AS arrangementRankScorePercent,
+            순위 AS arrangementRank
         FROM 지점점수통합
+        WHERE 순위 IN (1, 2)
+        ORDER BY 순위, 지점
     </select>
 
     <select id="arrangementChartData" resultType="arrangement">

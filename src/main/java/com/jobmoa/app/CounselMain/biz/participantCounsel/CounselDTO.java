@@ -40,9 +40,11 @@ public class CounselDTO {
     private boolean counselISIAP5Month; // IAP수료일 5개월 이후 여부
     private String counselAllowancePayment; // 수당지급
     private boolean counselFocusedPlacement; // 집중알선요청 여부 (DB 집중알선여부 bit(1), true=희망)
-    private String counselLinkDate; // 연계일
-    private String counselLinkType; // 연계유형
-    private String counselLinkNote; // 연계비고 (기타 유형 선택 시 상세 사유)
+    // ※ 연계 정보는 J_참여자관리_연계 테이블로 이전됨(참여자당 다중 연계 지원).
+    //    아래 단일 필드는 하위호환/폼 검증용으로만 유지되며 더 이상 J_참여자관리에 저장되지 않는다.
+    private String counselLinkDate; // 연계일 (단일 - 미저장)
+    private String counselLinkType; // 연계유형 (단일 - 미저장)
+    private String counselLinkNote; // 연계비고 (단일 - 미저장)
 
     //알선상세정보 조회 DB 정보
 //    private String placementJobNo; //알선상세정보 구직번호 (나중에 추가사용을 할 수 있으니 추가)
@@ -56,6 +58,9 @@ public class CounselDTO {
 
     // 다중 희망직무 리스트 (J_참여자관리_희망직무 테이블과 매핑, 실제 저장 대상)
     private List<WishJobDTO> wishJobList;
+
+    // 다중 타사연계 리스트 (J_참여자관리_연계 테이블과 매핑, 실제 저장 대상)
+    private List<LinkageDTO> linkageList;
 
     // DB 외 변수
     private String counselCondition; //개발자 구분

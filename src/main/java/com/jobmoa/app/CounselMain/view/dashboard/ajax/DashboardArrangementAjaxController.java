@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -216,35 +217,62 @@ public class DashboardArrangementAjaxController {
      * @param jsonObject 결과를 담을 JSON 객체
      */
     private void arrangementCardData(ArrangementDTO arrangementDTO, JsonObject jsonObject){
+        jsonObject.addProperty("arrangementCardData", buildArrangementCardJson(arrangementDTO));
+    }
+
+    /**
+     * 알선 카드 데이터를 JSON 문자열로 구성한다.
+     * <p>스칼라 집계(총 알선 건수, 전월 대비 달성률)와 공동 1·2위 지점 목록(동점 시 다중)을
+     * {@code firstRank}/{@code secondRank} 배열로 담는다.</p>
+     *
+     * @param arrangementDTO 조회 기간이 설정된 알선 DTO
+     * @return 알선 카드 JSON 문자열
+     */
+    private String buildArrangementCardJson(ArrangementDTO arrangementDTO) {
+        // 1. 스칼라 집계 (총 알선 건수 + 전월 대비 달성률)
         arrangementDTO.setArrangementCondition("arrangementCardData");
-        ArrangementDTO arrangementCardData = arrangementService.selectOne(arrangementDTO);
-        String arrangementCardJsonData = String.format(
-                "{"+
-                        "\"totalArrangement\":%d," +
-                        "\"firstRank\":{" +
-                        "\"branch\":\"%s\"," +
-                        "\"arrangementCount\":%d," +
-                        "\"arrangementRankScorePercent\":%.2f" +
-                        "}," +
-                        "\"secondRank\":{" +
-                        "\"branch\":\"%s\"," +
-                        "\"arrangementCount\":%d," +
-                        "\"arrangementRankScorePercent\":%.2f" +
-                        "}," +
-                        "\"previousMonthAchievementRate\":%.2f" +
-                        "}",
-                arrangementCardData.getArrangementTotal(),
-                arrangementCardData.getArrangementFirstRankBranch(),
-                arrangementCardData.getArrangementFirstRankCount(),
-                arrangementCardData.getArrangementFirstRankScorePercent(),
-                arrangementCardData.getArrangementSecondRankBranch(),
-                arrangementCardData.getArrangementSecondRankCount(),
-                arrangementCardData.getArrangementSecondRankScorePercent(),
-                arrangementCardData.getArrangementPreviousMonthAchievementRate()
-        );
+        ArrangementDTO cardScalar = arrangementService.selectOne(arrangementDTO);
 
-        jsonObject.addProperty("arrangementCardData", arrangementCardJsonData);
+        // 2. 공동 1·2위 지점 목록 (DENSE_RANK 순위 1/2 지점 전체)
+        arrangementDTO.setArrangementCondition("arrangementRankBranches");
+        List<ArrangementDTO> rankBranches = arrangementService.selectAll(arrangementDTO);
 
+        List<ArrangementDTO> firstRank = new ArrayList<>();
+        List<ArrangementDTO> secondRank = new ArrayList<>();
+        if (rankBranches != null) {
+            for (ArrangementDTO row : rankBranches) {
+                if (row.getArrangementRank() == 1) {
+                    firstRank.add(row);
+                } else if (row.getArrangementRank() == 2) {
+                    secondRank.add(row);
+                }
+            }
+        }
+
+        String firstRankJson = changeJson.convertListToJsonArray(firstRank,
+                item -> rankBranchJson((ArrangementDTO) item));
+        String secondRankJson = changeJson.convertListToJsonArray(secondRank,
+                item -> rankBranchJson((ArrangementDTO) item));
+
+        int total = cardScalar != null ? cardScalar.getArrangementTotal() : 0;
+        float rate = cardScalar != null ? cardScalar.getArrangementPreviousMonthAchievementRate() : 0f;
+
+        return String.format(
+                "{\"totalArrangement\":%d,\"previousMonthAchievementRate\":%.2f," +
+                        "\"firstRank\":%s,\"secondRank\":%s}",
+                total, rate, firstRankJson, secondRankJson);
+    }
+
+    /**
+     * 순위 지점 1건을 JSON 객체 문자열로 변환한다.
+     *
+     * @param data 순위 지점 행 DTO
+     * @return {@code {"branch":..,"arrangementCount":..,"arrangementRankScorePercent":..}}
+     */
+    private String rankBranchJson(ArrangementDTO data) {
+        return String.format(
+                "{\"branch\":\"%s\",\"arrangementCount\":%d,\"arrangementRankScorePercent\":%.2f}",
+                data.getArrangementBranch(), data.getArrangementCount(), data.getArrangementRankScorePercent());
     }
 
     /**

@@ -28,10 +28,9 @@
             희망급여 = #{counselSalWant},
             알선요청 = #{counselPlacement},
             간접고용서비스 = #{counselEmploymentService},
-            집중알선여부 = #{counselFocusedPlacement},
-            연계일 = CONVERT(date, #{counselLinkDate}, 120),
-            연계유형 = #{counselLinkType},
-            연계비고 = #{counselLinkNote}
+            집중알선여부 = #{counselFocusedPlacement}
+            <!-- ※ 연계일/연계유형/연계비고는 J_참여자관리_연계 테이블로 이전됨(다중 연계).
+                 counselLinkDelete/counselLinkInsert 로 별도 처리. -->
         WHERE
             구직번호 = #{counselJobNo}
     </update>
@@ -75,9 +74,6 @@
         <result property="placementDetail" column="placementDetail"/>
         <result property="suggestionDetail" column="suggestionDetail"/>
         <result property="counselFocusedPlacement" column="counselFocusedPlacement"/>
-        <result property="counselLinkDate" column="counselLinkDate"/>
-        <result property="counselLinkType" column="counselLinkType"/>
-        <result property="counselLinkNote" column="counselLinkNote"/>
 
         <!-- 키워드 리스트: 부모의 counselJobNo를 파라미터로 넘겨 별도 조회 -->
         <collection property="recommendedKeywords"
@@ -90,6 +86,12 @@
                     ofType="com.jobmoa.app.CounselMain.biz.participantCounsel.WishJobDTO"
                     column="counselJobNo"
                     select="CounselDAO.counselSelectWishJobs"/>
+
+        <!-- 타사연계 리스트: J_참여자관리_연계 테이블에서 counselJobNo 기준 조회 (다중 연계) -->
+        <collection property="linkageList"
+                    ofType="com.jobmoa.app.CounselMain.biz.participantCounsel.LinkageDTO"
+                    column="counselJobNo"
+                    select="CounselDAO.counselSelectLinkages"/>
     </resultMap>
 
 
@@ -140,12 +142,8 @@
             A.간접고용서비스 AS counselEmploymentService,
             B.상세정보 AS placementDetail,
             B.추천사 AS suggestionDetail,
-            A.집중알선여부 AS counselFocusedPlacement,
-            CASE
-                WHEN A.연계일 >= DATEADD(YEAR, -100, GETDATE()) THEN A.연계일
-                END AS counselLinkDate,
-            A.연계유형 AS counselLinkType,
-            A.연계비고 AS counselLinkNote
+            A.집중알선여부 AS counselFocusedPlacement
+            <!-- ※ 연계일/연계유형/연계비고는 linkageList collection(counselSelectLinkages)으로 대체 -->
         FROM
             J_참여자관리 A
         LEFT JOIN
@@ -247,6 +245,40 @@
         <foreach collection="wishJobList" item="wish" separator=",">
             (#{counselJobNo}, #{wish.wishRank}, #{wish.jobWant},
              #{wish.categoryLarge}, #{wish.categoryMid}, #{wish.categorySub}, GETDATE())
+        </foreach>
+    </insert>
+
+    <!-- 타사연계 목록 조회 (참여자당 다중) -->
+    <select id="counselSelectLinkages" resultType="linkage">
+        SELECT
+            PK        AS pk,
+            구직번호   AS counselJobNo,
+            CASE
+                WHEN 연계일 >= DATEADD(YEAR, -100, GETDATE()) THEN CONVERT(varchar, 연계일, 23)
+            END       AS linkDate,
+            연계유형   AS linkType,
+            연계비고   AS linkNote
+        FROM J_참여자관리_연계
+        WHERE 구직번호 = #{counselJobNo}
+        ORDER BY 연계일 DESC, PK DESC
+    </select>
+
+    <!-- 타사연계 일괄 삭제 -->
+    <delete id="counselLinkDelete">
+        DELETE FROM J_참여자관리_연계 WHERE 구직번호 = #{counselJobNo}
+    </delete>
+
+    <!-- 타사연계 일괄 등록 -->
+    <insert id="counselLinkInsert">
+        INSERT INTO J_참여자관리_연계
+            (구직번호, 연계일, 연계유형, 연계비고, 등록일시)
+        VALUES
+        <foreach collection="linkageList" item="link" separator=",">
+            (#{counselJobNo},
+             CONVERT(date, #{link.linkDate,jdbcType=VARCHAR}, 120),
+             #{link.linkType,jdbcType=NVARCHAR},
+             #{link.linkNote,jdbcType=NVARCHAR},
+             GETDATE())
         </foreach>
     </insert>
 
