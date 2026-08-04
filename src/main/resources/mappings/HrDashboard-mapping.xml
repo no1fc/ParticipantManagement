@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- HR 인원현황 대시보드 (읽기전용 집계) -->
+<mapper namespace="HrDashboardDAO">
+
+    <!-- 요약 카드: 재직/휴직/퇴사 + 당월 입사/퇴사 -->
+    <select id="selectSummary" resultType="hrDashboard">
+        SELECT
+            SUM(IIF(현재재직상태 = N'재직', 1, 0)) AS active,
+            SUM(IIF(현재재직상태 = N'휴직', 1, 0)) AS onLeave,
+            SUM(IIF(현재재직상태 = N'퇴사', 1, 0)) AS resigned,
+            (SELECT COUNT(*) FROM J_직원_재직기간
+                WHERE 입사일 >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)
+                  AND 입사일 <![CDATA[ < ]]> DATEADD(MONTH, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))
+            ) AS monthlyHire,
+            (SELECT COUNT(*) FROM J_직원_재직기간
+                WHERE 퇴사일 >= DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1)
+                  AND 퇴사일 <![CDATA[ < ]]> DATEADD(MONTH, 1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))
+            ) AS monthlyResign
+        FROM J_직원
+    </select>
+
+    <!-- 부서별 인원(막대): 현재 주부서 배치 기준 -->
+    <select id="selectByDepartment" resultType="map">
+        SELECT
+            d.부서명 AS label,
+            COUNT(*) AS value
+        FROM J_직원_부서배치 b
+        JOIN J_부서 d ON b.부서코드 = d.부서코드
+        WHERE b.종료일 IS NULL AND b.주부서여부 = 1
+        GROUP BY d.부서명
+        ORDER BY COUNT(*) DESC
+    </select>
+
+    <!-- 근속 분포(도넛): 재직중 현재 cycle(퇴사일 NULL) 입사일 기준 근속 구간 -->
+    <select id="selectTenureDistribution" resultType="map">
+        SELECT 구간 AS label, COUNT(*) AS value
+        FROM (
+            SELECT
+                CASE
+                    WHEN DATEDIFF(DAY, 입사일, GETDATE()) <![CDATA[ < ]]> 365  THEN N'1년 미만'
+                    WHEN DATEDIFF(DAY, 입사일, GETDATE()) <![CDATA[ < ]]> 1095 THEN N'1~3년'
+                    WHEN DATEDIFF(DAY, 입사일, GETDATE()) <![CDATA[ < ]]> 1825 THEN N'3~5년'
+                    ELSE N'5년 이상'
+                END AS 구간
+            FROM J_직원_재직기간
+            WHERE 퇴사일 IS NULL
+        ) t
+        GROUP BY 구간
+    </select>
+
+    <!-- 최근 발령 타임라인: 최근 10건 -->
+    <select id="selectRecentTimeline" resultType="map">
+        SELECT TOP 10
+            CONVERT(CHAR(10), h.발령일, 23) AS eventDate,
+            e.이름 AS name,
+            h.발령유형 AS eventType,
+            ISNULL(h.사유, N'') AS reason
+        FROM J_직원_발령이력 h
+        JOIN J_직원 e ON h.아이디 = e.아이디
+        ORDER BY h.발령일 DESC, h.발령PK DESC
+    </select>
+
+</mapper>

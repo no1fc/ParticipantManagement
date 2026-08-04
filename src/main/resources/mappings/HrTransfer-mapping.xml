@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- HR 발령 관리 (J_직원_발령이력 append-only + 직급변경/휴직/복직 시 J_직원·J_직원_재직·J_직원_계정) -->
+<mapper namespace="HrTransferDAO">
+
+    <!-- 직원 목록: 신원 ⋈ 재직(직급·주부서명) ⋈ 부서 + 발령이력 건수. 기본 재직자. -->
+    <select id="selectEmployeeList" resultType="hrTransfer">
+        SELECT
+            e.직원번호 empNo,
+            e.아이디 userId,
+            e.이름 name,
+            e.현재재직상태 empStatus,
+            d.부서명 deptName,
+            r.직급 position,
+            (SELECT COUNT(*) FROM J_직원_발령이력 h WHERE h.아이디 = e.아이디) transferCount
+        FROM J_직원 e
+        LEFT JOIN J_직원_재직 r ON e.아이디 = r.아이디
+        LEFT JOIN J_부서 d ON r.주부서코드 = d.부서코드
+        <where>
+            <choose>
+                <when test="searchEmpStatus == null or searchEmpStatus == ''">
+                    e.현재재직상태 = N'재직'
+                </when>
+                <when test="searchEmpStatus == 'ALL'">
+                    1 = 1
+                </when>
+                <otherwise>
+                    e.현재재직상태 = #{searchEmpStatus}
+                </otherwise>
+            </choose>
+            <if test="searchName != null and searchName != ''">
+                AND e.이름 LIKE '%' + #{searchName} + '%'
+            </if>
+            <if test="searchUserId != null and searchUserId != ''">
+                AND e.아이디 LIKE '%' + #{searchUserId} + '%'
+            </if>
+        </where>
+        ORDER BY e.현재재직상태 ASC, e.이름 ASC
+    </select>
+
+    <!-- 특정 직원의 발령 타임라인. 부서코드→부서명 LEFT JOIN 2회, 날짜 CONVERT(23) ISO, 최신순. -->
+    <select id="selectTransferList" resultType="hrTransfer">
+        SELECT
+            h.발령PK transferPk,
+            h.발령유형 transferType,
+            CONVERT(CHAR(10), h.발령일, 23) transferDate,
+            h.이전부서코드 prevDept,
+            pd.부서명 prevDeptName,
+            h.신규부서코드 newDept,
+            nd.부서명 newDeptName,
+            h.이전직급 prevPosition,
+            h.신규직급 newPosition,
+            h.사유 reason
+        FROM J_직원_발령이력 h
+        LEFT JOIN J_부서 pd ON h.이전부서코드 = pd.부서코드
+        LEFT JOIN J_부서 nd ON h.신규부서코드 = nd.부서코드
+        WHERE h.아이디 = #{userId}
+        ORDER BY h.발령PK DESC
+    </select>
+
+    <!-- 직급 드롭다운 (기존 직급 값). -->
+    <select id="selectPositionList" resultType="hrTransfer">
+        SELECT DISTINCT 직급 position
+        FROM J_직원_재직
+        WHERE 직급 IS NOT NULL AND 직급 != N''
+        ORDER BY 직급
+    </select>
+
+    <!-- 현재재직상태 (컨트롤러 상태 가드용). -->
+    <select id="selectCurrentStatus" resultType="string">
+        SELECT 현재재직상태 FROM J_직원 WHERE 아이디 = #{userId}
+    </select>
+
+    <!-- 직급변경(재직자만): 발령이력 '직급변경'(이전직급 캡처+반환 카운트 신뢰) 선행 → 재직 직급 갱신.
+         재직 아니면 INSERT 0행 → false. -->
+    <update id="changePosition">
+        INSERT INTO J_직원_발령이력 (아이디, 발령유형, 발령일, 이전직급, 신규직급, 사유, 등록일시)
+        SELECT #{userId}, N'직급변경', ISNULL(#{transferDate,jdbcType=DATE}, CAST(GETDATE() AS date)),
+               r.직급, #{newPosition,jdbcType=NVARCHAR}, #{reason,jdbcType=NVARCHAR}, GETDATE()
+        FROM J_직원_재직 r JOIN J_직원 e ON r.아이디 = e.아이디
+        WHERE r.아이디 = #{userId} AND e.현재재직상태 = N'재직';
+
+        UPDATE J_직원_재직
+        SET 직급 = #{newPosition,jdbcType=NVARCHAR},
+            최종발령일 = ISNULL(#{transferDate,jdbcType=DATE}, CAST(GETDATE() AS date)),
+            수정일 = GETDATE()
+        WHERE 아이디 = #{userId}
+          AND EXISTS (SELECT 1 FROM J_직원 e WHERE e.아이디 = #{userId} AND e.현재재직상태 = N'재직');
+    </update>
+
+    <!-- 휴직(재직→휴직): 발령이력 '휴직' 선행 → 직원 '휴직' → 계정 '사용'→'정지'(트리거 무발동이라 명시, 로그인 차단).
+         전이 후 계정 정지는 EXISTS(현재재직상태='휴직') 가드로 실제 전이 시에만 실행. -->
+    <update id="startLeave">
+        INSERT INTO J_직원_발령이력 (아이디, 발령유형, 발령일, 사유, 등록일시)
+        SELECT #{userId}, N'휴직', ISNULL(#{transferDate,jdbcType=DATE}, CAST(GETDATE() AS date)),
+               #{reason,jdbcType=NVARCHAR}, GETDATE()
+        FROM J_직원 WHERE 아이디 = #{userId} AND 현재재직상태 = N'재직';
+
+        UPDATE J_직원 SET 현재재직상태 = N'휴직', 수정일 = GETDATE()
+        WHERE 아이디 = #{userId} AND 현재재직상태 = N'재직';
+
+        UPDATE J_직원_계정 SET 계정상태 = N'정지'
+        WHERE 아이디 = #{userId} AND 계정상태 = N'사용'
+          AND EXISTS (SELECT 1 FROM J_직원 WHERE 아이디 = #{userId} AND 현재재직상태 = N'휴직');
+    </update>
+
+    <!-- 복직(휴직→재직): 발령이력 '복직' 선행 → 직원 '재직' → 계정 '정지'→'사용'.
+         HrEmployee 복직(오처리취소=퇴사자)과 달리 휴직자 대상(재직기간 무변경). -->
+    <update id="returnFromLeave">
+        INSERT INTO J_직원_발령이력 (아이디, 발령유형, 발령일, 사유, 등록일시)
+        SELECT #{userId}, N'복직', ISNULL(#{transferDate,jdbcType=DATE}, CAST(GETDATE() AS date)),
+               #{reason,jdbcType=NVARCHAR}, GETDATE()
+        FROM J_직원 WHERE 아이디 = #{userId} AND 현재재직상태 = N'휴직';
+
+        UPDATE J_직원 SET 현재재직상태 = N'재직', 수정일 = GETDATE()
+        WHERE 아이디 = #{userId} AND 현재재직상태 = N'휴직';
+
+        UPDATE J_직원_계정 SET 계정상태 = N'사용'
+        WHERE 아이디 = #{userId} AND 계정상태 = N'정지'
+          AND EXISTS (SELECT 1 FROM J_직원 WHERE 아이디 = #{userId} AND 현재재직상태 = N'재직');
+    </update>
+
+</mapper>

@@ -114,6 +114,15 @@ public class BasicServiceImpl implements BasicService {
                 }
             }
 
+            // 다중 타사연계 등록 (J_참여자관리_연계 테이블에 저장, 참여자당 다중)
+            if (counselDTO.getLinkageList() != null && !counselDTO.getLinkageList().isEmpty()) {
+                counselDTO.setCounselCondition("counselLinkInsert");
+                if (!counselDAO.insert(counselDTO)) {
+                    log.error("구직 번호 [{}] 연계 정보 등록 실패", jobno);
+                    throw new RuntimeException("구직 번호 ["+jobno+"] 연계 정보 등록 실패");
+                }
+            }
+
             flag = true;
         }
         return flag;
@@ -171,6 +180,16 @@ public class BasicServiceImpl implements BasicService {
         counselDAO.delete(counselDTO);
         if (counselDTO.getWishJobList() != null && !counselDTO.getWishJobList().isEmpty()) {
             counselDTO.setCounselCondition("counselWishJobInsert");
+            if (!counselDAO.insert(counselDTO)) {
+                flag = false;
+            }
+        }
+
+        // 다중 타사연계 업데이트 (J_참여자관리_연계 테이블, delete-then-insert 패턴)
+        counselDTO.setCounselCondition("counselLinkDelete");
+        counselDAO.delete(counselDTO);
+        if (counselDTO.getLinkageList() != null && !counselDTO.getLinkageList().isEmpty()) {
+            counselDTO.setCounselCondition("counselLinkInsert");
             if (!counselDAO.insert(counselDTO)) {
                 flag = false;
             }

@@ -123,6 +123,9 @@
     <!-- selectOption JS -->
     <script defer src="/js/selectOptionJS_0.0.1.js"></script>
 
+    <!-- 다중 타사연계 관리 JS -->
+    <script defer src="/js/linkageListManager_0.0.1.js"></script>
+
     <!-- InputLimits -->
     <script defer src="/js/InputLimits_0.0.1.js"></script>
 
@@ -262,25 +265,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //간접고용서비스 목록 내용 변경
         selectOption($("#counselEmploymentService"),"${counsel.counselEmploymentService}");
 
-        //연계유형 목록 내용 변경
-        selectOption($("#counselLinkType"),"${counsel.counselLinkType}");
-
-        // 연계비고: 기타 유형 선택 시에만 표시
-        (function () {
-            const $linkType = $("#counselLinkType");
-            const $linkNote = $("#counselLinkNote");
-            const $linkNoteLabel = $("#counselLinkNoteLabel");
-            const LINK_NOTE_TYPES = new Set(["기타 일경험", "기타"]);
-
-            function toggleLinkNote() {
-                const show = LINK_NOTE_TYPES.has($linkType.val());
-                $linkNote.toggle(show);
-                $linkNoteLabel.toggle(show);
-                if (!show) { $linkNote.val(""); }
-            }
-            $linkType.on("change", toggleLinkNote);
-            toggleLinkNote();
-        })();
+        <%-- 연계 정보는 다중(linkageListManager)으로 전환됨: 유형/비고 토글은 각 행에서 처리 --%>
         <%-- 목록 내용 변경 끝 --%>
 
         let basicAntecedents = $("#basicAntecedents");
@@ -294,5 +279,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <!-- educationDiv JS -->
 <script defer src="js/educationDiv.js"></script>
+
+<script>
+    // 다중 타사연계 데이터 복원 (defer 스크립트의 ready 콜백 이후 실행되도록 window load 사용)
+    window.addEventListener('load', function () {
+        if (typeof initLinkageList === 'function') {
+            let linkageArr = [];
+            try {
+                linkageArr = JSON.parse('${linkages}');
+            } catch (e) { /* 파싱 실패 시 빈 배열 */ }
+            // 레거시 호환: 다중 데이터 없을 시 기존 단일 연계 값으로 1건 복원
+            if (!linkageArr || linkageArr.length === 0) {
+                let legacyDate = "${counsel.counselLinkDate}";
+                let legacyType = "${counsel.counselLinkType}";
+                let legacyNote = "${counsel.counselLinkNote}";
+                if (legacyDate || legacyType) {
+                    linkageArr = [{linkDate: legacyDate, linkType: legacyType, linkNote: legacyNote}];
+                }
+            }
+            initLinkageList(linkageArr);
+        }
+    });
+</script>
 
 </html>

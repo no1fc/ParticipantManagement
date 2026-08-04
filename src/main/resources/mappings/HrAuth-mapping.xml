@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  HR 로그인 인증 (독립 세션).
+  보안 민감 쿼리(비밀번호 SELECT)를 한 곳에 격리한다. 기존 HrAccount/HrSiteAccess 매퍼는
+  의도적으로 비밀번호를 노출하지 않으므로 건드리지 않는다.
+  대상: J_직원_계정 ⋈ J_직원, J_직원_사이트접속(사이트코드='HR'), J_사이트_메뉴권한(사이트코드='HR').
+-->
+<mapper namespace="HrAuthDAO">
+
+    <!-- 로그인 자격 조회: 비밀번호·계정상태를 포함한다. 지점(branch)은 표시용으로 로그인정보 뷰에서 LEFT JOIN. -->
+    <select id="selectAccountForLogin" resultType="hrAccount">
+        SELECT
+            a.아이디 userId,
+            e.이름 userName,
+            a.비밀번호 password,
+            a.계정상태 accountStatus,
+            a.로그인실패횟수 loginFailCount,
+            li.지점 branch
+        FROM J_직원_계정 a
+        JOIN J_직원 e ON a.아이디 = e.아이디
+        LEFT JOIN J_참여자관리_로그인정보 li ON a.아이디 = li.아이디
+        WHERE a.아이디 = #{userId}
+    </select>
+
+    <!-- HR 사이트 접근 게이트: 접속허용=1 행 존재 여부 -->
+    <select id="selectHrSiteAccessCount" resultType="int">
+        SELECT COUNT(*)
+        FROM J_직원_사이트접속
+        WHERE 직원아이디 = #{userId}
+          AND 사이트코드 = N'HR'
+          AND 접속허용 = 1
+    </select>
+
+    <!-- HR 사이트 역할(사이트내권한): 부서지정 행 우선, 그 다음 NULL 기본행 -->
+    <select id="selectHrSiteRole" resultType="string">
+        SELECT TOP 1 사이트내권한
+        FROM J_직원_사이트접속
+        WHERE 직원아이디 = #{userId}
+          AND 사이트코드 = N'HR'
+          AND 접속허용 = 1
+        ORDER BY CASE WHEN 부서코드 IS NOT NULL THEN 0 ELSE 1 END, 접속PK ASC
+    </select>
+
+    <!-- 역할별 메뉴 접근레벨 (메뉴코드 → 접근레벨). 시드 전이면 빈 결과. -->
+    <select id="selectHrMenuAccess" resultType="map">
+        SELECT 메뉴코드 menuCode, 접근레벨 accessLevel
+        FROM J_사이트_메뉴권한
+        WHERE 사이트코드 = N'HR'
+          AND 권한 = #{role}
+    </select>
+
+    <!-- 마지막 로그인 일시 기록 -->
+    <update id="updateLastLogin">
+        UPDATE J_직원_계정 SET 마지막로그인일시 = GETDATE() WHERE 아이디 = #{userId}
+    </update>
+
+</mapper>

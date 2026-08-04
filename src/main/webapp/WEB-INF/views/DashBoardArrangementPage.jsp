@@ -391,32 +391,33 @@ document.addEventListener('DOMContentLoaded', function () {
             return branches.map(branch => map[branch] ?? 0);
         }
         function updateBranchRanks(data) {
+            // 순위는 백엔드 DENSE_RANK(arrangementRank) 값을 그대로 사용 → 동점 지점은 같은 순위(위)로 표시.
+            const rankMap = {};
             const percentMap = {};
             const countMap = {};
             (data || []).forEach(item => {
+                rankMap[item.branch] = item.arrangementRank;
                 percentMap[item.branch] = item.arrangementRankScorePercent;
                 countMap[item.branch] = item.arrangementCount;
             });
             const items = $("#branchRankList .branch-item").get();
             items.sort(function(a, b) {
-                const percentA = percentMap[$(a).data("branch")];
-                const percentB = percentMap[$(b).data("branch")];
-                const valueA = percentA === undefined || percentA === null ? -1 : percentA;
-                const valueB = percentB === undefined || percentB === null ? -1 : percentB;
+                const rankA = rankMap[$(a).data("branch")];
+                const rankB = rankMap[$(b).data("branch")];
+                const valueA = rankA === undefined || rankA === null ? Number.MAX_SAFE_INTEGER : rankA;
+                const valueB = rankB === undefined || rankB === null ? Number.MAX_SAFE_INTEGER : rankB;
                 if (valueA !== valueB) {
-                    return valueB - valueA;
+                    return valueA - valueB;
                 }
                 return ($(a).data("default-index") || 0) - ($(b).data("default-index") || 0);
             });
             $("#branchRankList").append(items);
-            let rankCounter = 1;
             $("#branchRankList .branch-item").each(function() {
                 const branch = $(this).data("branch");
-                const percent = percentMap[branch];
-                const hasValue = percent !== undefined && percent !== null;
-                const rank = hasValue ? rankCounter++ : null;
+                const rank = rankMap[branch];
+                const hasValue = rank !== undefined && rank !== null;
                 const count = countMap[branch] ?? 0;
-                const percentText = formatScore(percent);
+                const percentText = formatScore(percentMap[branch]);
                 const baseClasses = "branch-item flex items-center justify-between gap-2 rounded-full px-3 py-2";
                 const rankClasses = rank === 1
                     ? "bg-amber-100 text-amber-900 ring-1 ring-amber-200"
@@ -430,12 +431,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 $(this).find(".branch-rank").text(rank ? rank + "위" : "-위");
             });
         }
+        // 공동 순위 카드 렌더 헬퍼: 동점 지점이 여러 개면 지점명을 함께 표시하고 건수는 각각, 점수는 공통값 표시.
+        function renderRankCard(rankArray, branchSelector, countSelector) {
+            const arr = Array.isArray(rankArray) ? rankArray : (rankArray ? [rankArray] : []);
+            if (arr.length === 0) {
+                $(branchSelector).text("-");
+                $(countSelector).text("0/0.00");
+                return;
+            }
+            const names = arr.map(r => r.branch).join(", ");
+            const counts = arr.map(r => (r.arrangementCount == null ? 0 : r.arrangementCount)).join(",");
+            // 동점(공동 순위)이므로 점수퍼센트는 동일 → 첫 요소 기준 표시
+            const score = arr[0].arrangementRankScorePercent;
+            $(branchSelector).text(names);
+            $(countSelector).text(counts + "/" + formatScore(score));
+        }
+
         function updateCards(cardData) {
             const data = Array.isArray(cardData) ? cardData[0] : cardData;
-            const firstCount = data && data.firstRank ? data.firstRank.arrangementCount : 0;
-            const firstRate = data && data.firstRank ? data.firstRank.arrangementRankScorePercent : null;
-            const secondCount = data && data.secondRank ? data.secondRank.arrangementCount : 0;
-            const secondRate = data && data.secondRank ? data.secondRank.arrangementRankScorePercent : null;
 
             const $arrangementMonth = $("#arrangementMonth");
 
@@ -456,10 +469,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             $("#totalArrangementValue").text(data ? data.totalArrangement : 0);
-            $("#firstRankBranch").text(data && data.firstRank ? data.firstRank.branch : "-");
-            $("#firstRankCount").text(firstCount + "/" + formatScore(firstRate));
-            $("#secondRankBranch").text(data && data.secondRank ? data.secondRank.branch : "-");
-            $("#secondRankCount").text(secondCount + "/" + formatScore(secondRate));
+            renderRankCard(data ? data.firstRank : [], "#firstRankBranch", "#firstRankCount");
+            renderRankCard(data ? data.secondRank : [], "#secondRankBranch", "#secondRankCount");
             $("#achievementRateValue").text(data ? data.previousMonthAchievementRate : 0);
         }
         function updateChart(chartData) {

@@ -1,0 +1,40 @@
+/* HR 근속정책 관리 페이지 스타일 (데모) — adminCommon 남색 톤 보강 */
+
+.hr-demo-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #fff;
+    background: #c0392b;
+    border-radius: 4px;
+    padding: 2px 6px;
+    vertical-align: middle;
+    margin-left: 6px;
+}
+
+.hr-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 4px;
+    padding: 2px 8px;
+}
+
+.hr-badge-on { color: #1d3a5f; background: #dce6f2; }
+.hr-badge-off { color: #6c757d; background: #e9ecef; }
+
+/* 정책 안내 배너 */
+.hr-policy-hint {
+    background: #eef4fb;
+    border: 1px solid #cfe0f2;
+    border-left: 4px solid #1d3a5f;
+    color: #35455a;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.hr-policy-hint .bi { color: #1d3a5f; margin-right: 4px; }
+.hr-policy-hint strong { color: #1d3a5f; }

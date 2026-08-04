@@ -1,7 +1,9 @@
 /**
  * @file 일일업무보고 페이지 스크립트 (실적 입력, 날짜 관리, datepicker)
- * @version 0.0.1
+ * @version 0.0.2
  * @requires jQuery, Bootstrap Datepicker
+ * @changelog 0.0.2 - 날짜 선택 시 해당 날짜 저장 스냅샷 로드(loadDailyReportByDate) 추가,
+ *                    initializeValues 의 기간 불일치 리셋 로직 제거(날짜별 로드가 폼을 채움).
  */
 let year = $('#year');
 let today = new Date();
@@ -128,32 +130,52 @@ const getWeek = (date) => {
     return Math.floor(diffDays / 7) + 1;
 };
 
-const isDateMatch = (lastDate, today, condition) => {
-    const strategies = {
-        year:  () => today.getFullYear() === lastDate.getFullYear(),
-        month: () => today.getMonth() === lastDate.getMonth(),
-        week:  () => getWeek(today) === getWeek(lastDate),
-        day:   () => today.getDate() === lastDate.getDate()
-    };
-    return strategies[condition] ? strategies[condition]() : false;
-};
-
-const initializeValues = () => {
-    const lastSavedDate = new Date($('#lastSavedDate').val());
-    const today = new Date();
-    const resetConfig = {
-        year:  [SELECTORS.YEAR_EMPLOYMENT, SELECTORS.YEAR_PLACEMENT],
-        month: [SELECTORS.MONTH_EMPLOYMENT, SELECTORS.MONTH_PLACEMENT],
-        week:  [SELECTORS.WEEK_EMPLOYMENT, SELECTORS.WEEK_PLACEMENT],
-        day:   [SELECTORS.TODAY_EMPLOYMENT, SELECTORS.TODAY_PLACEMENT, SELECTORS.TODAY_PERSONNEL_ONE_TYPE_CLASS,
-            SELECTORS.TODAY_PERSONNEL_TWO_TYPE_CLASS, SELECTORS.TODAY_PERSONNEL_ONE_TYPE, SELECTORS.TODAY_PERSONNEL_TWO_TYPE]
-    };
-
-    Object.keys(resetConfig).forEach(period => {
-        if (!isDateMatch(lastSavedDate, today, period)) {
-            resetConfig[period].forEach(selector => $(selector).val(0));
+/**
+ * 선택 날짜(YYYY-MM-DD)의 지점 일일보고 스냅샷을 조회해 폼을 채운다.
+ * 저장 이력이 없는 날짜는 서버가 모든 실적을 0으로 반환하므로 그대로 0이 채워진다.
+ * @param {string} date - 조회할 업무보고일 (YYYY-MM-DD)
+ */
+function loadDailyReportByDate(date) {
+    if (!date) {
+        return;
+    }
+    $.ajax({
+        url: '/dashboard/branchReportSelect.login',
+        method: 'POST',
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify({ dailyUpdateStatusDate: date }),
+        success: function (res) {
+            if (!res || !res.flag) {
+                console.warn('일일보고 날짜 조회 실패:', res && res.message);
+                return;
+            }
+            const users = res.users || [];
+            users.forEach(function (u) {
+                const id = u.userID;
+                $('#todayPersonnelOneType_' + id).val(u.todayPersonnelOneType);
+                $('#todayPersonnelTwoType_' + id).val(u.todayPersonnelTwoType);
+                $('#todayEmployment_' + id).val(u.memberTodayEmployment);
+                $('#todayPlacement_' + id).val(u.memberTodayPlacement);
+                $('#toWeekEmployment_' + id).val(u.memberToWeekEmployment);
+                $('#toWeekPlacement_' + id).val(u.memberToWeekPlacement);
+                $('#toMonthEmployment_' + id).val(u.memberToMonthEmployment);
+                $('#toMonthPlacement_' + id).val(u.memberToMonthPlacement);
+                $('#toYearEmployment_' + id).val(u.memberToYearEmployment);
+                $('#toYearPlacement_' + id).val(u.memberToYearPlacement);
+            });
+            // 지점 배정 합계(유형1/유형2). 해당 입력이 없으면 no-op.
+            $('#branchType1').val(res.branchType1);
+            $('#branchType2').val(res.branchType2);
+        },
+        error: function (xhr) {
+            console.error('일일보고 날짜 조회 오류:', xhr && xhr.responseText);
         }
     });
+}
+
+const initializeValues = () => {
+    const today = new Date();
+
     function leftPad(value) {
         if (value >= 10) {
             return value;
@@ -171,6 +193,7 @@ const initializeValues = () => {
         return [year, month, day].join(delimiter);
     }
 
+    // 날짜만 오늘로 세팅. 실적 값은 loadDailyReportByDate(날짜)가 채운다(리셋 로직 제거).
     $('#dailyReportDate').val(toStringByFormatting(today));
 };
 
@@ -221,5 +244,3 @@ function default_datepicker(datepicker_on) {
 }
 
 /* datepicker JS End */
-
-

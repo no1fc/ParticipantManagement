@@ -1,0 +1,61 @@
+/* HR 발령 관리 페이지 스타일 (데모) — adminCommon 남색 톤 */
+
+.hr-demo-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #fff;
+    background: #c0392b;
+    border-radius: 4px;
+    padding: 2px 6px;
+    vertical-align: middle;
+    margin-left: 6px;
+}
+
+.hr-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 4px;
+    padding: 2px 8px;
+    color: #6c757d;
+    background: #e9ecef;
+}
+
+/* 재직상태 배지 */
+.hr-badge-active   { color: #14532d; background: #d4edda; }
+.hr-badge-leave    { color: #7a4f01; background: #ffe8c2; }
+.hr-badge-resigned { color: #6c757d; background: #e9ecef; }
+
+/* 발령유형 배지 */
+.hr-tt-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    border-radius: 4px;
+    padding: 2px 8px;
+    color: #fff;
+}
+.hr-tt-join  { background: #2e7d32; }  /* 입사/재입사/복직 */
+.hr-tt-leave { background: #6c757d; }  /* 퇴사 */
+.hr-tt-pause { background: #b8860b; }  /* 휴직 */
+.hr-tt-move  { background: #1d3a5f; }  /* 부서이동/겸직 */
+.hr-tt-rank  { background: #5a4b81; }  /* 직급변경 */
+.hr-tt-etc   { background: #adb5bd; }
+
+/* 모달 안내/힌트 */
+.hr-transfer-hint {
+    font-size: 0.78rem;
+    color: #5a6b82;
+    background: #f4f7fb;
+    border-left: 3px solid #1d3a5f;
+    border-radius: 4px;
+    padding: 8px 12px;
+}
+
+/* 타임라인 테이블 헤더 강조 */
+#timelineTable thead th {
+    background: #eef2f7;
+    color: #1d3a5f;
+    font-weight: 700;
+}

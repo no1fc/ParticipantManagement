@@ -1,0 +1,76 @@
+/* HR 인원현황 대시보드 페이지 스타일 (데모) — adminCommon 남색 톤 */
+
+.hr-demo-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #fff;
+    background: #c0392b;
+    border-radius: 4px;
+    padding: 2px 6px;
+    vertical-align: middle;
+    margin-left: 6px;
+}
+
+/* 요약 카드 그리드 */
+.hr-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin-bottom: 4px;
+}
+
+@media (max-width: 991px) {
+    .hr-summary-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.hr-summary-card {
+    background: #fff;
+    border: 1px solid #e5e9f0;
+    border-left: 4px solid #1d3a5f;
+    border-radius: 8px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 2px rgba(29, 58, 95, 0.05);
+}
+
+.hr-sc-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #5a6b82;
+    margin-bottom: 6px;
+}
+
+.hr-sc-value {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: #1d3a5f;
+    line-height: 1;
+}
+
+/* 카드별 강조색 (좌측 보더) */
+.hr-sc-active   { border-left-color: #1d3a5f; }
+.hr-sc-leave    { border-left-color: #e08e0b; }
+.hr-sc-resigned { border-left-color: #6c757d; }
+.hr-sc-hire     { border-left-color: #2e86c1; }
+.hr-sc-resign   { border-left-color: #c0392b; }
+
+/* 차트/테이블 카드 제목 */
+.hr-card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1d3a5f;
+    padding: 4px 4px 12px;
+    border-bottom: 1px solid #eef1f5;
+    margin-bottom: 12px;
+}
+
+/* 타임라인 발령유형 배지 */
+.hr-event-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #1d3a5f;
+    background: #dce6f2;
+    border-radius: 4px;
+    padding: 2px 8px;
+}

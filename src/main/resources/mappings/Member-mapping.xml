@@ -281,15 +281,24 @@
         VALUES (#{memberUserID}, N'COUNSEL', NULL, 1, NULL);
     </insert>
 
-    <!-- 조회순서/일일업무일지발급여부 → 상담 전용 프로필(J_직원_참여자관리_프로필) 직격 -->
+    <!-- 조회순서/일일업무일지발급여부 → 상담 전용 프로필(J_직원_참여자관리_프로필) 직격.
+         프로필 행이 없는 상담사도 자기 치유(self-heal)되도록 IF EXISTS UPSERT + separator=";" 로 구성.
+         (구분자 없는 다중 UPDATE 배치는 executeUpdate rowcount 가 불안정 → flag 오판정 방지) -->
     <update id="memberOrderUpdate">
-        <foreach collection="userIds" item="userId" index="index">
+        <foreach collection="userIds" item="userId" index="index" separator=";">
+            IF EXISTS (SELECT 1 FROM J_직원_참여자관리_프로필 WHERE 직원아이디 = #{userId})
+            BEGIN
                 UPDATE J_직원_참여자관리_프로필
                 SET
                     조회순서 = #{index},
                     일일업무일지발급여부 = #{memberDailyWorkDiaryIssuances[${index}], jdbcType=BOOLEAN}
                 WHERE
                     직원아이디 = #{userId}
+            END
+            ELSE BEGIN
+                INSERT INTO J_직원_참여자관리_프로필 (직원아이디, 조회순서, 일일업무일지발급여부)
+                VALUES (#{userId}, #{index}, #{memberDailyWorkDiaryIssuances[${index}], jdbcType=BOOLEAN})
+            END
         </foreach>
     </update>
 

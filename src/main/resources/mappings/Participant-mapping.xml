@@ -77,8 +77,8 @@
                     <if test="searchTypeList.contains('noInitial')">
                         OR A.초기상담일 = ''
                     </if>
-                    <if test="searchTypeList.contains('recent21')">
-                        OR (DATEDIFF(DAY, A.최근상담일, GETDATE()) <![CDATA[>=]]> 21
+                    <if test="searchTypeList.contains('recent26')">
+                        OR (DATEDIFF(DAY, A.최근상담일, GETDATE()) <![CDATA[>=]]> 26
                             AND A.최근상담일 <![CDATA[<>]]> '')
                     </if>
                     <if test="searchTypeList.contains('jobExpire')">
@@ -87,6 +87,11 @@
                     </if>
                     <if test="searchTypeList.contains('periodExpire')">
                         OR (DATEDIFF(DAY, GETDATE(), A.기간만료일) <![CDATA[<=]]> 15
+                            AND A.기간만료일 <![CDATA[<>]]> ''
+                            AND A.최근상담일 <![CDATA[<>]]> '')
+                    </if>
+                    <if test="searchTypeList.contains('periodExpired')">
+                        OR (DATEDIFF(DAY, GETDATE(), A.기간만료일) <![CDATA[<=]]> 0
                             AND A.기간만료일 <![CDATA[<>]]> ''
                             AND A.최근상담일 <![CDATA[<>]]> '')
                     </if>
@@ -104,8 +109,8 @@
                     <when test="searchType != null and searchType == 'noInitial'">
                         AND A.초기상담일 = ''
                     </when>
-                    <when test="searchType != null and searchType == 'recent21'">
-                        AND DATEDIFF(DAY, A.최근상담일, GETDATE()) <![CDATA[>=]]> 21
+                    <when test="searchType != null and searchType == 'recent26'">
+                        AND DATEDIFF(DAY, A.최근상담일, GETDATE()) <![CDATA[>=]]> 26
                         AND A.최근상담일 <![CDATA[<>]]> ''
                     </when>
                     <when test="searchType != null and searchType == 'jobExpire'">
@@ -114,6 +119,11 @@
                     </when>
                     <when test="searchType != null and searchType == 'periodExpire'">
                         AND DATEDIFF(DAY, GETDATE(), A.기간만료일) <![CDATA[<=]]> 15
+                        AND A.기간만료일 <![CDATA[<>]]> ''
+                        AND A.최근상담일 <![CDATA[<>]]> ''
+                    </when>
+                    <when test="searchType != null and searchType == 'periodExpired'">
+                        AND DATEDIFF(DAY, GETDATE(), A.기간만료일) <![CDATA[<=]]> 0
                         AND A.기간만료일 <![CDATA[<>]]> ''
                         AND A.최근상담일 <![CDATA[<>]]> ''
                     </when>

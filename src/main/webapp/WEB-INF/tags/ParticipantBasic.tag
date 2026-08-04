@@ -49,6 +49,7 @@
                     <select class="form-select" aria-label="Default select example" id="basicRecruit" name="basicRecruit">
                         <option selected value="센터배정">센터배정</option>
                         <option value="자체모집(대학)">자체모집(대학)</option>
+                        <option value="자체모집(폴리텍)">자체모집(폴리텍)</option>
                         <option value="자체모집(고교)">자체모집(고교)</option>
                         <option value="자체모집(훈련기관)">자체모집(훈련기관)</option>
                         <option value="자체모집(당사_희망리턴패키지)">자체모집(당사_희망리턴패키지)</option>

@@ -14,6 +14,7 @@
         <typeAlias type="com.jobmoa.app.CounselMain.biz.participantBasic.BasicDTO" alias="basic" />
         <typeAlias type="com.jobmoa.app.CounselMain.biz.participantCounsel.CounselDTO" alias="counsel" />
         <typeAlias type="com.jobmoa.app.CounselMain.biz.participantCounsel.WishJobDTO" alias="wishJob" />
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.participantCounsel.LinkageDTO" alias="linkage" />
         <typeAlias type="com.jobmoa.app.CounselMain.biz.participantEmployment.EmploymentDTO" alias="employment" />
         <typeAlias type="com.jobmoa.app.CounselMain.biz.particcertif.ParticcertifDTO" alias="particcertif" />
         <typeAlias type="com.jobmoa.app.CounselMain.biz.participantEducation.EducationDTO" alias="education" />
@@ -40,6 +41,15 @@
         <typeAlias type="com.jobmoa.app.CounselMain.biz.schedule.ScheduleDTO" alias="schedule" />
         <typeAlias type="com.jobmoa.app.CounselMain.biz.recommend.JobPostingCopyDTO" alias="jobPostingCopy"/>
         <typeAlias type="com.jobmoa.app.CounselMain.biz.linkagePopup.LinkagePopupSettingDTO" alias="linkagePopupSetting"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrDepartmentDTO" alias="hrDepartment"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrAccountDTO" alias="hrAccount"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrSiteAccessDTO" alias="hrSiteAccess"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrDashboardDTO" alias="hrDashboard"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrEmployeeDTO" alias="hrEmployee"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrTenurePolicyDTO" alias="hrTenurePolicy"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrEmploymentDTO" alias="hrEmployment"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrAssignmentDTO" alias="hrAssignment"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.hr.HrTransferDTO" alias="hrTransfer"/>
 
     </typeAliases>
 
@@ -68,5 +78,15 @@
         <mapper resource="mappings/Schedule-mapping.xml"/>
         <mapper resource="mappings/Permission-mapping.xml"/>
         <mapper resource="mappings/LinkagePopup-mapping.xml"/>
+        <mapper resource="mappings/HrDepartment-mapping.xml"/>
+        <mapper resource="mappings/HrAccount-mapping.xml"/>
+        <mapper resource="mappings/HrSiteAccess-mapping.xml"/>
+        <mapper resource="mappings/HrAuth-mapping.xml"/>
+        <mapper resource="mappings/HrDashboard-mapping.xml"/>
+        <mapper resource="mappings/HrEmployee-mapping.xml"/>
+        <mapper resource="mappings/HrTenurePolicy-mapping.xml"/>
+        <mapper resource="mappings/HrEmployment-mapping.xml"/>
+        <mapper resource="mappings/HrAssignment-mapping.xml"/>
+        <mapper resource="mappings/HrTransfer-mapping.xml"/>
     </mappers>
 </configuration>

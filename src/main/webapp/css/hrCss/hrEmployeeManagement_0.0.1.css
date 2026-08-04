@@ -1,0 +1,52 @@
+/* HR 직원 관리 페이지 스타일 (데모) — adminCommon 남색 톤 */
+
+.hr-demo-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #fff;
+    background: #c0392b;
+    border-radius: 4px;
+    padding: 2px 6px;
+    vertical-align: middle;
+    margin-left: 6px;
+}
+
+.hr-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 4px;
+    padding: 2px 8px;
+    color: #6c757d;
+    background: #e9ecef;
+}
+
+/* 재직상태 배지 */
+.hr-badge-active   { color: #14532d; background: #d4edda; }
+.hr-badge-leave    { color: #7a4f01; background: #ffe8c2; }
+.hr-badge-resigned { color: #6c757d; background: #e9ecef; }
+
+/* 계정상태 배지 */
+.hr-badge-on  { color: #1d3a5f; background: #dce6f2; }
+.hr-badge-off { color: #842029; background: #f8d7da; }
+
+/* 모달 폼 섹션 헤더 */
+.hr-form-section {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1d3a5f;
+    border-bottom: 1px solid #eef1f5;
+    padding-bottom: 6px;
+    margin-bottom: 4px;
+}
+
+.hr-form-hint {
+    font-size: 0.78rem;
+    color: #5a6b82;
+    background: #f4f7fb;
+    border-left: 3px solid #1d3a5f;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 0;
+}

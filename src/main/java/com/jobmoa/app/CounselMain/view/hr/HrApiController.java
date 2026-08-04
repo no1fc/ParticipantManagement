@@ -1,0 +1,584 @@
+package com.jobmoa.app.CounselMain.view.hr;
+
+import com.jobmoa.app.CounselMain.biz.hr.HrAccountDTO;
+import com.jobmoa.app.CounselMain.biz.hr.HrAccountService;
+import com.jobmoa.app.CounselMain.biz.hr.HrAssignmentDTO;
+import com.jobmoa.app.CounselMain.biz.hr.HrAssignmentService;
+import com.jobmoa.app.CounselMain.biz.hr.HrTransferDTO;
+import com.jobmoa.app.CounselMain.biz.hr.HrTransferService;
+import com.jobmoa.app.CounselMain.biz.hr.HrDashboardService;
+import com.jobmoa.app.CounselMain.biz.hr.HrEmployeeDTO;
+import com.jobmoa.app.CounselMain.biz.hr.HrEmployeeService;
+import com.jobmoa.app.CounselMain.biz.hr.HrEmploymentDTO;
+import com.jobmoa.app.CounselMain.biz.hr.HrEmploymentService;
+import com.jobmoa.app.CounselMain.biz.hr.HrDepartmentDTO;
+import com.jobmoa.app.CounselMain.biz.hr.HrDepartmentService;
+import com.jobmoa.app.CounselMain.biz.hr.HrSiteAccessDTO;
+import com.jobmoa.app.CounselMain.biz.hr.HrSiteAccessService;
+import com.jobmoa.app.CounselMain.biz.hr.HrTenurePolicyDTO;
+import com.jobmoa.app.CounselMain.biz.hr.HrTenurePolicyService;
+import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * HR(입퇴사자관리) REST API 컨트롤러.
+ * <p>부서/조직, 계정, 사이트 접속·권한 CRUD를 제공한다. 모든 API는 시스템 관리자 권한 검증 후 처리된다(데모).</p>
+ *
+ * @see HrPageController
+ * @see AdminAccessSupport
+ */
+@Slf4j
+@RestController
+@RequestMapping("/hr/api")
+public class HrApiController {
+
+    @Autowired
+    private HrDepartmentService hrDepartmentService;
+
+    @Autowired
+    private HrAccountService hrAccountService;
+
+    @Autowired
+    private HrSiteAccessService hrSiteAccessService;
+
+    @Autowired
+    private HrDashboardService hrDashboardService;
+
+    @Autowired
+    private HrEmployeeService hrEmployeeService;
+
+    @Autowired
+    private HrTenurePolicyService hrTenurePolicyService;
+
+    @Autowired
+    private HrEmploymentService hrEmploymentService;
+
+    @Autowired
+    private HrAssignmentService hrAssignmentService;
+
+    @Autowired
+    private HrTransferService hrTransferService;
+
+    /** HR 로그인({@code HR_LOGIN_DATA}) 여부를 확인한다. 미인증이면 401, 인증이면 null.
+     *  ({@link HrApiInterceptor}가 1차 차단하며 이 검증은 방어적 이중 확인이다.) */
+    private ResponseEntity<Map<String, Object>> checkManager(HttpSession session) {
+        if (!HrAccessSupport.isAuthed(session)) {
+            return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요합니다."));
+        }
+        return null;
+    }
+
+    private Map<String, Object> result(boolean success, String message) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("success", success);
+        map.put("message", message);
+        return map;
+    }
+
+    // ===== 인원현황 대시보드 (읽기전용) =====
+    @GetMapping("/dashboard")
+    public ResponseEntity<?> getDashboard(HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrDashboardService.getDashboard());
+    }
+
+    // ===== 직원 관리 =====
+    @GetMapping("/employees")
+    public ResponseEntity<?> getEmployees(HrEmployeeDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrEmployeeService.getEmployeeList(dto));
+    }
+
+    @GetMapping("/employees/{userId}")
+    public ResponseEntity<?> getEmployee(@PathVariable String userId, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrEmployeeDTO dto = new HrEmployeeDTO();
+        dto.setUserId(userId);
+        return ResponseEntity.ok(hrEmployeeService.getEmployeeOne(dto));
+    }
+
+    @PostMapping("/employees")
+    public ResponseEntity<?> addEmployee(@RequestBody HrEmployeeDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        if (dto.getUserId() == null || dto.getUserId().isBlank()) {
+            return ResponseEntity.ok(result(false, "아이디는 필수입니다."));
+        }
+        if (dto.getName() == null || dto.getName().isBlank()) {
+            return ResponseEntity.ok(result(false, "이름은 필수입니다."));
+        }
+        if (dto.getPassword() == null || dto.getPassword().isBlank()) {
+            return ResponseEntity.ok(result(false, "비밀번호는 필수입니다."));
+        }
+        if (dto.getDeptCode() == null || dto.getDeptCode().isBlank()) {
+            return ResponseEntity.ok(result(false, "주부서는 필수입니다."));
+        }
+        if (hrEmployeeService.isUserIdExists(dto)) {
+            return ResponseEntity.ok(result(false, "이미 존재하는 아이디입니다."));
+        }
+        boolean success = hrEmployeeService.addEmployee(dto);
+        return ResponseEntity.ok(result(success, success ? "직원이 등록되었습니다." : "등록에 실패했습니다."));
+    }
+
+    @PutMapping("/employees/{userId}")
+    public ResponseEntity<?> updateEmployee(@PathVariable String userId, @RequestBody HrEmployeeDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        dto.setUserId(userId);
+        boolean success = hrEmployeeService.modifyEmployee(dto);
+        return ResponseEntity.ok(result(success, success ? "직원 정보가 수정되었습니다." : "수정에 실패했습니다."));
+    }
+
+    @DeleteMapping("/employees/{userId}")
+    public ResponseEntity<?> resignEmployee(@PathVariable String userId, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrEmployeeDTO dto = new HrEmployeeDTO();
+        dto.setUserId(userId);
+        boolean success = hrEmployeeService.resignEmployee(dto);
+        return ResponseEntity.ok(result(success, success ? "직원이 퇴사 처리되었습니다.(계정 자동 정지)" : "퇴사 처리에 실패했습니다."));
+    }
+
+    @PostMapping("/employees/{userId}/reactivate")
+    public ResponseEntity<?> reactivateEmployee(@PathVariable String userId, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrEmployeeDTO dto = new HrEmployeeDTO();
+        dto.setUserId(userId);
+        boolean success = hrEmployeeService.reactivateEmployee(dto);
+        return ResponseEntity.ok(result(success, success ? "직원이 복직 처리되었습니다.(계정 재활성화)" : "복직 처리에 실패했습니다."));
+    }
+
+    // ===== 입퇴사 관리 (재입사/퇴사/cycle 편집) =====
+    @GetMapping("/employments")
+    public ResponseEntity<?> getEmployments(HrEmploymentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrEmploymentService.getEmployeeList(dto));
+    }
+
+    @GetMapping("/employments/{userId}/cycles")
+    public ResponseEntity<?> getEmploymentCycles(@PathVariable String userId, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrEmploymentDTO dto = new HrEmploymentDTO();
+        dto.setUserId(userId);
+        return ResponseEntity.ok(hrEmploymentService.getCycleList(dto));
+    }
+
+    @PostMapping("/employments/{userId}/rehire")
+    public ResponseEntity<?> rehire(@PathVariable String userId, @RequestBody HrEmploymentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        dto.setUserId(userId);
+        if (dto.getHireDate() == null || dto.getHireDate().isBlank()) {
+            return ResponseEntity.ok(result(false, "재입사 입사일은 필수입니다."));
+        }
+        if (!isValidWeightNullable(dto.getWeightPercent())) {
+            return ResponseEntity.ok(result(false, "가중퍼센트는 0~100 사이여야 합니다."));
+        }
+        if (hrEmploymentService.hasOpenCycle(dto)) {
+            return ResponseEntity.ok(result(false, "이미 재직 중입니다. 재입사는 퇴사 상태에서만 가능합니다."));
+        }
+        boolean success = hrEmploymentService.rehire(dto);
+        return ResponseEntity.ok(result(success, success ? "재입사 처리되었습니다.(새 재직 cycle 생성 · 계정 재활성화)" : "재입사 처리에 실패했습니다."));
+    }
+
+    @PostMapping("/employments/{userId}/resign")
+    public ResponseEntity<?> resignEmployment(@PathVariable String userId, @RequestBody HrEmploymentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        dto.setUserId(userId);
+        if (!hrEmploymentService.hasOpenCycle(dto)) {
+            return ResponseEntity.ok(result(false, "재직 중인 cycle이 없어 퇴사 처리할 수 없습니다."));
+        }
+        boolean success = hrEmploymentService.resign(dto);
+        return ResponseEntity.ok(result(success, success ? "퇴사 처리되었습니다.(계정 자동 정지)" : "퇴사 처리에 실패했습니다."));
+    }
+
+    @PutMapping("/employments/cycle/{cyclePk}")
+    public ResponseEntity<?> updateEmploymentCycle(@PathVariable int cyclePk, @RequestBody HrEmploymentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        if (dto.getUserId() == null || dto.getUserId().isBlank()) {
+            return ResponseEntity.ok(result(false, "직원아이디가 필요합니다."));
+        }
+        if (!isValidWeightNullable(dto.getWeightPercent())) {
+            return ResponseEntity.ok(result(false, "가중퍼센트는 0~100 사이여야 합니다."));
+        }
+        dto.setCyclePk(cyclePk);
+        boolean success = hrEmploymentService.updateCycle(dto);
+        return ResponseEntity.ok(result(success, success ? "cycle 정보가 수정되었습니다." : "수정에 실패했습니다."));
+    }
+
+    // ===== 부서/조직 관리 =====
+    @GetMapping("/departments")
+    public ResponseEntity<?> getDepartments(HrDepartmentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrDepartmentService.getDepartmentList(dto));
+    }
+
+    @GetMapping("/departments/{deptCode}")
+    public ResponseEntity<?> getDepartment(@PathVariable String deptCode, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrDepartmentDTO dto = new HrDepartmentDTO();
+        dto.setDeptCode(deptCode);
+        return ResponseEntity.ok(hrDepartmentService.getDepartmentOne(dto));
+    }
+
+    @PostMapping("/departments")
+    public ResponseEntity<?> addDepartment(@RequestBody HrDepartmentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        if (dto.getDeptCode() == null || dto.getDeptCode().isBlank()) {
+            return ResponseEntity.ok(result(false, "부서코드는 필수입니다."));
+        }
+        if (hrDepartmentService.isDeptCodeExists(dto)) {
+            return ResponseEntity.ok(result(false, "이미 존재하는 부서코드입니다."));
+        }
+        boolean success = hrDepartmentService.addDepartment(dto);
+        return ResponseEntity.ok(result(success, success ? "부서가 등록되었습니다." : "등록에 실패했습니다."));
+    }
+
+    @PutMapping("/departments/{deptCode}")
+    public ResponseEntity<?> updateDepartment(@PathVariable String deptCode, @RequestBody HrDepartmentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        dto.setDeptCode(deptCode);
+        boolean success = hrDepartmentService.modifyDepartment(dto);
+        return ResponseEntity.ok(result(success, success ? "부서 정보가 수정되었습니다." : "수정에 실패했습니다."));
+    }
+
+    @DeleteMapping("/departments/{deptCode}")
+    public ResponseEntity<?> deleteDepartment(@PathVariable String deptCode, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrDepartmentDTO dto = new HrDepartmentDTO();
+        dto.setDeptCode(deptCode);
+        boolean success = hrDepartmentService.removeDepartment(dto);
+        return ResponseEntity.ok(result(success, success ? "부서가 비활성화되었습니다." : "비활성화에 실패했습니다."));
+    }
+
+    // ===== 계정 관리 =====
+    @GetMapping("/accounts")
+    public ResponseEntity<?> getAccounts(HrAccountDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrAccountService.getAccountList(dto));
+    }
+
+    @GetMapping("/accounts/{userId}")
+    public ResponseEntity<?> getAccount(@PathVariable String userId, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrAccountDTO dto = new HrAccountDTO();
+        dto.setUserId(userId);
+        return ResponseEntity.ok(hrAccountService.getAccountOne(dto));
+    }
+
+    @PutMapping("/accounts/{userId}/status")
+    public ResponseEntity<?> changeAccountStatus(@PathVariable String userId, @RequestBody HrAccountDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        dto.setUserId(userId);
+        boolean success = hrAccountService.changeStatus(dto);
+        return ResponseEntity.ok(result(success, success ? "계정 상태가 변경되었습니다." : "변경에 실패했습니다."));
+    }
+
+    @PostMapping("/accounts/{userId}/reset-password")
+    public ResponseEntity<?> resetPassword(@PathVariable String userId, @RequestBody HrAccountDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        if (dto.getPassword() == null || dto.getPassword().isBlank()) {
+            return ResponseEntity.ok(result(false, "임시 비밀번호를 입력하세요."));
+        }
+        dto.setUserId(userId);
+        boolean success = hrAccountService.resetPassword(dto);
+        return ResponseEntity.ok(result(success, success ? "비밀번호가 초기화되었습니다." : "초기화에 실패했습니다."));
+    }
+
+    @PostMapping("/accounts/{userId}/unlock")
+    public ResponseEntity<?> unlockAccount(@PathVariable String userId, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrAccountDTO dto = new HrAccountDTO();
+        dto.setUserId(userId);
+        boolean success = hrAccountService.unlock(dto);
+        return ResponseEntity.ok(result(success, success ? "잠금이 해제되었습니다." : "해제에 실패했습니다."));
+    }
+
+    // ===== 사이트 접속·권한 관리 =====
+    @GetMapping("/site-access")
+    public ResponseEntity<?> getSiteAccess(HrSiteAccessDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrSiteAccessService.getSiteAccessList(dto));
+    }
+
+    @GetMapping("/site-access/{accessPk}")
+    public ResponseEntity<?> getSiteAccessOne(@PathVariable int accessPk, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrSiteAccessDTO dto = new HrSiteAccessDTO();
+        dto.setAccessPk(accessPk);
+        return ResponseEntity.ok(hrSiteAccessService.getSiteAccessOne(dto));
+    }
+
+    @PostMapping("/site-access")
+    public ResponseEntity<?> addSiteAccess(@RequestBody HrSiteAccessDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        if (dto.getUserId() == null || dto.getUserId().isBlank() || dto.getSiteCode() == null || dto.getSiteCode().isBlank()) {
+            return ResponseEntity.ok(result(false, "직원아이디와 사이트는 필수입니다."));
+        }
+        if (hrSiteAccessService.isSiteAccessExists(dto)) {
+            return ResponseEntity.ok(result(false, "이미 부여된 (직원·사이트·부서) 접속입니다."));
+        }
+        boolean success = hrSiteAccessService.addSiteAccess(dto);
+        return ResponseEntity.ok(result(success, success ? "사이트 접속이 부여되었습니다." : "부여에 실패했습니다."));
+    }
+
+    @PutMapping("/site-access/{accessPk}")
+    public ResponseEntity<?> updateSiteAccess(@PathVariable int accessPk, @RequestBody HrSiteAccessDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        dto.setAccessPk(accessPk);
+        boolean success = hrSiteAccessService.modifySiteAccess(dto);
+        return ResponseEntity.ok(result(success, success ? "접속 정보가 수정되었습니다." : "수정에 실패했습니다."));
+    }
+
+    @DeleteMapping("/site-access/{accessPk}")
+    public ResponseEntity<?> deleteSiteAccess(@PathVariable int accessPk, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrSiteAccessDTO dto = new HrSiteAccessDTO();
+        dto.setAccessPk(accessPk);
+        boolean success = hrSiteAccessService.removeSiteAccess(dto);
+        return ResponseEntity.ok(result(success, success ? "사이트 접속이 회수되었습니다." : "회수에 실패했습니다."));
+    }
+
+    /** 사이트 드롭다운 목록 (J_사이트). */
+    @GetMapping("/sites")
+    public ResponseEntity<?> getSites(HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrSiteAccessService.getSiteList());
+    }
+
+    // ===== 근속정책 관리 =====
+    @GetMapping("/tenure-policies")
+    public ResponseEntity<?> getTenurePolicies(HrTenurePolicyDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrTenurePolicyService.getTenurePolicyList(dto));
+    }
+
+    @GetMapping("/tenure-policies/{policyKey}")
+    public ResponseEntity<?> getTenurePolicy(@PathVariable String policyKey, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrTenurePolicyDTO dto = new HrTenurePolicyDTO();
+        dto.setPolicyKey(policyKey);
+        return ResponseEntity.ok(hrTenurePolicyService.getTenurePolicyOne(dto));
+    }
+
+    @PostMapping("/tenure-policies")
+    public ResponseEntity<?> addTenurePolicy(@RequestBody HrTenurePolicyDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        if (dto.getPolicyKey() == null || dto.getPolicyKey().isBlank()) {
+            return ResponseEntity.ok(result(false, "정책키는 필수입니다."));
+        }
+        if (!isValidWeight(dto.getWeightPercent())) {
+            return ResponseEntity.ok(result(false, "가중퍼센트는 0~100 사이여야 합니다."));
+        }
+        if (hrTenurePolicyService.isPolicyKeyExists(dto)) {
+            return ResponseEntity.ok(result(false, "이미 존재하는 정책키입니다."));
+        }
+        boolean success = hrTenurePolicyService.addTenurePolicy(dto);
+        return ResponseEntity.ok(result(success, success ? "근속정책이 등록되었습니다." : "등록에 실패했습니다."));
+    }
+
+    @PutMapping("/tenure-policies/{policyKey}")
+    public ResponseEntity<?> updateTenurePolicy(@PathVariable String policyKey, @RequestBody HrTenurePolicyDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        if (!isValidWeight(dto.getWeightPercent())) {
+            return ResponseEntity.ok(result(false, "가중퍼센트는 0~100 사이여야 합니다."));
+        }
+        dto.setPolicyKey(policyKey);
+        boolean success = hrTenurePolicyService.modifyTenurePolicy(dto);
+        return ResponseEntity.ok(result(success, success ? "근속정책이 수정되었습니다." : "수정에 실패했습니다."));
+    }
+
+    @DeleteMapping("/tenure-policies/{policyKey}")
+    public ResponseEntity<?> deleteTenurePolicy(@PathVariable String policyKey, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrTenurePolicyDTO dto = new HrTenurePolicyDTO();
+        dto.setPolicyKey(policyKey);
+        boolean success = hrTenurePolicyService.removeTenurePolicy(dto);
+        return ResponseEntity.ok(result(success, success ? "근속정책이 비활성화되었습니다." : "비활성화에 실패했습니다."));
+    }
+
+    // ===== 부서배치·겸직 관리 =====
+    /** 직원 목록 (주부서명·현재 배치 개수). */
+    @GetMapping("/assignments/employees")
+    public ResponseEntity<?> getAssignmentEmployees(HrAssignmentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrAssignmentService.getEmployeeList(dto));
+    }
+
+    /** 부서 드롭다운 목록 (사용중 부서). */
+    @GetMapping("/assignments/depts")
+    public ResponseEntity<?> getAssignmentDepts(HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrAssignmentService.getDeptList());
+    }
+
+    /** 특정 직원의 부서배치 목록. */
+    @GetMapping("/assignments/{userId}")
+    public ResponseEntity<?> getAssignments(@PathVariable String userId, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrAssignmentDTO dto = new HrAssignmentDTO();
+        dto.setUserId(userId);
+        return ResponseEntity.ok(hrAssignmentService.getAssignmentList(dto));
+    }
+
+    /** 겸직 추가: 부서배치 행(주부서여부=0) 추가. */
+    @PostMapping("/assignments/{userId}")
+    public ResponseEntity<?> addAssignment(@PathVariable String userId, @RequestBody HrAssignmentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        dto.setUserId(userId);
+        if (dto.getDeptCode() == null || dto.getDeptCode().isBlank()) {
+            return ResponseEntity.ok(result(false, "부서는 필수입니다."));
+        }
+        if (hrAssignmentService.hasOpenAssignmentToDept(dto)) {
+            return ResponseEntity.ok(result(false, "이미 해당 부서에 현재 배치되어 있습니다."));
+        }
+        boolean success = hrAssignmentService.addAssignment(dto);
+        return ResponseEntity.ok(result(success, success ? "겸직 부서가 배치되었습니다." : "배치에 실패했습니다."));
+    }
+
+    /** 주부서 변경: 대상 겸직 배치를 주부서로 승격(재직 주부서코드 동기화). */
+    @PutMapping("/assignments/{assignPk}/primary")
+    public ResponseEntity<?> changePrimary(@PathVariable int assignPk, @RequestBody HrAssignmentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        if (dto.getUserId() == null || dto.getUserId().isBlank()) {
+            return ResponseEntity.ok(result(false, "직원아이디가 필요합니다."));
+        }
+        dto.setAssignPk(assignPk);
+        boolean success = hrAssignmentService.changePrimary(dto);
+        return ResponseEntity.ok(result(success,
+                success ? "주부서가 변경되었습니다." : "변경에 실패했습니다.(현재 겸직 배치만 주부서로 지정 가능)"));
+    }
+
+    /** 배치 종료(겸직해제): 겸직(주부서여부=0) 배치에 종료일 기록. */
+    @PutMapping("/assignments/{assignPk}/end")
+    public ResponseEntity<?> endAssignment(@PathVariable int assignPk, @RequestBody HrAssignmentDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        if (dto.getUserId() == null || dto.getUserId().isBlank()) {
+            return ResponseEntity.ok(result(false, "직원아이디가 필요합니다."));
+        }
+        dto.setAssignPk(assignPk);
+        boolean success = hrAssignmentService.endAssignment(dto);
+        return ResponseEntity.ok(result(success,
+                success ? "겸직 배치가 종료되었습니다." : "종료에 실패했습니다.(주부서·이미 종료된 배치는 불가)"));
+    }
+
+    // ===== 발령 관리 =====
+    /** 직원 목록 (직급·주부서명·발령건수). */
+    @GetMapping("/transfers/employees")
+    public ResponseEntity<?> getTransferEmployees(HrTransferDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrTransferService.getEmployeeList(dto));
+    }
+
+    /** 직급 드롭다운 목록 (기존 직급 값). */
+    @GetMapping("/transfers/positions")
+    public ResponseEntity<?> getTransferPositions(HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        return ResponseEntity.ok(hrTransferService.getPositionList());
+    }
+
+    /** 특정 직원의 발령 타임라인. */
+    @GetMapping("/transfers/{userId}")
+    public ResponseEntity<?> getTransfers(@PathVariable String userId, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        HrTransferDTO dto = new HrTransferDTO();
+        dto.setUserId(userId);
+        return ResponseEntity.ok(hrTransferService.getTransferList(dto));
+    }
+
+    /** 직급변경(재직자): 재직 직급 갱신 + 발령이력 '직급변경'. */
+    @PutMapping("/transfers/{userId}/position")
+    public ResponseEntity<?> changePosition(@PathVariable String userId, @RequestBody HrTransferDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        dto.setUserId(userId);
+        if (dto.getNewPosition() == null || dto.getNewPosition().isBlank()) {
+            return ResponseEntity.ok(result(false, "변경할 직급은 필수입니다."));
+        }
+        if (!"재직".equals(hrTransferService.getCurrentStatus(dto))) {
+            return ResponseEntity.ok(result(false, "직급변경은 재직 중인 직원만 가능합니다."));
+        }
+        boolean success = hrTransferService.changePosition(dto);
+        return ResponseEntity.ok(result(success, success ? "직급이 변경되었습니다." : "직급변경에 실패했습니다."));
+    }
+
+    /** 휴직(재직→휴직): 재직상태 전이 + 계정 정지 + 발령이력 '휴직'. */
+    @PutMapping("/transfers/{userId}/leave")
+    public ResponseEntity<?> startLeave(@PathVariable String userId, @RequestBody HrTransferDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        dto.setUserId(userId);
+        if (!"재직".equals(hrTransferService.getCurrentStatus(dto))) {
+            return ResponseEntity.ok(result(false, "휴직은 재직 중인 직원만 가능합니다."));
+        }
+        boolean success = hrTransferService.startLeave(dto);
+        return ResponseEntity.ok(result(success, success ? "휴직 처리되었습니다.(계정 자동 정지)" : "휴직 처리에 실패했습니다."));
+    }
+
+    /** 복직(휴직→재직): 재직상태 전이 + 계정 사용 + 발령이력 '복직'. */
+    @PutMapping("/transfers/{userId}/return")
+    public ResponseEntity<?> returnFromLeave(@PathVariable String userId, @RequestBody HrTransferDTO dto, HttpSession session) {
+        ResponseEntity<Map<String, Object>> denied = checkManager(session);
+        if (denied != null) return denied;
+        dto.setUserId(userId);
+        if (!"휴직".equals(hrTransferService.getCurrentStatus(dto))) {
+            return ResponseEntity.ok(result(false, "복직은 휴직 중인 직원만 가능합니다."));
+        }
+        boolean success = hrTransferService.returnFromLeave(dto);
+        return ResponseEntity.ok(result(success, success ? "복직 처리되었습니다.(계정 재활성화)" : "복직 처리에 실패했습니다."));
+    }
+
+    /** 가중퍼센트 범위 검증 (0~100, CHECK 제약 사전 방어). */
+    private boolean isValidWeight(Integer weight) {
+        return weight != null && weight >= 0 && weight <= 100;
+    }
+
+    /** 가중퍼센트 범위 검증 - NULL 허용(정책 상속). NULL이거나 0~100이면 유효. */
+    private boolean isValidWeightNullable(Integer weight) {
+        return weight == null || (weight >= 0 && weight <= 100);
+    }
+}

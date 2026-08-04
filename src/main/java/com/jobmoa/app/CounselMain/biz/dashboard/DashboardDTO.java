@@ -82,9 +82,12 @@ public class DashboardDTO {
 
 
     //긍일 업무 현황 변수
-    private int dashBoardLastCons; // 최근상담일 15일 도래자
+    private int dashBoardLastCons; // 최근상담일 26일 이상 경과자
+    private int dashBoardLastConsMonth; // 최근상담일 한달(30일) 이상 경과자
     private int dashBoardJobEX; // 구직만료일 15일 도래자
     private int dashBoardEXPDate; // 기간만료일 15일 도래자
+    private int dashBoardEXPDateToday; // 기간만료 당일 도래자 (DATEDIFF = 0)
+    private int dashBoardEXPDatePassed; // 기간만료 경과자 (DATEDIFF < 0)
     private int dashBoardInItCons; // 초기상담일 미실시자
 
     //성공금 상세 현황 변수

@@ -86,6 +86,10 @@
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
 
+    <!-- sweetalert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.min.js"></script>
+
     <!-- 랜덤 색상 지정 -->
     <%-- 현재 사용안하고 있음 --%>
 <%--    <script defer src="/js/randomColorGenerator_0.0.1.js"></script>--%>
@@ -99,8 +103,8 @@
     <!-- 상담일정 뱃지 스타일은 dashboard_0.0.4.css에 통합 -->
 
     <!-- 국취 연계실적 독려 팝업 (임시기능 ~2026-10-31) -->
-    <link rel="stylesheet" href="/css/participantCss/linkagePopup_0.0.4.css">
-    <script defer src="/js/linkagePopup_0.0.6.js"></script>
+    <link rel="stylesheet" href="/css/participantCss/linkagePopup_0.0.6.css">
+    <script defer src="/js/linkagePopup_0.0.7.js"></script>
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 
@@ -155,10 +159,13 @@
                                                 <span class="fs-7">초기상담 미실시자</span>
                                                 <span class="badge bg-danger rounded-pill">${dailyDashboard.dashBoardInItCons}</span>
                                             </a>
-                                            <a href="/participant.login?searchTypeList=recent21&endDateOptionList=false"
+                                            <a href="/participant.login?searchTypeList=recent26&endDateOptionList=false"
                                                class="work-list-item work-list-link text-decoration-none text-reset" title="해당 참여자 조회로 이동">
-                                                <span class="fs-7 text-muted">최근상담 21일 경과</span>
-                                                <span class="badge bg-secondary rounded-pill">${dailyDashboard.dashBoardLastCons}</span>
+                                                <span class="fs-7 fw-bold">최근상담 26일 경과</span>
+                                                <span class="d-flex align-items-center gap-2">
+                                                    <span class="fs-8 text-muted">한달↑ ${dailyDashboard.dashBoardLastConsMonth}</span>
+                                                    <span class="badge bg-danger rounded-pill">${dailyDashboard.dashBoardLastCons}</span>
+                                                </span>
                                             </a>
                                             <a href="/participant.login?searchTypeList=jobExpire&endDateOptionList=false"
                                                class="work-list-item work-list-link text-decoration-none text-reset" title="해당 참여자 조회로 이동">
@@ -169,6 +176,14 @@
                                                class="work-list-item work-list-link text-decoration-none text-reset" title="해당 참여자 조회로 이동">
                                                 <span class="fs-7 fw-bold">기간 만료 예정</span>
                                                 <span class="badge bg-info rounded-pill">${dailyDashboard.dashBoardEXPDate}</span>
+                                            </a>
+                                            <a href="/participant.login?searchTypeList=periodExpired&endDateOptionList=false"
+                                               class="work-list-item work-list-link text-decoration-none text-reset" title="해당 참여자 조회로 이동">
+                                                <span class="fs-7 fw-bold">기간 만료 도래·경과자</span>
+                                                <span class="d-flex align-items-center gap-2">
+                                                    <span class="fs-8 text-muted">당일 ${dailyDashboard.dashBoardEXPDateToday} | 지난 ${dailyDashboard.dashBoardEXPDatePassed}</span>
+                                                    <span class="badge bg-danger rounded-pill">${dailyDashboard.dashBoardEXPDateToday + dailyDashboard.dashBoardEXPDatePassed}</span>
+                                                </span>
                                             </a>
                                         </c:when>
                                         <c:otherwise>
@@ -766,5 +781,35 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 </script>
 <%-- 금일 상담일정 위젯 End --%>
+
+<%-- 최근상담일 26일 경과자 진입 알림 팝업 (세션당 1회) --%>
+<script>
+    $(function () {
+        const recentConsCount = parseInt('${dailyDashboard.dashBoardLastCons}', 10) || 0;
+        const recentConsMonth = parseInt('${dailyDashboard.dashBoardLastConsMonth}', 10) || 0;
+        if (recentConsCount <= 0) return;
+        if (typeof Swal === 'undefined') return;
+
+        // 세션당 1회만 노출 (같은 세션 재진입 시 반복 방지)
+        const POPUP_KEY = 'recentConsAlertShown';
+        if (sessionStorage.getItem(POPUP_KEY) === 'true') return;
+        sessionStorage.setItem(POPUP_KEY, 'true');
+
+        Swal.fire({
+            icon: 'warning',
+            title: '최근상담일 26일 경과자 안내',
+            html: '<strong>' + recentConsCount + '명</strong>의 참여자가 최근상담일 26일을 경과했습니다.'
+                + '<br>(한달 이상 경과 <strong>' + recentConsMonth + '명</strong>)',
+            showCancelButton: true,
+            confirmButtonText: '조회하기',
+            cancelButtonText: '닫기',
+            confirmButtonColor: '#dc3545'
+        }).then(function (result) {
+            if (result.isConfirmed) {
+                location.href = '/participant.login?searchTypeList=recent26&endDateOptionList=false';
+            }
+        });
+    });
+</script>
 
 </html>

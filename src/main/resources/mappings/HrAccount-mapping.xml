@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- HR 계정 관리 (J_직원_계정 ⋈ J_직원) -->
+<mapper namespace="HrAccountDAO">
+
+    <select id="selectAccountList" resultType="hrAccount">
+        SELECT
+            a.계정PK accountPk,
+            a.아이디 userId,
+            e.이름 userName,
+            a.계정상태 accountStatus,
+            a.로그인실패횟수 loginFailCount,
+            CONVERT(varchar(19), a.비밀번호변경일, 120) pwChangeDate,
+            CONVERT(varchar(19), a.마지막로그인일시, 120) lastLoginAt,
+            IIF(a.비밀번호 IS NULL, 0, 1) hasPassword
+        FROM J_직원_계정 a
+        JOIN J_직원 e ON a.아이디 = e.아이디
+        <where>
+            <if test="searchUserId != null and searchUserId != ''">
+                AND a.아이디 LIKE '%' + #{searchUserId} + '%'
+            </if>
+            <if test="searchUserName != null and searchUserName != ''">
+                AND e.이름 LIKE '%' + #{searchUserName} + '%'
+            </if>
+            <if test="searchAccountStatus != null and searchAccountStatus != ''">
+                AND a.계정상태 = #{searchAccountStatus}
+            </if>
+        </where>
+        ORDER BY a.아이디 ASC
+    </select>
+
+    <select id="selectAccountOne" resultType="hrAccount">
+        SELECT
+            a.계정PK accountPk,
+            a.아이디 userId,
+            e.이름 userName,
+            a.계정상태 accountStatus,
+            a.로그인실패횟수 loginFailCount,
+            CONVERT(varchar(19), a.비밀번호변경일, 120) pwChangeDate,
+            CONVERT(varchar(19), a.마지막로그인일시, 120) lastLoginAt,
+            IIF(a.비밀번호 IS NULL, 0, 1) hasPassword
+        FROM J_직원_계정 a
+        JOIN J_직원 e ON a.아이디 = e.아이디
+        WHERE a.아이디 = #{userId}
+    </select>
+
+    <update id="updateAccountStatus">
+        UPDATE J_직원_계정 SET 계정상태 = #{accountStatus} WHERE 아이디 = #{userId}
+    </update>
+
+    <!-- 비밀번호 초기화: BCrypt 해시는 서비스에서 인코딩되어 전달됨 -->
+    <update id="resetPassword">
+        UPDATE J_직원_계정
+        SET 비밀번호 = #{password}, 비밀번호변경일 = GETDATE(), 로그인실패횟수 = 0
+        WHERE 아이디 = #{userId}
+    </update>
+
+    <!-- 잠금 해제: 실패횟수 0 + 상태 '사용' -->
+    <update id="unlockAccount">
+        UPDATE J_직원_계정 SET 로그인실패횟수 = 0, 계정상태 = '사용' WHERE 아이디 = #{userId}
+    </update>
+
+</mapper>

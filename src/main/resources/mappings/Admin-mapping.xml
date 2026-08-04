@@ -256,15 +256,17 @@
         FROM J_참여자관리_지점 BR
         LEFT JOIN (
             SELECT B.지점, COUNT(*) AS cnt
-            FROM J_참여자관리 A
+            FROM J_참여자관리_연계 L
+            JOIN J_참여자관리 A ON L.구직번호 = A.구직번호
             JOIN J_참여자관리_로그인정보 B ON A.전담자_계정 = B.아이디
-            WHERE A.연계유형 IS NOT NULL AND A.연계유형 != ''
+            <where>
             <if test="searchStartDate != null and searchStartDate != ''">
-                AND <![CDATA[ A.연계일 >= #{searchStartDate} ]]>
+                AND <![CDATA[ L.연계일 >= #{searchStartDate} ]]>
             </if>
             <if test="searchEndDate != null and searchEndDate != ''">
-                AND <![CDATA[ A.연계일 <= #{searchEndDate} ]]>
+                AND <![CDATA[ L.연계일 <= #{searchEndDate} ]]>
             </if>
+            </where>
             GROUP BY B.지점
         ) S ON BR.지점 = S.지점
         WHERE BR.사용여부 = '사용' AND BR.지점 != '테스트'
@@ -280,16 +282,16 @@
             B.이름 AS counselorName,
             B.아이디 AS counselorAccount,
             COUNT(*) AS linkageCount
-        FROM J_참여자관리 A
+        FROM J_참여자관리_연계 L
+        JOIN J_참여자관리 A ON L.구직번호 = A.구직번호
         JOIN J_참여자관리_로그인정보 B ON A.전담자_계정 = B.아이디
-        WHERE A.연계유형 IS NOT NULL AND A.연계유형 != ''
-            AND B.지점 != '테스트'
+        WHERE B.지점 != '테스트'
             AND B.지점 = #{searchBranch}
         <if test="searchStartDate != null and searchStartDate != ''">
-            AND <![CDATA[ A.연계일 >= #{searchStartDate} ]]>
+            AND <![CDATA[ L.연계일 >= #{searchStartDate} ]]>
         </if>
         <if test="searchEndDate != null and searchEndDate != ''">
-            AND <![CDATA[ A.연계일 <= #{searchEndDate} ]]>
+            AND <![CDATA[ L.연계일 <= #{searchEndDate} ]]>
         </if>
         GROUP BY B.이름, B.아이디
         ORDER BY linkageCount DESC
@@ -298,11 +300,12 @@
     <!-- ===== 연계 현황: 연계유형별 건수 (테스트 지점 제외) ===== -->
     <select id="selectLinkageStatsByType" parameterType="admin" resultType="admin">
         SELECT
-            A.연계유형 AS linkageType,
+            L.연계유형 AS linkageType,
             COUNT(*) AS linkageCount
-        FROM J_참여자관리 A
+        FROM J_참여자관리_연계 L
+        JOIN J_참여자관리 A ON L.구직번호 = A.구직번호
         JOIN J_참여자관리_로그인정보 B ON A.전담자_계정 = B.아이디
-        WHERE A.연계유형 IS NOT NULL AND A.연계유형 != ''
+        WHERE L.연계유형 IS NOT NULL AND L.연계유형 != ''
             AND B.지점 != '테스트'
         <if test="searchBranch != null and searchBranch != ''">
             AND B.지점 = #{searchBranch}
@@ -311,12 +314,12 @@
             AND A.전담자_계정 = #{searchCounselor}
         </if>
         <if test="searchStartDate != null and searchStartDate != ''">
-            AND <![CDATA[ A.연계일 >= #{searchStartDate} ]]>
+            AND <![CDATA[ L.연계일 >= #{searchStartDate} ]]>
         </if>
         <if test="searchEndDate != null and searchEndDate != ''">
-            AND <![CDATA[ A.연계일 <= #{searchEndDate} ]]>
+            AND <![CDATA[ L.연계일 <= #{searchEndDate} ]]>
         </if>
-        GROUP BY A.연계유형
+        GROUP BY L.연계유형
         ORDER BY linkageCount DESC
     </select>
 

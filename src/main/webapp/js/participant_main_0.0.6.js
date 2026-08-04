@@ -108,9 +108,10 @@ $(document).ready(function () {
         // 옵션 다중선택 (checkbox)
         const searchTypeLabelMap = {
             'noInitial': '초기상담 미실시자',
-            'recent21': '최근상담일 21일',
+            'recent26': '최근상담일 26일 경과',
             'jobExpire': '구직 만료 15일 도래자',
             'periodExpire': '기간 만료 15일 예정자',
+            'periodExpired': '기간 만료 도래·경과자',
             'employment': '취업자',
             'isIntesiveMediation': '집중알선인원'
         };
@@ -784,7 +785,15 @@ $(document).ready(function () {
         let adventCons = $(this).text();
         if (adventCons.length == 0 || adventCons == null || adventCons == '') {
             // 값이 없는 경우
-        } else if (adventCons > 21) {
+        } else if (adventCons >= 30) {
+            // 최근상담일 한달(30일) 이상 경과 - 진한 빨강 경고
+            $(this).css({
+                'background-color': 'rgba(200,25,25,0.85)',
+                'color': '#fff',
+                'font-weight': '700'
+            });
+        } else if (adventCons >= 26) {
+            // 최근상담일 26일 이상 경과 - 빨강 경고
             $(this).css('background-color', 'rgba(255,58,58,0.55)');
         } else if (adventCons > 15) {
             $(this).css('background-color', 'rgba(255,249,0,0.51)');
