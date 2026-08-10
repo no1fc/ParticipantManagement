@@ -1,6 +1,8 @@
 /**
  * @file 참여자 등록/수정 공통 유효성 검사 및 폼 제출 처리
- * @version 0.1.4
+ * @version 0.1.5
+ * @changelog 0.1.5 - 진행단계를 취업정보를 담을 수 없는 단계로 변경 시(취업정보 존재) 저장 전 삭제 확인 모달 추가,
+ *                    확인 시 취업정보를 초기화하고 제출(미취업 참여자와 동일하게 빈 값 저장).
  * @requires jQuery, SweetAlert2
  */
 $(document).ready(function () {
@@ -228,6 +230,24 @@ $(document).ready(function () {
         const progressRequiresExpDate = (progress) => PROGRESS_REQUIRING_EXP_DATE.has(progress);
         const isKeywordCountInvalid = (count) => count < KEYWORD_MIN || count > KEYWORD_MAX;
 
+        // ── 진행단계 변경으로 취업정보가 무효화되는 경우 판정 ──
+        // 취업정보를 담을 수 있는 단계 = 취업유형 옵션이 존재하는 단계(selectOptionJS 기준)
+        const EMPLOYMENT_CAPABLE_STAGES = new Set([
+            '미고보/인력공급업',
+            '고보일반',
+            '등록창업',
+            '미등록창업',
+        ]);
+        // IAP 자동전환(위)이 반영된 최종 진행단계
+        const finalizedProgressVal = counselProgress.val();
+        // 취업정보 입력값이 하나라도 존재하는지 (취업유형은 단계 변경 시 비워지므로 나머지로도 판정)
+        const hasEmploymentData = [
+            employmentStartDateVal, employmentProcDateVal, employmentQuitVal,
+            employmentEmpTypeVal, employmentLoyerVal, employmentSalaryVal, employmentIncentiveVal
+        ].some((v) => !isBlank(v));
+        // 취업정보가 있는데 담을 수 없는 단계로 바뀌면 저장 시 취업정보를 삭제해야 함
+        const needsEmploymentClear = hasEmploymentData && !EMPLOYMENT_CAPABLE_STAGES.has(finalizedProgressVal);
+
         // 기존 조건문 리팩터링
         if (progressRequiresExpDate(counselProgressVal) && isBlank(counselEXPDateVal)) {
             alertDefaultInfo(
@@ -285,6 +305,8 @@ $(document).ready(function () {
             return;
         }
 
+        // 취업정보를 삭제할 예정이면(진행단계 변경) 취업정보 필수검증은 건너뛴다.
+        if (!needsEmploymentClear) {
         //취창업일이 비어있고 임금 OR 취업인센티브_구분이 비어있다면 함수에서 내보낸다.
         if(!employmentStartDateVal.length > 0){
             //임금이 작성되어 있거나
@@ -331,6 +353,7 @@ $(document).ready(function () {
                 return;
             }
         }
+        } // end if(!needsEmploymentClear)
 
         // 1순위 희망직무를 hidden input에 동기화
         if (typeof syncPrimaryJobWish === 'function') {
@@ -346,6 +369,24 @@ $(document).ready(function () {
         counselIAP5Month.prop("disabled", !hasIAPOnSubmit);
 
         const form = $("#participantsForm");
+
+        // 진행단계 변경으로 취업정보가 무효화되면, 저장 전 삭제 확인 후 취업정보를 비우고 제출
+        if (needsEmploymentClear) {
+            alertConfirmWarning(
+                "취업정보 삭제 확인",
+                `'${finalizedProgressVal}' 진행단계로 변경하면 기존 취업정보가 삭제됩니다. 계속하시겠습니까?`,
+                "삭제하고 저장",
+                "취소"
+            ).then((isConfirmed) => {
+                if (isConfirmed) {
+                    // 미취업 참여자와 동일하게 취업정보를 빈 값으로 저장 (hidden 구직번호는 유지)
+                    employmentSection.find("input, select, textarea").not("[type='hidden']").val("");
+                    form.submit();
+                }
+            });
+            return;
+        }
+
         form.submit();
     });
 //  form 전달 끝
