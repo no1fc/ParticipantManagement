@@ -261,6 +261,7 @@
                                 <th id="betterJobScore-th">나은점수</th>
                                 <th id="earlyEmploymentScore-th">조기취업점수</th>
                                 <th id="retentionScore-th">고용유지점수</th>
+                                <th id="linkageScore-th">연계점수</th>
                                 <th id="totalScore-th">총점</th>
                             </tr>
                             </thead>
@@ -340,6 +341,15 @@
                         </div>
                         <div class="card-body">
                             <div id="betterJobScore"></div>
+                        </div>
+                    </div>
+
+                    <div class="card-modern">
+                        <div class="card-header border-0">
+                            <h3 class="card-title"><i class="bi bi-link-45deg text-warning me-2"></i>연계 점수</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="linkageScore"></div>
                         </div>
                     </div>
                 </div>
@@ -518,6 +528,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const retentionScore = $("#retentionScore");
     const earlyEmploymentScore = $("#earlyEmploymentScore");
     const betterJobScore = $("#betterJobScore");
+    const linkageScore = $("#linkageScore");
     const loadingDiv = $('#loadingDiv');
 
     function getChartOptions(chartIndex, title, maxScore, jsonValue, jsonScore, jsonTopScore) {
@@ -545,7 +556,8 @@ document.addEventListener('DOMContentLoaded', function () {
             ['#009688'],    // 알선취업자 - 청록색
             ['#4CAF50'],    // 고용유지 - 녹색
             ['#8BC34A'],    // 조기취업자 - 라임색
-            ['#3F51B5']     // 나은일자리 - 인디고
+            ['#3F51B5'],    // 나은일자리 - 인디고
+            ['#FF9800']     // 연계 - 주황색
         ];
 
         // 차트 옵션 구성
@@ -737,11 +749,11 @@ document.addEventListener('DOMContentLoaded', function () {
             changeDataUser(data);
 
             //"total" 총점,"employment"취업자,"placement"알선취업자,"retention"고용유지,"earlyEmployment"조기취업자,"betterJob"나은일자리
-            const title = ["총점","취업자","알선취업자","고용유지","조기취업자","나은일자리"]
-            const maxScore = [90,30,25,15,10,10] //점수 확인용
-            const jsonValue = ["total","employment","placement","retention","earlyEmployment","betterJob"]
-            const jsonScore = ["totalScore","employmentScore","placementScore","retentionScore","earlyEmploymentScore","betterJobScore"]
-            const jsonTopScore = ["totalStandardScore","employmentTopScore","placementTopScore","retentionTopScore","earlyEmploymentTopScore","betterJobTopScore"]
+            const title = ["총점","취업자","알선취업자","고용유지","조기취업자","나은일자리","연계"]
+            const maxScore = [100,30,25,15,10,10,10] //점수 확인용
+            const jsonValue = ["total","employment","placement","retention","earlyEmployment","betterJob","linkage"]
+            const jsonScore = ["totalScore","employmentScore","placementScore","retentionScore","earlyEmploymentScore","betterJobScore","linkageScore"]
+            const jsonTopScore = ["totalStandardScore","employmentTopScore","placementTopScore","retentionTopScore","earlyEmploymentTopScore","betterJobTopScore","linkageTopScore"]
             // console.log(jsonScore.length);
             renderDistributionChart(title, maxScore, jsonValue, jsonScore, jsonTopScore);
             $loadingDiv.hide()
@@ -779,6 +791,10 @@ document.addEventListener('DOMContentLoaded', function () {
             betterJobTopScore:{},
             betterJobScore:[]
         },
+        linkage:{
+            linkageTopScore:{},
+            linkageScore:[]
+        },
         total:{
             totalStandardScore: {},
             myBranchScore: {},
@@ -798,6 +814,8 @@ document.addEventListener('DOMContentLoaded', function () {
             selectData.earlyEmployment.earlyEmploymentTopScore = value.earlyEmploymentTopScore;
             //console.log(value.betterJobTopScore);
             selectData.betterJob.betterJobTopScore = value.betterJobTopScore;
+            //console.log(value.linkageTopScore);
+            selectData.linkage.linkageTopScore = value.linkageTopScore;
             //console.log(value.totalStandardScore); // 전체 총점
             selectData.total.totalStandardScore = value.totalStandardScore;
         })
@@ -833,6 +851,9 @@ document.addEventListener('DOMContentLoaded', function () {
             // console.log("changeDataUser 실행 나은일자리 : [%s]",value.betterJobScore);
             selectData.betterJob.betterJobScore.push(value.betterJobScore);
 
+            // console.log("changeDataUser 실행 연계 : [%s]",value.linkageScore);
+            selectData.linkage.linkageScore.push(value.linkageScore);
+
             // console.log("changeDataUser 실행 개인 총점 : [%s]",value.totalScore);//개인 총점
             selectData.total.totalScore.push(value.totalScore);
 
@@ -866,6 +887,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 betterJobTopScore:{},
                 betterJobScore:[]
             },
+            linkage:{
+                linkageTopScore:{},
+                linkageScore:[]
+            },
             total:{
                 totalStandardScore: {},
                 myBranchScore: {},
@@ -878,6 +903,7 @@ document.addEventListener('DOMContentLoaded', function () {
         retentionScore.empty();
         earlyEmploymentScore.empty();
         betterJobScore.empty();
+        linkageScore.empty();
         loadingDiv.hide();
     }
 
@@ -1049,6 +1075,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 retentionScore.empty();
                 earlyEmploymentScore.empty();
                 betterJobScore.empty();
+                linkageScore.empty();
                 loadingDiv.hide();
 
                 const $loadingScoreChartDiv = $("#loadingScoreChartDiv");
@@ -1142,6 +1169,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 retentionScore.empty();
                 earlyEmploymentScore.empty();
                 betterJobScore.empty();
+                linkageScore.empty();
                 loadingDiv.hide();
 
                 const $loadingScoreChartDiv = $("#loadingScoreChartDiv");
@@ -1210,6 +1238,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             row += '<td>' + value.betterJobScore.toFixed(2) + '</td>'; //나은점수
                             row += '<td>' + value.earlyEmploymentScore.toFixed(2) + '</td>'; //조기취업점수
                             row += '<td>' + value.retentionScore.toFixed(2) + '</td>'; //고용유지점수
+                            row += '<td>' + value.linkageScore.toFixed(2) + '</td>'; //연계점수
                             row += '<td>' + value.totalScore.toFixed(2) + '</td>'; //총점
                             row += '</tr>';
                             $("#performanceTableBody").append(row);
