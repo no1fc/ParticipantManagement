@@ -44,14 +44,8 @@ public class PraAsyncAPI {
         try{
             LoginBean loginBean = (LoginBean)session.getAttribute("JOBMOA_LOGIN_DATA");
             String branch = loginBean.getMemberBranch();
-            boolean flag = false;
-            //정보 업데이트
-            for(ParticipantRandomAssignmentDTO dto : asyncList){
-                dto.setCondition("praInsert");
-                dto.setBranch(branch);
-                dto.setCareer(dto.getHasCareer());
-                flag = praService.insert(dto);
-            }
+            // 목록 전체를 단일 트랜잭션으로 등록(중간 실패 시 전체 롤백, 반환값도 전건 성공 여부).
+            boolean flag = praService.insertAll(asyncList, branch);
 
             return ResponseEntity.ok(flag);
         }

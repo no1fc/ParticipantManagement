@@ -38,7 +38,7 @@
     </insert>
 
     <insert id="praDailyReportUpsert" parameterType="praDailyReport">
-        MERGE INTO J_참여자관리_일일업무보고 AS target
+        MERGE INTO J_참여자관리_일일업무보고 WITH (HOLDLOCK) AS target
         USING (SELECT #{branch} AS 지점, #{counselorID} AS 아이디) AS source
         ON target.지점 = source.지점
             AND target.아이디 = source.아이디
