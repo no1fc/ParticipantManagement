@@ -81,7 +81,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/1.0.9/jquery.csv.js" integrity="sha512-eDkr7sqAJqr3s63mdge3uTyuKVpEbzw3eji7CbGYr8VeM+NtqNajwuAiU31S0buRspDF1mZ8qTSeEZ4v/8b3Gw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     <!-- praCSVtoTable JS -->
-    <script defer src="/js/praCSVtoTableJS_0.1.3.js"></script>
+    <script defer src="/js/praCSVtoTableJS_0.1.4.js"></script>
 
     <!-- praDataVerification JS -->
     <script defer src="/js/praDataVerification_0.0.1.js"></script>

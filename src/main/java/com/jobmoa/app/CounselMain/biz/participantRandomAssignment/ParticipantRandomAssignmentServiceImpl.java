@@ -27,6 +27,23 @@ public class ParticipantRandomAssignmentServiceImpl implements ParticipantRandom
     }
 
     @Override
+    public boolean insertAll(List<ParticipantRandomAssignmentDTO> list, String branch) {
+        // AOP 트랜잭션(biz..*Impl.*) 안에서 루프를 돌므로 단일 트랜잭션으로 묶인다.
+        // 중간 INSERT가 예외를 던지면 앞서 등록된 건까지 함께 롤백된다.
+        if (list == null || list.isEmpty()) {
+            return false;
+        }
+        boolean allInserted = true;
+        for (ParticipantRandomAssignmentDTO dto : list) {
+            dto.setCondition("praInsert");
+            dto.setBranch(branch);
+            dto.setCareer(dto.getHasCareer());
+            allInserted = praDAO.insert(dto) && allInserted;
+        }
+        return allInserted;
+    }
+
+    @Override
     public boolean update(ParticipantRandomAssignmentDTO praDTO) {
         log.info("update SQL ParticipantRandomAssignmentDTO : [{}]",praDTO);
         if(praDTO == null || praDTO.getCondition() == null) {

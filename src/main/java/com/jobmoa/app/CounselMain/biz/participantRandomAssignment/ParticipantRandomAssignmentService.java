@@ -17,6 +17,16 @@ public interface ParticipantRandomAssignmentService {
     boolean insert(ParticipantRandomAssignmentDTO praDTO);
 
     /**
+     * 랜덤 배정 정보 일괄 등록.
+     * 목록 전체를 하나의 트랜잭션(AOP)으로 처리하여, 중간 실패 시 전체 롤백한다.
+     *
+     * @param list   등록할 랜덤 배정 정보 목록
+     * @param branch 로그인 사용자 지점
+     * @return 전건 등록 성공 여부
+     */
+    boolean insertAll(List<ParticipantRandomAssignmentDTO> list, String branch);
+
+    /**
      * 랜덤 배정 정보 수정.
      *
      * @param praDTO 수정할 랜덤 배정 정보

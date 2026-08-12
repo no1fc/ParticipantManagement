@@ -1604,18 +1604,22 @@ function executeRandomAssignment(options) {
 
         //  랜덤 배정 실행.
         // 미배정이 남아 있으면 다시 배정 시도한다.
+        // [정합성] 재시도로 같은 참여자가 여러 번 처리되므로,
+        // participantIndex를 키로 최종 결과 1건만 유지한다(중복 누적 방지).
         let pendingRows = participantRows.slice();
-        let assignmentResults = [];
+        const resultByIndex = new Map();
         let lastPendingCount = pendingRows.length + 1;
 
         while (pendingRows.length > 0 && pendingRows.length < lastPendingCount) {
             lastPendingCount = pendingRows.length;
             const batchResults = assignParticipantsToCounselors(counselorsCopy, pendingRows, assignmentOptions);
-            assignmentResults = assignmentResults.concat(batchResults);
+            batchResults.forEach(item => resultByIndex.set(item.participantIndex, item));
             pendingRows = batchResults
                 .filter(item => item.assignmentType === 'unassigned')
                 .map(item => participantRows[item.participantIndex]);
         }
+
+        const assignmentResults = Array.from(resultByIndex.values());
 
         //  화면 테이블에 배정 결과 반영
         updateAssignmentUI(assignmentResults);
@@ -1637,7 +1641,7 @@ function executeRandomAssignment(options) {
         responseTextDiv.append('<br><strong style="color: blue;">랜덤 배정이 완료되었습니다.</strong>');
         responseTextDiv.append('<br><span>총 ' + (fixedCount + randomCount) + '명 배정 (고정 배정: ' + fixedCount + '명, 랜덤 배정: ' + randomCount + '명)</span>');
         if (unassignedCount > 0) {
-            responseTextDiv.append('<br><span style="color: #d9534f;">미배정: ' + unassignedCount/2 + '명</span>');
+            responseTextDiv.append('<br><span style="color: #d9534f;">미배정: ' + unassignedCount + '명</span>');
         }
 
         return true;
