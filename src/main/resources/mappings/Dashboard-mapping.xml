@@ -212,8 +212,7 @@
             ROUND(ISNULL((조기취업자수 * 10.0 / NULLIF(종료자수, 0)), 0), 2) AS 조기취업자점수,
             ROUND(ISNULL((고용유지자수 * 15.0 / NULLIF(종료자수, 0)), 0), 2) AS 고용유지취업자점수,
             ROUND(ISNULL((나은일자리수 * 10.0 / NULLIF(종료자수, 0)), 0), 2) AS 나은일자리취업자점수,
-            ROUND(ISNULL((연계건수합 * 100.0 / NULLIF(종료자수, 0)), 0), 2) AS 연계율,
-            ROUND(ISNULL(연계건수합 * 0.1, 0), 2) AS 연계점수
+            ROUND(ISNULL((연계건수합 * 100.0 / NULLIF(종료자수, 0)), 0), 2) AS 연계율
         FROM 통합_통계
     ),
     표준화_점수 AS (
@@ -228,8 +227,7 @@
             ROUND(ISNULL(((15 * 0.05) * (P.고용유지취업자점수 - S.avg_고용유지취업자점수) / NULLIF(S.std_고용유지취업자점수, 0)) + 7.5, 7.5), 2) AS 표준고용유지점수,
             ROUND(ISNULL(((15 * 0.05) * (P.고용유지자수 - S.avg_고용유지자수) / NULLIF(S.std_고용유지자수, 0)) + 7.5, 7.5), 2) AS 고용유지자수점수,
             ROUND(ISNULL(((10 * 0.05) * (P.나은일자리취업자점수 - S.avg_나은일자리취업자점수) / NULLIF(S.std_나은일자리취업자점수, 0)) + 5, 5), 2) AS 표준나은일자리점수,
-            ROUND(ISNULL(((10 * 0.05) * (P.나은일자리수 - S.avg_나은일자리수) / NULLIF(S.std_나은일자리수, 0)) + 5, 5), 2) AS 나은일자리수점수,
-            ROUND(ISNULL(((10 * 0.05) * (P.연계점수 - S.avg_연계점수) / NULLIF(S.std_연계점수, 0)) + 5, 5), 2) AS 표준연계점수
+            ROUND(ISNULL(((10 * 0.05) * (P.나은일자리수 - S.avg_나은일자리수) / NULLIF(S.std_나은일자리수, 0)) + 5, 5), 2) AS 나은일자리수점수
         FROM 점수_계산 P
             CROSS JOIN (
             SELECT
@@ -242,8 +240,7 @@
                 AVG(알선취업자점수) AS avg_알선취업자점수, STDEV(알선취업자점수) AS std_알선취업자점수,
                 AVG(조기취업자점수) AS avg_조기취업자점수, STDEV(조기취업자점수) AS std_조기취업자점수,
                 AVG(고용유지취업자점수) AS avg_고용유지취업자점수, STDEV(고용유지취업자점수) AS std_고용유지취업자점수,
-                AVG(나은일자리취업자점수) AS avg_나은일자리취업자점수, STDEV(나은일자리취업자점수) AS std_나은일자리취업자점수,
-                AVG(연계점수) AS avg_연계점수, STDEV(연계점수) AS std_연계점수
+                AVG(나은일자리취업자점수) AS avg_나은일자리취업자점수, STDEV(나은일자리취업자점수) AS std_나은일자리취업자점수
             FROM 점수_계산
 --             WHERE 지점 NOT IN ('성남', '인천') --2024년 미선정으로 제외했으나 재 선정되어 제거
         ) S
@@ -275,10 +272,14 @@
             CASE WHEN (ISNULL(표준조기취업자점수, 5)*0.8 + ISNULL(조기취업자수점수, 5)*0.2) <![CDATA[>]]> 10 THEN 10.00 ELSE ROUND(ISNULL(표준조기취업자점수, 5)*0.8 + ISNULL(조기취업자수점수, 5)*0.2, 2) END AS 가중조기취업자점수,
             CASE WHEN (ISNULL(표준고용유지점수, 7.5)*0.8 + ISNULL(고용유지자수점수, 7.5)*0.2) <![CDATA[>]]> 15 THEN 15.00 ELSE ROUND(ISNULL(표준고용유지점수, 7.5)*0.8 + ISNULL(고용유지자수점수, 7.5)*0.2, 2) END AS 가중고용취업자점수,
             CASE WHEN (ISNULL(표준나은일자리점수, 5)*0.8 + ISNULL(나은일자리수점수, 5)*0.2) <![CDATA[>]]> 10 THEN 10.00 ELSE ROUND(ISNULL(표준나은일자리점수, 5)*0.8 + ISNULL(나은일자리수점수, 5)*0.2, 2) END AS 가중나은취업자점수,
-            CASE WHEN ISNULL(표준연계점수, 5) <![CDATA[>]]> 10 THEN 10.00 ELSE ROUND(ISNULL(표준연계점수, 5), 2) END AS 가중연계점수,
+            CASE
+                WHEN ISNULL(A.연계율, 0) <![CDATA[>=]]> 40 THEN 3.00
+                WHEN ISNULL(A.연계율, 0) <![CDATA[>=]]> 20 THEN 2.00
+                WHEN ISNULL(A.연계율, 0) <![CDATA[>=]]> 10 THEN 1.00
+                ELSE 0.00
+            END AS 가중연계점수,
             ISNULL(A.연계건수합, 0) AS 연계건수,
             ISNULL(A.연계율, 0) AS 연계율,
-            ROUND(ISNULL(A.연계점수, 0), 2) AS 연계점수,
             ISNULL(A.서비스미제공_합계, 0) AS 서비스미제공_건수, ISNULL(A.미해당_합계, 0) AS 미해당_건수, ISNULL(A.해당_합계, 0) AS 해당_건수
         FROM J_참여자관리_로그인정보 B
         LEFT JOIN 표준화_점수 A ON A.전담자_계정 = B.아이디

@@ -750,7 +750,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             //"total" 총점,"employment"취업자,"placement"알선취업자,"retention"고용유지,"earlyEmployment"조기취업자,"betterJob"나은일자리
             const title = ["총점","취업자","알선취업자","고용유지","조기취업자","나은일자리","연계"]
-            const maxScore = [100,30,25,15,10,10,10] //점수 확인용
+            const maxScore = [93,30,25,15,10,10,3] //점수 확인용 (총점 93만점, 연계 3점만점)
             const jsonValue = ["total","employment","placement","retention","earlyEmployment","betterJob","linkage"]
             const jsonScore = ["totalScore","employmentScore","placementScore","retentionScore","earlyEmploymentScore","betterJobScore","linkageScore"]
             const jsonTopScore = ["totalStandardScore","employmentTopScore","placementTopScore","retentionTopScore","earlyEmploymentTopScore","betterJobTopScore","linkageTopScore"]
