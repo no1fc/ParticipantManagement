@@ -467,26 +467,26 @@ public class DashboardMainController {
                     "\"completedCount\":{\"name\":\"종료자수\",\"data\":\"%d\"}," +
                     "\"myScore\": {" +
                     "    \"name\": \"개인 점수\"," +
-                    "    \"data\": [%.2f,%.2f,%.2f,%.2f,%.2f,%.2f]," +
+                    "    \"data\": [%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f]," +
                     "    \"oneData\": [%.2f,%.2f,%.2f,%.2f,%.2f]" +
                     "  }," +
                     "  \"myCount\": {" +
                     "    \"name\": \"점수 분포\"," +
-                    "    \"data\": [%d,%d,%d,%d,%d]," +
-                    "    \"avgData\": [%.2f,%.2f,%.2f,%.2f,%.2f]" +
+                    "    \"data\": [%d,%d,%d,%d,%d,%d]," +
+                    "    \"avgData\": [%.2f,%.2f,%.2f,%.2f,%.2f,%.2f]" +
                     "  }" +
                     "}";
 
             return String.format(jsonFormat,
                     dto.getTotalCompleted(),
-                    // myScore.data (6개)
-                    dto.getTotalScore(),dto.getEmploymentLastScore(),dto.getPlacementLastScore(),dto.getEarlyEmploymentLastScore(),dto.getRetentionLastScore(),dto.getBetterJobLastScore(),
+                    // myScore.data (7개: 총점 + 5개 항목 + 연계)
+                    dto.getTotalScore(),dto.getEmploymentLastScore(),dto.getPlacementLastScore(),dto.getEarlyEmploymentLastScore(),dto.getRetentionLastScore(),dto.getBetterJobLastScore(),dto.getLinkageLastScore(),
                     // myScore.oneData (5개)
                     dto.getEmploymentOneScore(),dto.getPlacementOneScore(),dto.getEarlyEmploymentOneScore(),dto.getRetentionOneScore(),dto.getBetterJobOneScore(),
-                    // myCount.data (5개)
-                    dto.getTotalEmployed(),dto.getReferredEmploymentCount(),dto.getEarlyEmploymentCount(),dto.getRetentionCount(),dto.getBetterJobCount(),
-                    // myCount.avgData (5개)
-                    dto.getEmploymentRate(),dto.getPlacementRate(),dto.getEarlyEmploymentRate(),dto.getRetentionRate(),dto.getBetterJobRate()
+                    // myCount.data (6개: 5개 항목 + 연계건수)
+                    dto.getTotalEmployed(),dto.getReferredEmploymentCount(),dto.getEarlyEmploymentCount(),dto.getRetentionCount(),dto.getBetterJobCount(),dto.getLinkageCount(),
+                    // myCount.avgData (6개: 5개 항목 비율 + 연계율)
+                    dto.getEmploymentRate(),dto.getPlacementRate(),dto.getEarlyEmploymentRate(),dto.getRetentionRate(),dto.getBetterJobRate(),dto.getLinkageRate()
             );
         });
 

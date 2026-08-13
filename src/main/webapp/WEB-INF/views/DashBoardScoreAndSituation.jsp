@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // 가로열 제목 데이터
-    const xCategories = ['총점', '취업자점수', '알선취업자점수', '조기취업자점수', '고용유지자점수', '나은일자리점수'];
+    const xCategories = ['총점', '취업자점수', '알선취업자점수', '조기취업자점수', '고용유지자점수', '나은일자리점수', '연계점수'];
 
     // 첫 번째 차트 - 점수 현황
     function renderScoreChart(data) {
@@ -319,7 +319,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             },
             xaxis: {
-                categories: ['취업자수', '알선취업자수', '조기취업자수', '고용유지자수', '나은일자리수'],
+                categories: ['취업자수', '알선취업자수', '조기취업자수', '고용유지자수', '나은일자리수', '연계건수'],
             },
             yaxis: [{
                 title: {

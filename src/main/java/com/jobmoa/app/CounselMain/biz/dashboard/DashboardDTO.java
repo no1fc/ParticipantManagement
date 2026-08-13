@@ -165,6 +165,13 @@ public class DashboardDTO {
     private double betterJobStandardScore;    // 표준 나은일자리 점수
     private double betterJobLastScore;    // 가중나은취업자점수
     private double betterJobTopScore;    // 나은취업자점수 상위 20%
+    // 연계(타사연계) 관련 지표
+    private long linkageCount;        // 연계 건수(종료참여자·가중 합)
+    private double linkageRate;       // 연계율(종료자수 대비)
+    private double linkageScore;      // 연계 점수(실적표 표시용 가중 합/평균)
+    private double linkageStandardScore; // 표준 연계 점수
+    private double linkageLastScore;  // 가중연계점수(총점 편입값)
+    private double linkageTopScore;   // 연계점수 상위 20%
     // 최종 점수
     private double totalScore;        // 총점
     private double totalStandardScore;        // 표준 총점
@@ -189,6 +196,7 @@ public class DashboardDTO {
     private double avgPlacementRateMiddle; // 알선취업률
     private double avgEarlyEmploymentRateMiddle; // 조기취업률
     private double avgBetterJobRateMiddle; // 나은일자리 취업률
+    private double avgLinkageRateMiddle; // 연계율
 
     //메인 대시보드 관리자 권한, 지점 관리자 권한 확인용 변수
     @JsonProperty("isManagement")

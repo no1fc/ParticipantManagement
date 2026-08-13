@@ -69,6 +69,8 @@ out/
 .ai
 .claude
 .superpowers
+.playwright-mcp
+sh.exe.stackdump
 
 ### 개발 문서 전체 (GitHub 제외) ###
 docs/

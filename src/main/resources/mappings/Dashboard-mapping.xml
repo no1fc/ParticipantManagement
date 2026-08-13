@@ -73,6 +73,9 @@
                 <when test="sortColumn == 'retentionScore-th'">
                     retentionScore
                 </when>
+                <when test="sortColumn == 'linkageScore-th'">
+                    linkageScore
+                </when>
                 <when test="sortColumn == 'totalScore-th'">
                     totalScore
                 </when>
@@ -116,6 +119,13 @@
           AND ISNULL(모집경로, '') <![CDATA[<>]]> '이관'
           AND ISNULL(진행단계, '') <![CDATA[<>]]> '이관'
           AND 진행단계 <![CDATA[<>]]> '취소'
+    ),
+    연계_집계 AS (
+        /* 1-2. 타사연계 실적 집계 (실적기간 내 연계일 기준, 구직번호 단위 건수) */
+        SELECT 구직번호, COUNT(*) AS 연계건수
+        FROM J_참여자관리_연계
+        WHERE 연계일 BETWEEN #{dashBoardStartDate, jdbcType=DATE} AND #{dashBoardEndDate, jdbcType=DATE}
+        GROUP BY 구직번호
     ),
     통합_참여자_분석 AS (
         /* 2. 가중치 및 상태 플래그 */
@@ -176,6 +186,7 @@
             ROUND(SUM(알선_F * 취업_F * 가중치 * 대상_F), 2) AS 알선취업자수,
             ROUND(SUM(조기_F * 취업_F * 가중치 * 대상_F), 2) AS 조기취업자수,
             ROUND(SUM(나은일자리_F * 가중치 * 대상_F), 2) AS 나은일자리수,
+            ROUND(SUM(ISNULL(LK.연계건수, 0) * 종료_F * 가중치 * 대상_F), 2) AS 연계건수합,
             <choose>
                 <when test="dashboardExcludeRetention"> ROUND(SUM(유지_F * 취업_F * 가중치 * 대상_F), 2) </when>
                 <otherwise> 0 </otherwise>
@@ -184,6 +195,7 @@
             SUM(미해당 * 대상_F) AS 미해당_합계,
             SUM(해당 * 대상_F) AS 해당_합계
         FROM 나은일자리_판정
+        LEFT JOIN 연계_집계 LK ON 나은일자리_판정.구직번호 = LK.구직번호
         WHERE 실제종료일 <![CDATA[>=]]> #{dashBoardStartDate, jdbcType=DATE} AND 실제종료일 <![CDATA[<=]]> #{dashBoardEndDate, jdbcType=DATE} AND 대상_F = 1
         GROUP BY 지점, 전담자_계정
     ),
@@ -199,7 +211,9 @@
             ROUND(ISNULL((알선취업자수 * 25.0 / NULLIF(종료자수, 0)), 0), 2) AS 알선취업자점수,
             ROUND(ISNULL((조기취업자수 * 10.0 / NULLIF(종료자수, 0)), 0), 2) AS 조기취업자점수,
             ROUND(ISNULL((고용유지자수 * 15.0 / NULLIF(종료자수, 0)), 0), 2) AS 고용유지취업자점수,
-            ROUND(ISNULL((나은일자리수 * 10.0 / NULLIF(종료자수, 0)), 0), 2) AS 나은일자리취업자점수
+            ROUND(ISNULL((나은일자리수 * 10.0 / NULLIF(종료자수, 0)), 0), 2) AS 나은일자리취업자점수,
+            ROUND(ISNULL((연계건수합 * 100.0 / NULLIF(종료자수, 0)), 0), 2) AS 연계율,
+            ROUND(ISNULL(연계건수합 * 0.1, 0), 2) AS 연계점수
         FROM 통합_통계
     ),
     표준화_점수 AS (
@@ -214,7 +228,8 @@
             ROUND(ISNULL(((15 * 0.05) * (P.고용유지취업자점수 - S.avg_고용유지취업자점수) / NULLIF(S.std_고용유지취업자점수, 0)) + 7.5, 7.5), 2) AS 표준고용유지점수,
             ROUND(ISNULL(((15 * 0.05) * (P.고용유지자수 - S.avg_고용유지자수) / NULLIF(S.std_고용유지자수, 0)) + 7.5, 7.5), 2) AS 고용유지자수점수,
             ROUND(ISNULL(((10 * 0.05) * (P.나은일자리취업자점수 - S.avg_나은일자리취업자점수) / NULLIF(S.std_나은일자리취업자점수, 0)) + 5, 5), 2) AS 표준나은일자리점수,
-            ROUND(ISNULL(((10 * 0.05) * (P.나은일자리수 - S.avg_나은일자리수) / NULLIF(S.std_나은일자리수, 0)) + 5, 5), 2) AS 나은일자리수점수
+            ROUND(ISNULL(((10 * 0.05) * (P.나은일자리수 - S.avg_나은일자리수) / NULLIF(S.std_나은일자리수, 0)) + 5, 5), 2) AS 나은일자리수점수,
+            ROUND(ISNULL(((10 * 0.05) * (P.연계점수 - S.avg_연계점수) / NULLIF(S.std_연계점수, 0)) + 5, 5), 2) AS 표준연계점수
         FROM 점수_계산 P
             CROSS JOIN (
             SELECT
@@ -227,7 +242,8 @@
                 AVG(알선취업자점수) AS avg_알선취업자점수, STDEV(알선취업자점수) AS std_알선취업자점수,
                 AVG(조기취업자점수) AS avg_조기취업자점수, STDEV(조기취업자점수) AS std_조기취업자점수,
                 AVG(고용유지취업자점수) AS avg_고용유지취업자점수, STDEV(고용유지취업자점수) AS std_고용유지취업자점수,
-                AVG(나은일자리취업자점수) AS avg_나은일자리취업자점수, STDEV(나은일자리취업자점수) AS std_나은일자리취업자점수
+                AVG(나은일자리취업자점수) AS avg_나은일자리취업자점수, STDEV(나은일자리취업자점수) AS std_나은일자리취업자점수,
+                AVG(연계점수) AS avg_연계점수, STDEV(연계점수) AS std_연계점수
             FROM 점수_계산
 --             WHERE 지점 NOT IN ('성남', '인천') --2024년 미선정으로 제외했으나 재 선정되어 제거
         ) S
@@ -259,6 +275,10 @@
             CASE WHEN (ISNULL(표준조기취업자점수, 5)*0.8 + ISNULL(조기취업자수점수, 5)*0.2) <![CDATA[>]]> 10 THEN 10.00 ELSE ROUND(ISNULL(표준조기취업자점수, 5)*0.8 + ISNULL(조기취업자수점수, 5)*0.2, 2) END AS 가중조기취업자점수,
             CASE WHEN (ISNULL(표준고용유지점수, 7.5)*0.8 + ISNULL(고용유지자수점수, 7.5)*0.2) <![CDATA[>]]> 15 THEN 15.00 ELSE ROUND(ISNULL(표준고용유지점수, 7.5)*0.8 + ISNULL(고용유지자수점수, 7.5)*0.2, 2) END AS 가중고용취업자점수,
             CASE WHEN (ISNULL(표준나은일자리점수, 5)*0.8 + ISNULL(나은일자리수점수, 5)*0.2) <![CDATA[>]]> 10 THEN 10.00 ELSE ROUND(ISNULL(표준나은일자리점수, 5)*0.8 + ISNULL(나은일자리수점수, 5)*0.2, 2) END AS 가중나은취업자점수,
+            CASE WHEN ISNULL(표준연계점수, 5) <![CDATA[>]]> 10 THEN 10.00 ELSE ROUND(ISNULL(표준연계점수, 5), 2) END AS 가중연계점수,
+            ISNULL(A.연계건수합, 0) AS 연계건수,
+            ISNULL(A.연계율, 0) AS 연계율,
+            ROUND(ISNULL(A.연계점수, 0), 2) AS 연계점수,
             ISNULL(A.서비스미제공_합계, 0) AS 서비스미제공_건수, ISNULL(A.미해당_합계, 0) AS 미해당_건수, ISNULL(A.해당_합계, 0) AS 해당_건수
         FROM J_참여자관리_로그인정보 B
         LEFT JOIN 표준화_점수 A ON A.전담자_계정 = B.아이디
@@ -267,7 +287,7 @@
     DynamicViewResult AS (
         /* 8. 최종 합계 산출 */
         SELECT *,
-            ROUND(가중취업자점수 + 가중알선취업자점수 + 가중조기취업자점수 + 가중고용취업자점수 + 가중나은취업자점수, 2) AS 총점
+            ROUND(가중취업자점수 + 가중알선취업자점수 + 가중조기취업자점수 + 가중고용취업자점수 + 가중나은취업자점수 + 가중연계점수, 2) AS 총점
         FROM DynamicViewResult_Capping
     )
 </sql>
@@ -298,6 +318,7 @@
                 ISNULL(SUM(A.종료_F * A.알선_F * A.취업_F * A.대상_F * A.가중치), 0) 알선취업자수,
                 ISNULL(SUM(A.종료_F * A.조기_F * A.취업_F * A.대상_F * A.가중치), 0) 조기취업자수,
                 ISNULL(SUM(A.종료_F * A.나은일자리_F * A.취업_F * A.대상_F * A.가중치), 0) 나은일자리수,
+                ISNULL(SUM(ISNULL(LK.연계건수, 0) * A.종료_F * A.대상_F * A.가중치), 0) 연계건수,
                 ISNULL(SUM(A.종료_F * A.서비스미제공 * A.대상_F), 0) 서비스미제공,
                 ISNULL(SUM(A.종료_F * A.미해당 * A.대상_F), 0) 미해당,
                 ISNULL(SUM(A.종료_F * A.해당 * A.대상_F), 0) 해당,
@@ -306,6 +327,8 @@
                 나은일자리_판정 A
             LEFT JOIN 배정 B
             ON A.전담자_계정 = B.전담자_계정
+            LEFT JOIN 연계_집계 LK
+            ON A.구직번호 = LK.구직번호
             WHERE
                 A.전담자_계정 IS NOT NULL -- [추가] 불필요한 NULL 계정 사전 제거
             GROUP BY
@@ -319,7 +342,8 @@
                 ISNULL(ROUND((취업자수*1.0)/ NULLIF(종료자수,0), 3)*100,0) 취업률,
                 ISNULL(ROUND((알선취업자수*1.0)/NULLIF(취업자수,0), 3)*100,0) 알선취업률,
                 ISNULL(ROUND((조기취업자수*1.0)/NULLIF(취업자수,0), 3)*100,0) 조기취업률,
-                ISNULL(ROUND((나은일자리수*1.0)/NULLIF(취업자수,0), 3)*100,0) 나은일자리률
+                ISNULL(ROUND((나은일자리수*1.0)/NULLIF(취업자수,0), 3)*100,0) 나은일자리률,
+                ISNULL(ROUND((연계건수*1.0)/NULLIF(종료자수,0), 3)*100,0) 연계율
             FROM
                 kpimain
         )
@@ -335,6 +359,8 @@
             조기취업률 AS earlyEmploymentRate,
             나은일자리수 AS betterJobCount,
             나은일자리률 AS betterJobRate,
+            연계건수 AS linkageCount,
+            연계율 AS linkageRate,
             배정인원수 AS assignedParticipants,
             서비스미제공 AS noServiceCount,
             미해당 AS falseCaseNum,
@@ -378,7 +404,16 @@
                     WHERE 전담자_계정 IS NOT NULL AND 나은일자리률 IS NOT NULL -- [중요] NULL 제외
                 ) AS subquery
                 WHERE percentile BETWEEN 15 AND 85
-            ) AS avgBetterJobRateMiddle
+            ) AS avgBetterJobRateMiddle,
+            (
+                SELECT AVG(연계율)
+                FROM (
+                    SELECT 연계율, NTILE(100) OVER (ORDER BY 연계율) AS percentile
+                    FROM kpimain_statistics
+                    WHERE 전담자_계정 IS NOT NULL AND 연계율 IS NOT NULL -- [중요] NULL 제외
+                ) AS subquery
+                WHERE percentile BETWEEN 15 AND 85
+            ) AS avgLinkageRateMiddle
         FROM
             kpimain_statistics
         WHERE
@@ -786,11 +821,14 @@
             A.나은일자리수 AS betterJobCount,
             A.나은일자리취업률 AS betterJobRate,
             A.인당나은일자리점수 AS betterJobOneScore,
+            A.연계건수 AS linkageCount,
+            A.연계율 AS linkageRate,
             A.가중취업자점수 AS employmentLastScore,
             A.가중알선취업자점수 AS placementLastScore,
             A.가중조기취업자점수 AS earlyEmploymentLastScore,
             A.가중고용취업자점수 AS retentionLastScore,
             A.가중나은취업자점수 AS betterJobLastScore,
+            A.가중연계점수 AS linkageLastScore,
             A.총점 AS totalScore
         FROM DynamicViewResult A
         WHERE
@@ -942,6 +980,7 @@
             ISNULL(ROUND(SUM(A.가중알선취업자점수) / B.지점인원, 2), 0) AS placementScore,
             ISNULL(ROUND(SUM(A.가중나은취업자점수) / B.지점인원, 2), 0) AS betterJobScore,
             ISNULL(ROUND(SUM(A.가중조기취업자점수) / B.지점인원, 2), 0) AS earlyEmploymentScore,
+            ISNULL(ROUND(SUM(A.가중연계점수) / B.지점인원, 2), 0) AS linkageScore,
             ISNULL(ROUND(SUM(A.총점) / B.지점인원, 2), 0) AS totalScore
         FROM DynamicViewResult A
         LEFT JOIN J_참여자관리_지점 B ON A.지점 = B.지점
@@ -1030,6 +1069,7 @@
             SUM(A.가중알선취업자점수) AS placementScore,
             SUM(A.가중나은취업자점수) AS betterJobScore,
             SUM(A.가중조기취업자점수) AS earlyEmploymentScore,
+            SUM(A.가중연계점수) AS linkageScore,
             SUM(A.총점) AS totalScore
         FROM DynamicViewResult A
         INNER JOIN 자격있는_전담자 Q ON A.전담자_계정 = Q.아이디
@@ -1052,7 +1092,7 @@
         SELECT
         지점, 이름, 전담자_계정,
         가중취업자점수, 가중알선취업자점수,
-        가중조기취업자점수, 가중나은취업자점수, 총점
+        가중조기취업자점수, 가중나은취업자점수, 가중연계점수, 총점
         FROM DynamicViewResult A
         ),
         총점및인원데이터 AS (
@@ -1112,6 +1152,7 @@
             </when>
         </choose>
         D.가중나은취업자점수,
+        D.가중연계점수,
         D.총점,
         P.지점_평균,
         P.총평균,
@@ -1139,6 +1180,7 @@
             </when>
         </choose>
         가중나은취업자점수 AS betterJobLastScore,
+        가중연계점수 AS linkageLastScore,
         총점 AS totalScore,
         지점_평균 AS myBranchScoreAVG,
         총평균 AS totalBranchScoreAVG
@@ -1160,7 +1202,7 @@
         SELECT
             A.지점, A.이름, A.전담자_계정,
             A.가중취업자점수, A.가중알선취업자점수, A.가중조기취업자점수,
-            A.가중나은취업자점수, A.총점,
+            A.가중나은취업자점수, A.가중연계점수, A.총점,
             <!-- MyBatis 조건부 처리 -->
             <choose>
                 <when test="!dashboardExcludeRetention">
@@ -1213,6 +1255,7 @@
                 </when>
             </choose>
             B.가중나은취업자점수 AS betterJobLastScore,
+            B.가중연계점수 AS linkageLastScore,
             B.총점 AS totalScore,
             J.지점_평균 AS myBranchScoreAVG,
             T.총평균 AS totalBranchScoreAVG
@@ -1233,6 +1276,7 @@
         가중알선취업자점수,
         가중조기취업자점수,
         가중나은취업자점수,
+        가중연계점수,
         <choose>
             <when test="dashboardExcludeRetention">
                 가중고용취업자점수,
@@ -1294,6 +1338,7 @@
             </when>
         </choose>
         D.가중나은취업자점수,
+        D.가중연계점수,
         D.총점,
         P.지점_평균,
         P.총평균,
@@ -1323,7 +1368,9 @@
             </when>
         </choose>
         ROUND(AVG(CASE WHEN 순위_퍼센트 <![CDATA[<=]]> 20 AND 근속기간구분 = '1년이상' THEN 가중나은취업자점수 END),2) AS 상위20퍼센트_나은평균,
-        ROUND(AVG(CASE WHEN 근속기간구분 = '1년이상' THEN 가중나은취업자점수 END),2) AS 전체_나은평균
+        ROUND(AVG(CASE WHEN 근속기간구분 = '1년이상' THEN 가중나은취업자점수 END),2) AS 전체_나은평균,
+        ROUND(AVG(CASE WHEN 순위_퍼센트 <![CDATA[<=]]> 20 AND 근속기간구분 = '1년이상' THEN 가중연계점수 END),2) AS 상위20퍼센트_연계평균,
+        ROUND(AVG(CASE WHEN 근속기간구분 = '1년이상' THEN 가중연계점수 END),2) AS 전체_연계평균
         FROM 순위_데이터
         )
         SELECT
@@ -1341,7 +1388,9 @@
             </when>
         </choose>
         상위20퍼센트_나은평균 AS betterJobTopScore,
-        전체_나은평균 AS betterJobLastScore
+        전체_나은평균 AS betterJobLastScore,
+        상위20퍼센트_연계평균 AS linkageTopScore,
+        전체_연계평균 AS linkageLastScore
         FROM 통계_정보
     </select>
 
@@ -1358,7 +1407,7 @@
                 가중고용취업자점수,
             </when>
         </choose>
-        가중조기취업자점수, 가중나은취업자점수, 총점
+        가중조기취업자점수, 가중나은취업자점수, 가중연계점수, 총점
         FROM DynamicViewResult A
         ),
         총점및인원데이터 AS (
@@ -1419,6 +1468,7 @@
             </when>
         </choose>
         D.가중나은취업자점수,
+        D.가중연계점수,
         D.총점,
         P.지점_평균,
         P.총평균,
@@ -1446,6 +1496,7 @@
             </when>
         </choose>
         가중나은취업자점수 AS betterJobLastScore,
+        가중연계점수 AS linkageLastScore,
         총점 AS totalScore,
         지점_평균 AS myBranchScoreAVG,
         총평균 AS totalBranchScoreAVG
@@ -1465,7 +1516,7 @@
                 가중고용취업자점수,
             </when>
         </choose>
-        가중조기취업자점수, 가중나은취업자점수, 총점
+        가중조기취업자점수, 가중나은취업자점수, 가중연계점수, 총점
         FROM DynamicViewResult A
         ),
         총점및인원데이터 AS (
@@ -1525,6 +1576,7 @@
             </when>
         </choose>
         D.가중나은취업자점수,
+        D.가중연계점수,
         D.총점,
         P.지점_평균,
         P.총평균,
@@ -1551,6 +1603,7 @@
             </when>
         </choose>
         가중나은취업자점수 AS betterJobLastScore,
+        가중연계점수 AS linkageLastScore,
         총점 AS totalScore,
         지점_평균 AS myBranchScoreAVG,
         총평균 AS totalBranchScoreAVG
@@ -1575,6 +1628,7 @@
         </choose>
         가중조기취업자점수,
         가중나은취업자점수,
+        가중연계점수,
         총점
         FROM DynamicViewResult A
         ),
@@ -1631,6 +1685,7 @@
             </when>
         </choose>
         D.가중나은취업자점수,
+        D.가중연계점수,
         D.총점,
         P.지점_평균,
         P.총평균,
@@ -1660,7 +1715,9 @@
             </when>
         </choose>
         ROUND(AVG(CASE WHEN 순위_퍼센트 <![CDATA[<=]]> 20 AND 근속기간구분 = '1년이상' THEN 가중나은취업자점수 END),2) AS 상위20퍼센트_나은평균,
-        ROUND(AVG(CASE WHEN 근속기간구분 = '1년이상' THEN 가중나은취업자점수 END),2) AS 전체_나은평균
+        ROUND(AVG(CASE WHEN 근속기간구분 = '1년이상' THEN 가중나은취업자점수 END),2) AS 전체_나은평균,
+        ROUND(AVG(CASE WHEN 순위_퍼센트 <![CDATA[<=]]> 20 AND 근속기간구분 = '1년이상' THEN 가중연계점수 END),2) AS 상위20퍼센트_연계평균,
+        ROUND(AVG(CASE WHEN 근속기간구분 = '1년이상' THEN 가중연계점수 END),2) AS 전체_연계평균
         FROM 순위_데이터
         )
         SELECT
@@ -1678,7 +1735,9 @@
             </when>
         </choose>
         상위20퍼센트_나은평균 AS betterJobTopScore,
-        전체_나은평균 AS betterJobLastScore
+        전체_나은평균 AS betterJobLastScore,
+        상위20퍼센트_연계평균 AS linkageTopScore,
+        전체_연계평균 AS linkageLastScore
         FROM 통계_정보
     </select>
 

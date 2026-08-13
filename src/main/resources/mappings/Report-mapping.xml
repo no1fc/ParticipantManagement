@@ -172,9 +172,12 @@
     </select>
 
     <!-- 선택 날짜(업무보고일) 스냅샷 조회.
-         선택일 이하(<=)의 상담사별 최신 저장 1건을 이월해 반환:
-           - 누적(금주/금월/금년)은 이전 저장값 그대로 이월
-           - 금일(유형1/2, 금일일반/금일알선 취업)은 정확히 선택일 저장분일 때만 표시, 이월 시 0
+         선택일 이하(<=)의 상담사별 최신 저장 1건을 반환하되, 기간이 경과하면 해당 누적을 0으로 리셋:
+           - 금일(유형1/2, 금일일반/금일알선 취업)은 정확히 선택일 저장분일 때만 표시, 그 외 0
+           - 금주는 최신 저장분이 선택일과 같은 주(월요일 시작)일 때만 표시, 주 경과 시 0
+           - 금월은 같은 연·월일 때만 표시, 월 경과 시 0
+           - 금년은 같은 연도일 때만 표시, 연 경과 시 0
+         주/월/년 경계는 1900-01-01(월요일) 기준 DATEDIFF 로 계산하여 SET DATEFIRST 설정에 비의존.
          저장 이력이 전혀 없는 상담사는 ISNULL 로 전부 0. -->
     <select id="dailyReportSelectByDate" resultType="report">
         SELECT
@@ -184,19 +187,25 @@
             CASE WHEN C.업무보고일 = CONVERT(CHAR(10), #{dailyUpdateStatusDate}, 23) THEN ISNULL(C.유형2, 0) ELSE 0 END todayPersonnelTwoType,
             CASE WHEN C.업무보고일 = CONVERT(CHAR(10), #{dailyUpdateStatusDate}, 23) THEN ISNULL(C.금일일반취업, 0) ELSE 0 END memberTodayEmployment,
             CASE WHEN C.업무보고일 = CONVERT(CHAR(10), #{dailyUpdateStatusDate}, 23) THEN ISNULL(C.금일알선취업, 0) ELSE 0 END memberTodayPlacement,
-            ISNULL(C.금주일반취업, 0) memberToWeekEmployment,
-            ISNULL(C.금주알선취업, 0) memberToWeekPlacement,
-            ISNULL(C.금월일반취업, 0) memberToMonthEmployment,
-            ISNULL(C.금월알선취업, 0) memberToMonthPlacement,
-            ISNULL(C.금년일반취업, 0) memberToYearEmployment,
-            ISNULL(C.금년알선취업, 0) memberToYearPlacement,
+            CASE WHEN C.같은주 = 1 THEN ISNULL(C.금주일반취업, 0) ELSE 0 END memberToWeekEmployment,
+            CASE WHEN C.같은주 = 1 THEN ISNULL(C.금주알선취업, 0) ELSE 0 END memberToWeekPlacement,
+            CASE WHEN C.같은월 = 1 THEN ISNULL(C.금월일반취업, 0) ELSE 0 END memberToMonthEmployment,
+            CASE WHEN C.같은월 = 1 THEN ISNULL(C.금월알선취업, 0) ELSE 0 END memberToMonthPlacement,
+            CASE WHEN C.같은년 = 1 THEN ISNULL(C.금년일반취업, 0) ELSE 0 END memberToYearEmployment,
+            CASE WHEN C.같은년 = 1 THEN ISNULL(C.금년알선취업, 0) ELSE 0 END memberToYearPlacement,
             ISNULL(C.업무보고일, '1900-01-01') endUpdateStatus,
             A.일일업무일지발급여부 memberDailyWorkDiaryIssuance
         FROM J_참여자관리_로그인정보 A
         LEFT JOIN (
-            -- 선택일 이하 상담사별 최신 업무보고 1건
+            -- 선택일 이하 상담사별 최신 업무보고 1건 + 선택일과의 주/월/년 일치 플래그
             SELECT *,
-                   ROW_NUMBER() OVER (PARTITION BY 지점, 아이디 ORDER BY 업무보고일 DESC) as rn
+                   ROW_NUMBER() OVER (PARTITION BY 지점, 아이디 ORDER BY 업무보고일 DESC) as rn,
+                   IIF(DATEDIFF(DAY, 0, CONVERT(date, 업무보고일)) / 7
+                       = DATEDIFF(DAY, 0, CONVERT(date, #{dailyUpdateStatusDate})) / 7, 1, 0) AS 같은주,
+                   IIF(DATEDIFF(MONTH, 0, CONVERT(date, 업무보고일))
+                       = DATEDIFF(MONTH, 0, CONVERT(date, #{dailyUpdateStatusDate})), 1, 0) AS 같은월,
+                   IIF(DATEDIFF(YEAR, 0, CONVERT(date, 업무보고일))
+                       = DATEDIFF(YEAR, 0, CONVERT(date, #{dailyUpdateStatusDate})), 1, 0) AS 같은년
             FROM J_참여자관리_일일업무보고
             WHERE 업무보고일 <![CDATA[ <= ]]> CONVERT(CHAR(10), #{dailyUpdateStatusDate}, 23)
         ) C ON A.지점 = C.지점 AND A.아이디 = C.아이디 AND C.rn = 1

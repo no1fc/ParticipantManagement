@@ -196,6 +196,7 @@ public class DashboardAjaxController {
                             "\"earlyEmploymentScore\":%.2f," +
                             "\"retentionScore\":%.2f," +
                             "\"betterJobScore\":%.2f," +
+                            "\"linkageScore\":%.2f," +
                             "\"myBranchScore\":%.2f}",
                     dto.getDashBoardUserName() == null ? "" : dto.getDashBoardUserName(),
                     dto.getDashboardBranch() == null ? "" : dto.getDashboardBranch(),
@@ -206,6 +207,7 @@ public class DashboardAjaxController {
                     dto.getEarlyEmploymentLastScore() == 0 ? 0 : dto.getEarlyEmploymentLastScore(),
                     dto.getRetentionLastScore() == 0 ? 0 : dto.getRetentionLastScore(),
                     dto.getBetterJobLastScore() == 0 ? 0 : dto.getBetterJobLastScore(),
+                    dto.getLinkageLastScore() == 0 ? 0 : dto.getLinkageLastScore(),
                     dto.getMyBranchScoreAVG() == 0 ? 0 : dto.getMyBranchScoreAVG()
             );
         });
@@ -231,13 +233,15 @@ public class DashboardAjaxController {
                             "\"placementTopScore\":%.2f," +
                             "\"earlyEmploymentTopScore\":%.2f," +
                             "\"retentionTopScore\":%.2f," +
-                            "\"betterJobTopScore\":%.2f}",
+                            "\"betterJobTopScore\":%.2f," +
+                            "\"linkageTopScore\":%.2f}",
                     dto.getTotalStandardScore() == 0 ? 0 : dto.getTotalStandardScore(),
                     dto.getEmploymentTopScore() == 0 ? 0 : dto.getEmploymentTopScore(),
                     dto.getPlacementTopScore() == 0 ? 0 : dto.getPlacementTopScore(),
                     dto.getEarlyEmploymentTopScore() == 0 ? 0 : dto.getEarlyEmploymentTopScore(),
                     dto.getRetentionTopScore() == 0 ? 0 : dto.getRetentionTopScore(),
-                    dto.getBetterJobTopScore() == 0 ? 0 : dto.getBetterJobTopScore()
+                    dto.getBetterJobTopScore() == 0 ? 0 : dto.getBetterJobTopScore(),
+                    dto.getLinkageTopScore() == 0 ? 0 : dto.getLinkageTopScore()
             );
         });
         log.info("consolScore branchScore ChangeJson End");

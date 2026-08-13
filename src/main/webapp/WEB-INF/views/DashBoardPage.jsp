@@ -303,6 +303,12 @@
                                     </div>
                                     <div class="col-md-2 col-6">
                                         <div class="kpi-chart-item">
+                                            <div class="fs-8 fw-bold text-dark mt-1">연계</div>
+                                            <div id="linkageChart" style="min-height: 130px;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 col-6">
+                                        <div class="kpi-chart-item">
                                             <div class="fs-8 fw-bold text-dark mt-1">인센 요건</div>
                                             <div id="incentiveQualificationChart" style="min-height: 130px;"></div>
                                         </div>
@@ -431,6 +437,8 @@ document.addEventListener('DOMContentLoaded', function () {
         let avgEarlyEmploymentRateMiddle = ${empty myKPI.avgEarlyEmploymentRateMiddle ? 0 : myKPI.avgEarlyEmploymentRateMiddle}; // 평균 조기취업률
         let betterJobRate = ${empty myKPI.betterJobRate ? 0 : myKPI.betterJobRate}; // 나은일자리
         let avgBetterJobRateMiddle = ${empty myKPI.avgBetterJobRateMiddle ? 0 : myKPI.avgBetterJobRateMiddle}; // 평균 나은일자리
+        let linkageRate = ${empty myKPI.linkageRate ? 0 : myKPI.linkageRate}; // 연계율
+        let avgLinkageRateMiddle = ${empty myKPI.avgLinkageRateMiddle ? 0 : myKPI.avgLinkageRateMiddle}; // 평균 연계율
         let assignedParticipants = ${empty myKPI.assignedParticipants ? 0 : myKPI.assignedParticipants}; // 배정인원수
         let noServiceCount = ${empty myKPI.noServiceCount ? 0 : myKPI.noServiceCount}; // 인센 미해당 서비스미제공
         let falseCaseNum = ${empty myKPI.falseCaseNum ? 0 : myKPI.falseCaseNum}; // 인센 미해당
@@ -477,6 +485,12 @@ document.addEventListener('DOMContentLoaded', function () {
         series = [betterJobRate, checkNegative(avgBetterJobRateMiddle,betterJobRate)]
         labels = ['나은일자리','남은 목표']
         donut = new ApexCharts(document.querySelector("#betterJobChart"), apexChartDoughnut('나은일자리',series, labels,colors,true));
+        donut.render();
+
+        //연계 차트
+        series = [linkageRate, checkNegative(avgLinkageRateMiddle,linkageRate)]
+        labels = ['연계','남은 목표']
+        donut = new ApexCharts(document.querySelector("#linkageChart"), apexChartDoughnut('연계',series, labels,colors,true));
         donut.render();
 
         //인센 요건 충족 차트
