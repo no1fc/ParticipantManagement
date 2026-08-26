@@ -309,7 +309,7 @@ ROS2 기반 시스템 아키텍...
         System.out.println("\n[Gemini API 호출 시작]");
         SearchConditionDTO result = geminiApi.generateSearchCondition(
                 participant, referralInfo, categoryList, relatedCategories,
-                java.util.Collections.emptyList(), java.util.Collections.emptyList());
+                java.util.Collections.emptyList(), java.util.Collections.emptyList(), null, null);
 
         System.out.println("\n[검색 조건 생성 결과]");
         System.out.println("  keywords: " + result.getKeywords());

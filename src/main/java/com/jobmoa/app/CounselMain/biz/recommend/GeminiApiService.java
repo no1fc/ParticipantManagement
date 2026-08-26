@@ -53,8 +53,10 @@ public class GeminiApiService {
             List<RecommendCategoryDTO> categoryList,
             List<JobCategoryDTO> relatedCategories,
             List<String> certificates,
-            List<String> trainings) {
-        String prompt = buildSearchConditionPrompt(participant, referralInfo, categoryList, relatedCategories, certificates, trainings);
+            List<String> trainings,
+            String desiredLargeRegion,
+            String desiredLocalRegion) {
+        String prompt = buildSearchConditionPrompt(participant, referralInfo, categoryList, relatedCategories, certificates, trainings, desiredLargeRegion, desiredLocalRegion);
         log.info("generateSearchCondition prompt length: {}", prompt.length());
         String response = callGeminiApiWithRetry(prompt, modelNameStage1, buildSearchConditionSchema());
         log.info("generateSearchCondition response length: {}", response != null ? response.length() : 0);
@@ -68,7 +70,15 @@ public class GeminiApiService {
             List<RecommendCategoryDTO> categoryList,
             List<JobCategoryDTO> relatedCategories,
             List<String> certificates,
-            List<String> trainings) {
+            List<String> trainings,
+            String desiredLargeRegion,
+            String desiredLocalRegion) {
+
+        // 상담사가 추천 모달에서 지정한 원하는 지역(광역 + 기초) 조립. 없으면 빈 문자열.
+        String largeRegion = (desiredLargeRegion != null) ? desiredLargeRegion.trim() : "";
+        String localRegion = (desiredLocalRegion != null) ? desiredLocalRegion.trim() : "";
+        boolean hasDesiredRegion = !largeRegion.isEmpty() || !localRegion.isEmpty();
+        String desiredRegionText = (largeRegion + " " + localRegion).trim();
 
         // 희망직무 카테고리 정보 조립
         int listCount = 1;
@@ -110,6 +120,10 @@ public class GeminiApiService {
         sb.append("- 취업역량: ").append(nullSafe(p.getEmploymentCapacity())).append("\n");
         sb.append("- 알선상세정보: ").append(referralString).append("\n");
         sb.append("- 상담사 추천사: ").append(additionalInfoString).append("\n");
+        if (hasDesiredRegion) {
+            sb.append("- 상담사 지정 원하는 지역: ").append(desiredRegionText)
+              .append(" (※ 근무지역은 이 값을 최우선으로 사용)\n");
+        }
 
         // 보유 자격증
         sb.append("- 보유 자격증: ");
@@ -178,11 +192,18 @@ public class GeminiApiService {
         sb.append("   - 보유 자격증을 관련 직무 키워드로 변환하여 포함하세요 (예: 정보처리기사 → IT, 소프트웨어).\n");
         sb.append("   - '회사', '직원', '근무', '채용', '모집' 등 지나치게 일반적인 키워드는 제외하세요.\n");
 
-        // 지역 지시 — 거주지 기반 기본 검색 포함
+        // 지역 지시 — 상담사 지정 지역 최우선, 이후 알선상세정보 → 거주지 순
         sb.append("3. 지역 설정 규칙:\n");
-        sb.append("   - 1순위: 알선상세정보에 희망 근무지역이 명시되어 있으면 해당 지역을 사용하세요.\n");
-        sb.append("   - 2순위: 희망지역이 없으면 구직자 주소(거주지)를 기반으로 해당 지역 및 인접 지역을 근무 가능 지역으로 추정하세요.\n");
-        sb.append("   - 구직자 주소 정보가 있으면 isAddress를 반드시 true로 설정하세요.\n");
+        if (hasDesiredRegion) {
+            sb.append("   - 1순위(최우선): 상담사가 지정한 원하는 지역 '").append(desiredRegionText).append("'을(를) 근무 가능 지역으로 사용하세요.\n");
+            sb.append("     · 광역만 지정된 경우 해당 광역 전체를, 기초까지 지정된 경우 해당 기초 및 인접 기초를 포함하세요.\n");
+            sb.append("     · 이 지정 지역이 있으면 알선상세정보·거주지보다 우선하며, isAddress를 반드시 true로 설정하세요.\n");
+            sb.append("   - 2순위: 지정 지역으로 결과가 부족할 때만 알선상세정보에 명시된 희망 근무지역을 보조로 참고하세요.\n");
+        } else {
+            sb.append("   - 1순위: 알선상세정보에 희망 근무지역이 명시되어 있으면 해당 지역을 사용하세요.\n");
+            sb.append("   - 2순위: 희망지역이 없으면 구직자 주소(거주지)를 기반으로 해당 지역 및 인접 지역을 근무 가능 지역으로 추정하세요.\n");
+            sb.append("   - 구직자 주소 정보가 있으면 isAddress를 반드시 true로 설정하세요.\n");
+        }
         sb.append("   - 광역자치 단위는 '시', '도'를 제외하고 작성 (예: 서울, 경기, 인천, 제주, 대전)\n");
         sb.append("   - 기초자치 단위는 '구', '시', '군'을 포함하여 작성 (예: 강남구, 수원시, 서귀포시)\n");
         sb.append("   - 인접 지역 예시: 서울 강남구 → 서초구, 송파구 포함 / 경기 수원시 → 용인시, 화성시 포함\n\n");

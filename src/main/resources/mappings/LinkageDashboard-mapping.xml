@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  연계 실적 대시보드 매퍼.
+  · 실적기간(전년 11/1 ~ 당해 10/31) 중 연계일이 있는 참여자를 기준으로
+    전체/지점별/상담사별 연계 참여자 수(중복제거)와 연계 건수(이벤트 수)를 집계한다.
+  · 모집단 권한 집합(상담/팀장/파트장/PRA/총괄/사원, 임원 제외)과 종료자 판정 진행단계 목록은
+    LinkagePopup-mapping.xml(terminatedFilter, selectTotalLinkageCount) 및 채점 CTE와 동기화할 것.
+-->
+<mapper namespace="LinkageDashboardDAO">
+
+    <!--
+      종료자 판정 조건: 진행단계가 종료 단계인 참여자.
+      LinkagePopup-mapping.xml terminatedFilter / 채점 CTE 종료_F 진행단계 목록과 동일하게 유지.
+    -->
+    <sql id="terminatedCase">
+        A.진행단계 IN ('미고보', '미고보/인력공급업', '고보일반', '등록창업', '미등록창업', '미취업사후관리', '미취업사후종료', '중단')
+    </sql>
+
+    <!--
+      공통 FROM/WHERE: 국취 모집단(테스트 지점·이관·미사용 계정 제외) 중
+      실적기간 내 연계일을 가진 연계 이벤트 집합.
+      권한 스코프(scopeAccount)가 있으면 해당 상담사(전담자_계정)로 한정한다.
+    -->
+    <sql id="linkageBase">
+        FROM J_참여자관리_연계 L
+        JOIN J_참여자관리 A ON L.구직번호 = A.구직번호
+        JOIN J_참여자관리_로그인정보 B ON A.전담자_계정 = B.아이디
+        WHERE ISNULL(A.모집경로, '') <![CDATA[<>]]> '이관'
+            AND ISNULL(A.진행단계, '') <![CDATA[<>]]> '이관'
+            AND B.아이디사용여부 = '사용'
+            AND B.지점 <![CDATA[<>]]> '테스트'
+            AND B.권한 IN ('상담', '팀장', '파트장', 'PRA', '총괄', '사원')
+            AND <![CDATA[ L.연계일 >= #{startDate} ]]>
+            AND <![CDATA[ L.연계일 <= #{endDate} ]]>
+        <if test="scopeAccount != null and scopeAccount != ''">
+            AND A.전담자_계정 = #{scopeAccount}
+        </if>
+    </sql>
+
+    <!--
+      집계 컬럼 4종(전체 참여자수/건수 + 종료자 참여자수/건수).
+      · 참여자수 = COUNT(DISTINCT 구직번호) (연계 다중 등록 시 1명으로)
+      · 건수     = COUNT(*)
+      · 종료자   = 위 중 <terminatedCase/> 만족
+    -->
+    <sql id="linkageMetrics">
+        COUNT(DISTINCT L.구직번호) AS linkageParticipantCount,
+        COUNT(*) AS linkageEventCount,
+        COUNT(DISTINCT CASE WHEN <include refid="terminatedCase"/> THEN L.구직번호 END) AS terminatedParticipantCount,
+        SUM(CASE WHEN <include refid="terminatedCase"/> THEN 1 ELSE 0 END) AS terminatedEventCount
+    </sql>
+
+    <!-- ===== 전체 합계 (단건) ===== -->
+    <select id="selectLinkageTotals" resultType="linkageDashboard">
+        SELECT
+            <include refid="linkageMetrics"/>
+        <include refid="linkageBase"/>
+    </select>
+
+    <!-- ===== 지점별 (모든 활성 지점 포함, 데이터 없으면 0) ===== -->
+    <select id="selectLinkageByBranch" resultType="linkageDashboard">
+        SELECT
+            BR.지점 AS branch,
+            ISNULL(S.linkageParticipantCount, 0) AS linkageParticipantCount,
+            ISNULL(S.linkageEventCount, 0) AS linkageEventCount,
+            ISNULL(S.terminatedParticipantCount, 0) AS terminatedParticipantCount,
+            ISNULL(S.terminatedEventCount, 0) AS terminatedEventCount
+        FROM J_참여자관리_지점 BR
+        LEFT JOIN (
+            SELECT
+                B.지점 AS 지점,
+                <include refid="linkageMetrics"/>
+            <include refid="linkageBase"/>
+            GROUP BY B.지점
+        ) S ON BR.지점 = S.지점
+        WHERE BR.사용여부 = '사용' AND BR.지점 <![CDATA[<>]]> '테스트'
+        ORDER BY linkageParticipantCount DESC, branch ASC
+    </select>
+
+    <!-- ===== 상담사별 (실적기간 내 연계 이벤트가 있는 상담사만) ===== -->
+    <select id="selectLinkageByCounselor" resultType="linkageDashboard">
+        SELECT
+            B.지점 AS branch,
+            A.전담자_계정 AS counselorAccount,
+            B.이름 AS counselorName,
+            <include refid="linkageMetrics"/>
+        <include refid="linkageBase"/>
+        GROUP BY B.지점, A.전담자_계정, B.이름
+        ORDER BY linkageParticipantCount DESC, counselorName ASC
+    </select>
+
+</mapper>

@@ -1,4 +1,52 @@
-/* recommend-modal_0.0.5.css */
+/* recommend-modal_0.0.6.css */
+
+/* =========================
+   원하는 지역 지정 영역 (임시 입력)
+   ========================= */
+.modal-region-area {
+    margin: 0 24px 12px;
+    padding: 14px 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+.modal-region-area .region-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 8px;
+}
+.modal-region-area .region-optional {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #94a3b8;
+}
+.modal-region-area .region-inputs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.modal-region-area .region-select {
+    flex: 0 0 140px;
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    background: #fff;
+}
+.modal-region-area .region-input {
+    flex: 1 1 200px;
+    min-width: 180px;
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.88rem;
+}
+.modal-region-area .region-hint {
+    margin: 8px 0 0;
+    font-size: 0.75rem;
+    color: #64748b;
+}
 
 /* =========================
    모달 오버레이

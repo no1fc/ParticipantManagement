@@ -171,6 +171,11 @@
                                 <small><p>알선 현황 대시보드</p></small>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="/linkageDashboard.login" class="nav-link">
+                                <small><p>연계 실적 대시보드</p></small>
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 <!--end::실적관리-->

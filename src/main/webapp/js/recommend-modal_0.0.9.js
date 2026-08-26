@@ -238,6 +238,12 @@ function resetModalContent() {
     document.getElementById('bestRecommendArea').style.display = 'none';
     document.getElementById('bestRecommendContent').innerHTML = '';
     document.getElementById('recommendStatusMsg').innerText = '';
+
+    // 원하는 지역 입력 초기화 (참여자 전환 시 이전 값이 남지 않도록)
+    const largeRegionEl = document.getElementById('desiredLargeRegion');
+    const localRegionEl = document.getElementById('desiredLocalRegion');
+    if (largeRegionEl) largeRegionEl.value = '';
+    if (localRegionEl) localRegionEl.value = '';
 }
 
 $(document).ready(function () {
@@ -327,10 +333,16 @@ function saveAiRecommend() {
     disableAiRecommendButton(jobSeekerNo);
     document.getElementById('recommendStatusMsg').innerText = 'AI 추천 요청이 전송되었습니다. 모달을 닫고 다른 참여자를 조회할 수 있습니다.';
 
+    // 원하는 지역(임시 입력) 수집 — 지정 시 서버가 24h 쿨다운을 무시하고 지역 반영 재추천
+    const largeRegionEl = document.getElementById('desiredLargeRegion');
+    const localRegionEl = document.getElementById('desiredLocalRegion');
+    const desiredLargeRegion = largeRegionEl ? largeRegionEl.value : '';
+    const desiredLocalRegion = localRegionEl ? localRegionEl.value.trim() : '';
+
     $.ajax({
         url: '/api/recommend/saveRecommendAI',
         type: 'POST',
-        data: JSON.stringify({ jobSeekerNo: jobSeekerNo, forceRefresh: false }),
+        data: JSON.stringify({ jobSeekerNo: jobSeekerNo, forceRefresh: false, desiredLargeRegion: desiredLargeRegion, desiredLocalRegion: desiredLocalRegion }),
         dataType: 'json',
         contentType: 'application/json; charset=UTF-8',
         timeout: 180000,

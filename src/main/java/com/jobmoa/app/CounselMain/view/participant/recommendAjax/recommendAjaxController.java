@@ -131,6 +131,16 @@ public class recommendAjaxController {
 
             jobSeekerNo = request.getJobSeekerNo();
             boolean forceRefresh = request.getForceRefresh();
+
+            // 상담사 지정 원하는 지역(임시 입력). 지정된 경우 지역을 반영해 새로 추천해야 하므로
+            // 24시간 쿨다운을 무시(forceRefresh=true)하고 재추천한다.
+            String desiredLargeRegion = request.getDesiredLargeRegion();
+            String desiredLocalRegion = request.getDesiredLocalRegion();
+            boolean hasDesiredRegion =
+                    (desiredLargeRegion != null && !desiredLargeRegion.trim().isEmpty())
+                            || (desiredLocalRegion != null && !desiredLocalRegion.trim().isEmpty());
+            boolean effectiveForceRefresh = forceRefresh || hasDesiredRegion;
+
             if (jobSeekerNo == 0) {
                 ProcessRecommendResultDTO err = new ProcessRecommendResultDTO();
                 err.setSuccess(false);
@@ -148,7 +158,7 @@ public class recommendAjaxController {
             }
             acquired = (memberUserID != null);
 
-            result = recommendService.processAndSaveRecommend(jobSeekerNo, forceRefresh);
+            result = recommendService.processAndSaveRecommend(jobSeekerNo, effectiveForceRefresh, desiredLargeRegion, desiredLocalRegion);
 
             // 응답에 현재 활성 추천 수 설정
             if (memberUserID != null) {

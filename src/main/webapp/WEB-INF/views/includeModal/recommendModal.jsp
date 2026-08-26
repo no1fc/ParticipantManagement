@@ -89,6 +89,38 @@
     </div>
 
     <!-- =========================
+         원하는 지역 지정 (임시 입력, DB 저장 안 함)
+         - 지정 시 AI가 해당 지역을 최우선으로 사용하여 근무지역을 도출한다.
+         ========================= -->
+    <div class="modal-region-area">
+      <div class="region-title">원하는 근무지역 지정 <span class="region-optional">(선택)</span></div>
+      <div class="region-inputs">
+        <select id="desiredLargeRegion" class="region-select">
+          <option value="">광역 선택</option>
+          <option value="서울">서울</option>
+          <option value="부산">부산</option>
+          <option value="대구">대구</option>
+          <option value="인천">인천</option>
+          <option value="광주">광주</option>
+          <option value="대전">대전</option>
+          <option value="울산">울산</option>
+          <option value="세종">세종</option>
+          <option value="경기">경기</option>
+          <option value="강원">강원</option>
+          <option value="충북">충북</option>
+          <option value="충남">충남</option>
+          <option value="전북">전북</option>
+          <option value="전남">전남</option>
+          <option value="경북">경북</option>
+          <option value="경남">경남</option>
+          <option value="제주">제주</option>
+        </select>
+        <input type="text" id="desiredLocalRegion" class="region-input" placeholder="기초 지역 예: 강남구, 수원시 (선택)" maxlength="30">
+      </div>
+      <p class="region-hint">지정하면 알선상세정보·거주지보다 이 지역을 최우선으로 사용해 채용정보를 추천합니다.</p>
+    </div>
+
+    <!-- =========================
          액션 영역
          ========================= -->
     <div class="modal-action-area">
