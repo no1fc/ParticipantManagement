@@ -5,15 +5,13 @@ import lombok.Data;
 
 /**
  * 연계 실적 대시보드 데이터 전송 객체.
- * <p>실적기간(전년 11/1 ~ 당해 10/31) 중 연계일이 있는 참여자를 기준으로
- * 전체/지점별/상담사별 연계 참여자 수(중복제거)와 연계 건수(이벤트 수)를 전달한다.
- * 지표는 두 축으로 나뉜다.</p>
+ * <p>전체/지점별/상담사별 연계 건수(COUNT)를 두 기준으로 전달한다.</p>
  * <ul>
- *   <li>전체 연계: 실적기간 중 연계일이 있는 참여자</li>
- *   <li>종료자 연계: 위 중 진행단계가 종료 단계인 참여자</li>
+ *   <li>실적 기간 전체: 연계일이 실적기간(전년 11/1 ~ 당해 10/31) 내인 연계 건수</li>
+ *   <li>종료일 기준: 실제종료일이 실적기간 내인 참여자의 연계 건수</li>
  * </ul>
- * <p>종료자 판정 기준은 {@code LinkagePopup-mapping.xml}의 {@code terminatedFilter} 및
- * 채점 CTE({@code Dashboard-mapping.xml})의 {@code 종료_F} 진행단계 목록과 동기화한다.</p>
+ * <p>실제종료일 산식(취창업일 → 기간만료일)은 알선 대시보드({@code Arrangement-mapping.xml})
+ * 및 채점 CTE({@code Dashboard-mapping.xml})의 종료 판정과 동일하게 유지한다.</p>
  */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -30,11 +28,7 @@ public class LinkageDashboardDTO {
     private String counselorAccount;   // 상담사 계정(전담자_계정)
     private String counselorName;      // 상담사 이름
 
-    // ===== 지표: 전체 연계 (실적기간 중 연계일 보유) =====
-    private int linkageParticipantCount; // 연계 참여자 수 (COUNT DISTINCT 구직번호)
-    private int linkageEventCount;       // 연계 건수 (COUNT(*))
-
-    // ===== 지표: 종료자 연계 (위 중 종료 단계) =====
-    private int terminatedParticipantCount; // 종료자 연계 참여자 수 (COUNT DISTINCT)
-    private int terminatedEventCount;       // 종료자 연계 건수 (COUNT(*))
+    // ===== 지표: 연계 건수 2기준 (COUNT(*)) =====
+    private int fullPeriodEventCount; // 연계 건수 · 실적 기간 전체 (연계일이 실적기간 내)
+    private int terminatedEventCount; // 연계 건수 · 종료일 기준 (실제종료일이 실적기간 내)
 }

@@ -16,8 +16,9 @@ import java.util.List;
 
 /**
  * 연계 실적 대시보드 페이지 컨트롤러.
- * <p>실적기간(전년 11/1 ~ 당해 10/31) 중 연계일이 있는 참여자를 기준으로
- * 전체/지점별/상담사별 연계 참여자 수와 연계 건수(전체·종료자)를 조회하여 페이지에 제공한다.</p>
+ * <p>전체/지점별/상담사별 연계 건수를 두 기준(실적 기간 전체=연계일 기준,
+ * 종료일 기준=실제종료일이 실적기간 내)으로 조회하여 페이지에 제공한다.
+ * 실적기간은 전년 11/1 ~ 당해 10/31.</p>
  * <p>권한 스코프: 관리자(IS_MANAGER)는 전체, 일반 상담사는 본인(전담자_계정) 데이터만 조회한다.</p>
  */
 @Slf4j
@@ -84,14 +85,11 @@ public class LinkageDashboardController {
      * @return {@code {"linkageParticipantCount":..,...}} 형식 JSON
      */
     private String buildTotalsJson(LinkageDashboardDTO totals) {
-        int lp = totals != null ? totals.getLinkageParticipantCount() : 0;
-        int le = totals != null ? totals.getLinkageEventCount() : 0;
-        int tp = totals != null ? totals.getTerminatedParticipantCount() : 0;
-        int te = totals != null ? totals.getTerminatedEventCount() : 0;
+        int full = totals != null ? totals.getFullPeriodEventCount() : 0;
+        int term = totals != null ? totals.getTerminatedEventCount() : 0;
         return String.format(
-                "{\"linkageParticipantCount\":%d,\"linkageEventCount\":%d," +
-                        "\"terminatedParticipantCount\":%d,\"terminatedEventCount\":%d}",
-                lp, le, tp, te);
+                "{\"fullPeriodEventCount\":%d,\"terminatedEventCount\":%d}",
+                full, term);
     }
 
     /**
@@ -110,10 +108,8 @@ public class LinkageDashboardController {
                     : String.format("\"branch\":\"%s\",", nullSafe(d.getBranch()));
             return "{" + label +
                     String.format(
-                            "\"linkageParticipantCount\":%d,\"linkageEventCount\":%d," +
-                                    "\"terminatedParticipantCount\":%d,\"terminatedEventCount\":%d}",
-                            d.getLinkageParticipantCount(), d.getLinkageEventCount(),
-                            d.getTerminatedParticipantCount(), d.getTerminatedEventCount());
+                            "\"fullPeriodEventCount\":%d,\"terminatedEventCount\":%d}",
+                            d.getFullPeriodEventCount(), d.getTerminatedEventCount());
         });
     }
 

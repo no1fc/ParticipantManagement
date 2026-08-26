@@ -47,7 +47,7 @@
     <link rel="stylesheet" href="/css/participantCss/custom-modern_0.0.1.css">
 
     <!-- 페이지 전용 CSS -->
-    <link rel="stylesheet" href="/css/participantCss/dashboard_linkage_0.0.1.css">
+    <link rel="stylesheet" href="/css/participantCss/dashboard_linkage_0.0.2.css">
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 
@@ -79,38 +79,22 @@
                     </div>
                 </div>
 
-                <!-- KPI 카드 4종 -->
+                <!-- KPI 카드 2종 (연계 건수 2기준) -->
                 <div class="row g-3 mb-4 align-items-stretch">
-                    <div class="col-md-3 col-sm-6 d-flex">
-                        <div class="kpi-card w-100">
-                            <i class="bi bi-people-fill kpi-icon"></i>
-                            <div class="kpi-label">전체 연계 참여자 수</div>
-                            <div class="kpi-value" id="kpiLinkageParticipant">-</div>
-                            <div class="kpi-sub">실적기간 내 연계일 보유(중복제거)</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-sm-6 d-flex">
+                    <div class="col-md-6 d-flex">
                         <div class="kpi-card w-100">
                             <i class="bi bi-diagram-3 kpi-icon"></i>
-                            <div class="kpi-label">전체 연계 건수</div>
-                            <div class="kpi-value" id="kpiLinkageEvent">-</div>
-                            <div class="kpi-sub">연계 이벤트 수(중복 포함)</div>
+                            <div class="kpi-label">연계 건수 (실적 기간 전체)</div>
+                            <div class="kpi-value" id="kpiFullPeriod">-</div>
+                            <div class="kpi-sub">연계일이 실적기간 내인 연계 건수</div>
                         </div>
                     </div>
-                    <div class="col-md-3 col-sm-6 d-flex">
+                    <div class="col-md-6 d-flex">
                         <div class="kpi-card success w-100">
                             <i class="bi bi-person-check-fill kpi-icon"></i>
-                            <div class="kpi-label">종료자 연계 참여자 수</div>
-                            <div class="kpi-value" id="kpiTerminatedParticipant">-</div>
-                            <div class="kpi-sub">종료 단계 참여자 중(중복제거)</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-sm-6 d-flex">
-                        <div class="kpi-card success w-100">
-                            <i class="bi bi-clipboard2-check kpi-icon"></i>
-                            <div class="kpi-label">종료자 연계 건수</div>
-                            <div class="kpi-value" id="kpiTerminatedEvent">-</div>
-                            <div class="kpi-sub">종료 단계 참여자 연계 이벤트 수</div>
+                            <div class="kpi-label">연계 건수 (종료일 기준)</div>
+                            <div class="kpi-value" id="kpiTerminated">-</div>
+                            <div class="kpi-sub">실제종료일이 실적기간 내인 참여자의 연계 건수</div>
                         </div>
                     </div>
                 </div>
@@ -119,14 +103,11 @@
                 <div class="row mb-4">
                     <div class="col-12">
                         <div class="card-modern border-0 shadow-sm">
-                            <div class="card-header bg-transparent d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div class="card-header bg-transparent">
                                 <h5 class="card-title fw-bold mb-0">
                                     <i class="bi bi-bar-chart-line"></i> 지점별 연계 현황
                                 </h5>
-                                <div class="btn-group btn-group-sm metric-toggle" role="group">
-                                    <button type="button" class="btn btn-primary" data-metric="participant" id="btnMetricParticipant">참여자 수</button>
-                                    <button type="button" class="btn btn-outline-primary" data-metric="event" id="btnMetricEvent">연계 건수</button>
-                                </div>
+                                <small class="text-muted">막대 = 연계 건수 · 실적 기간 전체(연계일 기준) / 종료일 기준(실제종료일이 실적기간 내)</small>
                             </div>
                             <div class="card-body">
                                 <div id="linkageBranchChart"></div>
@@ -147,20 +128,14 @@
                                     <table class="table table-hover linkage-table align-middle">
                                         <thead>
                                             <tr>
-                                                <th rowspan="2">순위</th>
-                                                <th rowspan="2">지점</th>
-                                                <th colspan="2" class="text-center border-start">전체 연계</th>
-                                                <th colspan="2" class="text-center border-start">종료자 연계</th>
-                                            </tr>
-                                            <tr>
-                                                <th class="text-end border-start">참여자 수</th>
-                                                <th class="text-end">건수</th>
-                                                <th class="text-end border-start">참여자 수</th>
-                                                <th class="text-end">건수</th>
+                                                <th>순위</th>
+                                                <th>지점</th>
+                                                <th>연계 건수<br>(실적 기간 전체)</th>
+                                                <th>연계 건수<br>(종료일 기준)</th>
                                             </tr>
                                         </thead>
                                         <tbody id="branchTableBody">
-                                            <tr><td colspan="6" class="text-center text-muted py-3">로딩 중...</td></tr>
+                                            <tr><td colspan="4" class="text-center text-muted py-3">로딩 중...</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -181,21 +156,15 @@
                                     <table class="table table-hover linkage-table align-middle">
                                         <thead>
                                             <tr>
-                                                <th rowspan="2">순위</th>
-                                                <th rowspan="2">지점</th>
-                                                <th rowspan="2">상담사</th>
-                                                <th colspan="2" class="text-center border-start">전체 연계</th>
-                                                <th colspan="2" class="text-center border-start">종료자 연계</th>
-                                            </tr>
-                                            <tr>
-                                                <th class="text-end border-start">참여자 수</th>
-                                                <th class="text-end">건수</th>
-                                                <th class="text-end border-start">참여자 수</th>
-                                                <th class="text-end">건수</th>
+                                                <th>순위</th>
+                                                <th>지점</th>
+                                                <th>상담사</th>
+                                                <th>연계 건수<br>(실적 기간 전체)</th>
+                                                <th>연계 건수<br>(종료일 기준)</th>
                                             </tr>
                                         </thead>
                                         <tbody id="counselorTableBody">
-                                            <tr><td colspan="7" class="text-center text-muted py-3">로딩 중...</td></tr>
+                                            <tr><td colspan="5" class="text-center text-muted py-3">로딩 중...</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -256,7 +225,7 @@
 </script>
 
 <!-- 페이지 전용 JS -->
-<script defer src="/js/dashboard_linkage_visualization_0.0.1.js"></script>
+<script defer src="/js/dashboard_linkage_visualization_0.0.2.js"></script>
 
 </body>
 </html>
