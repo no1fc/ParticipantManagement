@@ -26,6 +26,7 @@
         <typeAlias type="com.jobmoa.app.CounselMain.biz.participantRandomAssignment.PraScoringConfigHistoryDTO" alias="praScoringConfigHistory"/>
         <typeAlias type="com.jobmoa.app.CounselMain.biz.participantRandomAssignment.PraCsvHistoryDTO" alias="praCsvHistory"/>
         <typeAlias type="com.jobmoa.app.CounselMain.biz.dashboard.ArrangementDTO" alias="arrangement"/>
+        <typeAlias type="com.jobmoa.app.CounselMain.biz.dashboard.LinkageDashboardDTO" alias="linkageDashboard"/>
         <typeAlias type="com.jobmoa.app.CounselMain.biz.adminpage.AdminDTO" alias="admin"/>
         <typeAlias type="com.jobmoa.app.CounselMain.biz.recommend.ParticipantJobRecommendDTO"     alias="jobRecommend"/>
         <typeAlias type="com.jobmoa.app.jobPlacement.biz.jobPlacement.JobPlacementDTO" alias="jobPlacement"/>
@@ -65,6 +66,7 @@
         <mapper resource="mappings/Report-mapping.xml" />
         <mapper resource="mappings/jobPlacement-mapping.xml"/>
         <mapper resource="mappings/Arrangement-mapping.xml"/>
+        <mapper resource="mappings/LinkageDashboard-mapping.xml"/>
         <mapper resource="mappings/RandomAssignment-mapping.xml"/>
         <mapper resource="mappings/Admin-mapping.xml"/>
         <mapper resource="mappings/AdminUser-mapping.xml"/>
