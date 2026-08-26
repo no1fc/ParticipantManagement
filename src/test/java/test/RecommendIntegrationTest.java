@@ -187,7 +187,7 @@ public class RecommendIntegrationTest {
         // Gemini API 호출
         System.out.println("\n[Gemini API 호출 - Stage 1]");
         SearchConditionDTO result = geminiApiService.generateSearchCondition(
-                participant, referralInfo, categoryList, relatedCategories, certificates, trainings);
+                participant, referralInfo, categoryList, relatedCategories, certificates, trainings, null, null);
 
         System.out.println("\n[검색조건 생성 결과]");
         System.out.println("  keywords: " + result.getKeywords());

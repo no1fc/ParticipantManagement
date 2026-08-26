@@ -145,6 +145,12 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
 
     @Override
     public ProcessRecommendResultDTO processAndSaveRecommend(int jobSeekerNo, boolean forceRefresh) {
+        return processAndSaveRecommend(jobSeekerNo, forceRefresh, null, null);
+    }
+
+    @Override
+    public ProcessRecommendResultDTO processAndSaveRecommend(int jobSeekerNo, boolean forceRefresh,
+                                                             String desiredLargeRegion, String desiredLocalRegion) {
         ProcessRecommendResultDTO result = new ProcessRecommendResultDTO();
 
         // 1. 참여자 정보 조회
@@ -209,7 +215,7 @@ public class ParticipantJobRecommendServiceImpl implements ParticipantJobRecomme
         // 4. Gemini 1단계: 검색 조건 생성 (실패 시 폴백)
         SearchConditionDTO searchCondition;
         try {
-            searchCondition = geminiApiService.generateSearchCondition(participant, referralInfo, categoryList, relatedCategories, certificates, trainings);
+            searchCondition = geminiApiService.generateSearchCondition(participant, referralInfo, categoryList, relatedCategories, certificates, trainings, desiredLargeRegion, desiredLocalRegion);
             log.info("[추천저장] Gemini 검색조건 생성 jobSeekerNo={}, searchCondition={}", jobSeekerNo, searchCondition);
 
             // AI 응답 파싱 실패 또는 키워드 비어있으면 폴백

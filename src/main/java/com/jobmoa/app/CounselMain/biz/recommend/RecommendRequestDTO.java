@@ -9,4 +9,10 @@ import lombok.Data;
 public class RecommendRequestDTO {
     private int jobSeekerNo;
     private Boolean forceRefresh = false;
+
+    /** 상담사가 추천 모달에서 지정한 원하는 광역 지역(예: 서울, 경기). 임시 입력값으로 DB에 저장하지 않는다. */
+    private String desiredLargeRegion;
+
+    /** 상담사가 추천 모달에서 지정한 원하는 기초 지역(예: 강남구, 수원시). 선택 입력. */
+    private String desiredLocalRegion;
 }

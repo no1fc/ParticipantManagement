@@ -92,6 +92,18 @@ public interface ParticipantJobRecommendService {
     ProcessRecommendResultDTO processAndSaveRecommend(int jobSeekerNo, boolean forceRefresh);
 
     /**
+     * AI 추천을 실행하고 결과를 저장한다. 상담사가 지정한 원하는 지역을 검색 조건 생성에 최우선 반영한다.
+     *
+     * @param jobSeekerNo        구직자 번호
+     * @param forceRefresh       {@code true}이면 24시간 쿨다운을 무시하고 강제 갱신
+     * @param desiredLargeRegion 원하는 광역 지역(예: 서울, 경기). null/빈 값이면 미지정
+     * @param desiredLocalRegion 원하는 기초 지역(예: 강남구, 수원시). null/빈 값이면 미지정
+     * @return 추천 처리 결과
+     */
+    ProcessRecommendResultDTO processAndSaveRecommend(int jobSeekerNo, boolean forceRefresh,
+                                                      String desiredLargeRegion, String desiredLocalRegion);
+
+    /**
      * 상담일지 복사용 채용공고 상세 정보를 단건 조회한다.
      *
      * @param wantedAuthNo 구인인증번호
