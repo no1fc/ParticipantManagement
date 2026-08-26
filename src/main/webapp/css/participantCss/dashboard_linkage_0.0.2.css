@@ -1,6 +1,6 @@
 /*
  * 연계 실적 대시보드 전용 스타일.
- * KPI 카드 / 상세 테이블 / 지표 토글 버튼 등 페이지 고유 요소를 정의한다.
+ * KPI 카드 / 상세 테이블(전 셀 가운데 정렬) 등 페이지 고유 요소를 정의한다.
  */
 
 .text-brand {
@@ -58,24 +58,20 @@
     color: #94a3b8;
 }
 
-/* ===== 상세 테이블 ===== */
+/* ===== 상세 테이블 (전 셀 가운데 정렬) ===== */
+.linkage-table th,
+.linkage-table td {
+    text-align: center !important;
+    vertical-align: middle;
+}
+
 .linkage-table thead th {
     background-color: #f8fafc;
     color: #475569;
     font-size: 0.82rem;
     font-weight: 600;
-    vertical-align: middle;
 }
 
 .linkage-table tbody td {
     font-size: 0.9rem;
-}
-
-.linkage-table .border-start {
-    border-left: 1px solid #e2e8f0 !important;
-}
-
-/* ===== 지표 토글 ===== */
-.metric-toggle .btn {
-    min-width: 84px;
 }
