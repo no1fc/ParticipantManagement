@@ -37,7 +37,7 @@
     // 1순위 연계 = 연계유형 5종, 2순위 연계 = 그 외 전부(기타·복지연계·빈값 등).
     // ※ 문자열은 매퍼 recognizedCategoryExpr(CASE) 출력값과 바이트 단위로 일치해야 조회맵이 매칭된다.
     const LINKAGE_CATEGORIES = ['1순위 연계(일경험·희리패·심리상담)', '2순위 연계'];
-    const CATEGORY_COLORS = ['#22c55e', '#94a3b8']; // 초록 = 1순위 연계, 회색 = 2순위 연계
+    const CATEGORY_COLORS = ['#22c55e', '#70a4ee']; // 초록 = 1순위 연계, 블루 = 2순위 연계
 
     // 컨소시엄 지점(고정 5개). 지점 마스터에 별도 플래그가 없어 화면단 상수로 관리.
     const CONSORTIUM_BRANCHES = ['의정부', '북부', '광명', '성남', '인천'];
