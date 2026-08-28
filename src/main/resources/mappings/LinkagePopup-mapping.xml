@@ -30,14 +30,19 @@
     </select>
 
     <!--
-      종료자 판정 필터: 진행단계가 종료 단계인 참여자만 집계.
-      채점 CTE(Dashboard-mapping.xml)의 종료_F 진행단계 목록과 동일하게 유지할 것.
+      실제종료일: 취창업일 우선, 없으면 기간만료일. '1900-01-01'(빈값)은 NULL 처리.
+      LinkageDashboard-mapping.xml actualEndDate / Dashboard-mapping.xml 종료 판정과 동일하게 유지할 것.
+      ※ 팝업 연계 건수는 실제종료일이 집계기간 내인 건(=대시보드 '실적확정(종료일 기준)'과 동일 축)으로 집계한다.
     -->
-    <sql id="terminatedFilter">
-        AND A.진행단계 IN ('미고보', '미고보/인력공급업', '고보일반', '등록창업', '미등록창업', '미취업사후관리', '미취업사후종료', '중단')
+    <sql id="actualEndDate">
+        NULLIF(CASE
+                   WHEN <![CDATA[ A.취창업일 > '1900-01-01' ]]> THEN A.취창업일
+                   WHEN <![CDATA[ A.기간만료일 > '1900-01-01' ]]> THEN A.기간만료일
+                   ELSE NULL
+               END, '1900-01-01')
     </sql>
 
-    <!-- ===== 본인 연계 건수 (종료자 기준, J_참여자관리_연계 다중 연계, 건수 = row 수) ===== -->
+    <!-- ===== 본인 연계 건수 (실제종료일 기준, 전체 유형, J_참여자관리_연계 다중 연계, 건수 = row 수) ===== -->
     <select id="selectMyLinkageCount" resultType="int">
         SELECT COUNT(*)
         FROM J_참여자관리_연계 L
@@ -45,12 +50,10 @@
         WHERE A.전담자_계정 = #{account}
             AND ISNULL(A.모집경로, '') <![CDATA[<>]]> '이관'
             AND ISNULL(A.진행단계, '') <![CDATA[<>]]> '이관'
-            <include refid="terminatedFilter"/>
-            AND <![CDATA[ L.연계일 >= #{startDate} ]]>
-            AND <![CDATA[ L.연계일 <= #{endDate} ]]>
+            AND <include refid="actualEndDate"/> BETWEEN #{startDate} AND #{endDate}
     </select>
 
-    <!-- ===== 전체 연계 합계 (종료자 기준, 국취 모집단, 테스트 지점 제외) ===== -->
+    <!-- ===== 전체 연계 합계 (실제종료일 기준, 전체 유형, 국취 모집단, 테스트 지점 제외) ===== -->
     <select id="selectTotalLinkageCount" resultType="int">
         SELECT COUNT(*)
         FROM J_참여자관리_연계 L
@@ -61,9 +64,7 @@
             AND B.아이디사용여부 = '사용'
             AND B.지점 != '테스트'
             AND B.권한 IN ('상담', '팀장', '파트장', 'PRA', '총괄', '사원')
-            <include refid="terminatedFilter"/>
-            AND <![CDATA[ L.연계일 >= #{startDate} ]]>
-            AND <![CDATA[ L.연계일 <= #{endDate} ]]>
+            AND <include refid="actualEndDate"/> BETWEEN #{startDate} AND #{endDate}
     </select>
 
     <!-- ===== 전체 국취 인원 N (평균 분모, 테스트 지점 제외) ===== -->
