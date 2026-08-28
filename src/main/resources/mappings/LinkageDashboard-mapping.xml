@@ -51,12 +51,13 @@
     </sql>
 
     <!--
-      실적인정/미인정 2분류 식. 5종은 '실적인정', 그 외(기타·복지연계·빈값 등) 전부 '실적미인정'.
+      1순위/2순위 연계 2분류 식. 5종은 '1순위 연계(일경험·희리패·심리상담)', 그 외(기타·복지연계·빈값 등) 전부 '2순위 연계'.
       ※ recognizedTypeFilter의 5종 목록과 반드시 동기 유지.
+      ※ 출력 문자열은 차트 시리즈명이자 JS LINKAGE_CATEGORIES 조회 키 → dashboard_linkage_visualization JS와 바이트 단위 일치 필수.
     -->
     <sql id="recognizedCategoryExpr">
         CASE WHEN L.연계유형 IN (N'미래내일일경험', N'지자체일경험', N'심리안정(정신건강복지센터)', N'기타 일경험', N'희망리턴패키지')
-             THEN N'실적인정' ELSE N'실적미인정' END
+             THEN N'1순위 연계(일경험·희리패·심리상담)' ELSE N'2순위 연계' END
     </sql>
 
     <!--

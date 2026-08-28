@@ -255,7 +255,7 @@
 </script>
 
 <!-- 페이지 전용 JS -->
-<script defer src="/js/dashboard_linkage_visualization_0.0.7.js"></script>
+<script defer src="/js/dashboard_linkage_visualization_0.0.8.js"></script>
 
 </body>
 </html>

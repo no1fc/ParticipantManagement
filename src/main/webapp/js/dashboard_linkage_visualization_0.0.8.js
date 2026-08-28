@@ -1,10 +1,10 @@
 /**
  * 연계 실적 대시보드 시각화 스크립트.
  * 서버 주입 전역(LINKAGE_TOTALS, LINKAGE_BY_BRANCH, LINKAGE_BY_COUNSELOR, LINKAGE_BY_BRANCH_CATEGORY)으로
- * KPI 카드(연계 건수 2기준) / 지점별 스택 막대차트(일반·컨소시엄 분리, 실적인정·미인정 2분류 누적, 실적확정·전체 2차트) /
+ * KPI 카드(연계 건수 2기준) / 지점별 스택 막대차트(일반·컨소시엄 분리, 1순위·2순위 연계 2분류 누적, 실적확정·전체 2차트) /
  * 지점·상담사별 상세 테이블을 렌더링한다.
  * 지표: 연계 건수 · 종료일 기준(실제종료일이 실적기간 내) / 실적 기간 전체(연계일 기준).
- * ※ 차트만 실적인정(5종)/실적미인정(그 외 전부) 2분류로 표시. KPI·테이블·엑셀은 실적인정 5종 기준 유지.
+ * ※ 차트만 1순위 연계(5종)/2순위 연계(그 외 전부) 2분류로 표시. KPI·테이블·엑셀은 실적인정 5종 기준 유지.
  * + 엑셀 다운로드 버튼 핸들러(집계표를 지점별/상담사별 시트로 내려받음).
  */
 (function () {
@@ -33,10 +33,11 @@
     const counselorRows = Array.isArray(LINKAGE_BY_COUNSELOR) ? LINKAGE_BY_COUNSELOR : [];
     const branchCategoryRows = Array.isArray(LINKAGE_BY_BRANCH_CATEGORY) ? LINKAGE_BY_BRANCH_CATEGORY : [];
 
-    // 실적 분류 2종(고정 순서: 인정 → 미인정) + 분류별 고정 색상.
-    // 실적인정 = 연계유형 5종, 실적미인정 = 그 외 전부(기타·복지연계·빈값 등).
-    const LINKAGE_CATEGORIES = ['실적인정', '실적미인정'];
-    const CATEGORY_COLORS = ['#22c55e', '#94a3b8']; // 초록 = 실적인정, 회색 = 실적미인정
+    // 연계 분류 2종(고정 순서: 1순위 → 2순위) + 분류별 고정 색상.
+    // 1순위 연계 = 연계유형 5종, 2순위 연계 = 그 외 전부(기타·복지연계·빈값 등).
+    // ※ 문자열은 매퍼 recognizedCategoryExpr(CASE) 출력값과 바이트 단위로 일치해야 조회맵이 매칭된다.
+    const LINKAGE_CATEGORIES = ['1순위 연계(일경험·희리패·심리상담)', '2순위 연계'];
+    const CATEGORY_COLORS = ['#22c55e', '#94a3b8']; // 초록 = 1순위 연계, 회색 = 2순위 연계
 
     // 컨소시엄 지점(고정 5개). 지점 마스터에 별도 플래그가 없어 화면단 상수로 관리.
     const CONSORTIUM_BRANCHES = ['의정부', '북부', '광명', '성남', '인천'];
@@ -64,7 +65,7 @@
         document.getElementById('kpiTerminated').textContent = fmt(totals.terminatedEventCount);
     }
 
-    // ===== 스택 막대차트 공통 옵션 (실적인정/미인정 2분류 누적) =====
+    // ===== 스택 막대차트 공통 옵션 (1순위/2순위 연계 2분류 누적) =====
     function buildStackedOptions(categories, series) {
         return {
             chart: { type: 'bar', height: 340, stacked: true, toolbar: { show: false }, fontFamily: 'inherit' },
@@ -82,7 +83,7 @@
     }
 
     /**
-     * 지점 목록과 지표(term|full)로 실적인정/미인정 2분류 스택 series를 생성한다.
+     * 지점 목록과 지표(term|full)로 1순위/2순위 연계 2분류 스택 series를 생성한다.
      * 데이터 없는 (지점,분류)은 0으로 채운다.
      */
     function stackedSeries(branches, metric) {
