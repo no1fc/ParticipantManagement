@@ -140,30 +140,8 @@
         ORDER BY 지점, 조회순서, 이름
     </select>
 
-    <!-- ===== 참여자 Excel (스트리밍 다운로드 본체) ===== -->
-    <select id="selectParticipantExcelList" resultType="admin" fetchSize="500">
-        SELECT
-            A.구직번호 jobNo,
-            A.참여자 participantName,
-            CONVERT(varchar, A.생년월일, 23) birthDate,
-            A.성별 gender,
-            A.지점 branch,
-            A.전담자_계정 counselorAccount,
-            M.이름 counselorName,
-            A.진행단계 progressStage,
-            A.모집경로 recruitPath,
-            A.참여유형 participationType,
-            A.경력 career,
-            A.학력 education,
-            A.특정계층 specialClass,
-            A.취업역량 employmentCapacity,
-            (SELECT TOP 1 W.희망직무 FROM J_참여자관리_희망직무 W WHERE W.구직번호 = A.구직번호 ORDER BY W.희망순위) desiredJob,
-            A.희망급여 desiredSalary,
-            CONVERT(varchar, A.등록일, 23) participantRegDate,
-            A.마감 closed
-        FROM J_참여자관리 A
-        LEFT JOIN J_참여자관리_로그인정보 M ON A.전담자_계정 = M.아이디
-        WHERE 1=1
+    <!-- ===== 참여자 Excel 공통 검색 필터 (본체/자식시트 공용) ===== -->
+    <sql id="adminParticipantFilter">
         <if test="searchJobNo != null and searchJobNo != ''">
             AND CAST(A.구직번호 AS NVARCHAR) LIKE #{searchJobNo} + '%'
         </if>
@@ -188,7 +166,95 @@
         <if test="searchClosed != null and searchClosed != ''">
             AND A.마감 = #{searchClosed}
         </if>
+    </sql>
+
+    <!-- ===== 참여자 Excel (스트리밍 다운로드 본체) ===== -->
+    <select id="selectParticipantExcelList" resultType="admin" fetchSize="500">
+        SELECT
+            A.구직번호 jobNo,
+            A.참여자 participantName,
+            CONVERT(varchar, A.생년월일, 23) birthDate,
+            A.성별 gender,
+            A.지점 branch,
+            A.전담자_계정 counselorAccount,
+            M.이름 counselorName,
+            A.진행단계 progressStage,
+            A.모집경로 recruitPath,
+            A.참여유형 participationType,
+            A.경력 career,
+            A.학력 education,
+            A.특정계층 specialClass,
+            A.취업역량 employmentCapacity,
+            (SELECT TOP 1 W.희망직무 FROM J_참여자관리_희망직무 W WHERE W.구직번호 = A.구직번호 ORDER BY W.희망순위) desiredJob,
+            A.희망급여 desiredSalary,
+            CONVERT(varchar, A.등록일, 23) participantRegDate,
+            A.마감 closed
+        FROM J_참여자관리 A
+        LEFT JOIN J_참여자관리_로그인정보 M ON A.전담자_계정 = M.아이디
+        WHERE 1=1
+        <include refid="adminParticipantFilter"/>
         ORDER BY A.구직번호 DESC
+    </select>
+
+    <!-- ===== 참여자 Excel 자식시트: 연계 (J_참여자관리_연계 1:N) ===== -->
+    <select id="selectAdminExcelLinkage" resultType="admin" fetchSize="500">
+        SELECT
+            A.구직번호 jobNo,
+            A.참여자 participantName,
+            A.지점 branch,
+            A.전담자_계정 counselorAccount,
+            M.이름 counselorName,
+            ISNULL(CONVERT(varchar, C.연계일, 23), '') excelLinkageDate,
+            ISNULL(C.연계유형, '') excelLinkageType,
+            ISNULL(C.연계비고, '') excelLinkageNote
+        FROM J_참여자관리 A
+        LEFT JOIN J_참여자관리_로그인정보 M ON A.전담자_계정 = M.아이디
+        INNER JOIN J_참여자관리_연계 C ON A.구직번호 = C.구직번호
+        WHERE 1=1
+        <include refid="adminParticipantFilter"/>
+        ORDER BY A.구직번호 DESC, C.연계일 DESC, C.PK ASC
+    </select>
+
+    <!-- ===== 참여자 Excel 자식시트: 알선상세 (J_참여자관리_알선상세정보) ===== -->
+    <select id="selectAdminExcelPlacement" resultType="admin" fetchSize="500">
+        SELECT
+            A.구직번호 jobNo,
+            A.참여자 participantName,
+            A.지점 branch,
+            A.전담자_계정 counselorAccount,
+            M.이름 counselorName,
+            ISNULL(C.상세정보, '') excelPlacementDetail,
+            ISNULL(C.추천사, '') excelSuggestion,
+            ISNULL(CONVERT(varchar, C.등록일, 23), '') excelPlacementRegDate,
+            ISNULL(CONVERT(varchar, C.수정일, 23), '') excelPlacementModDate
+        FROM J_참여자관리 A
+        LEFT JOIN J_참여자관리_로그인정보 M ON A.전담자_계정 = M.아이디
+        INNER JOIN J_참여자관리_알선상세정보 C ON A.구직번호 = C.구직번호
+        WHERE 1=1
+        <include refid="adminParticipantFilter"/>
+        ORDER BY A.구직번호 DESC, C.등록번호 ASC
+    </select>
+
+    <!-- ===== 참여자 Excel 자식시트: 상담일정 (J_참여자관리_상담일정, 삭제여부='N') ===== -->
+    <select id="selectAdminExcelSchedule" resultType="admin" fetchSize="500">
+        SELECT
+            A.구직번호 jobNo,
+            A.참여자 participantName,
+            A.지점 branch,
+            A.전담자_계정 counselorAccount,
+            M.이름 counselorName,
+            ISNULL(CONVERT(varchar, C.일정날짜, 23), '') excelScheduleDate,
+            ISNULL(CONVERT(varchar, C.시작시간, 108), '') excelScheduleStart,
+            ISNULL(CONVERT(varchar, C.종료시간, 108), '') excelScheduleEnd,
+            ISNULL(C.일정유형, '') excelScheduleType,
+            ISNULL(C.메모, '') excelScheduleMemo,
+            ISNULL(C.상담사ID, '') excelScheduleCounselor
+        FROM J_참여자관리 A
+        LEFT JOIN J_참여자관리_로그인정보 M ON A.전담자_계정 = M.아이디
+        INNER JOIN J_참여자관리_상담일정 C ON A.구직번호 = C.구직번호
+        WHERE C.삭제여부 = 'N'
+        <include refid="adminParticipantFilter"/>
+        ORDER BY A.구직번호 DESC, C.일정날짜 DESC, C.일정ID ASC
     </select>
 
     <!-- ===== 상담사별 통계 ===== -->

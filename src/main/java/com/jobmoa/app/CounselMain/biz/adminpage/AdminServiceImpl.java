@@ -44,6 +44,21 @@ public class AdminServiceImpl implements AdminService {
         adminDAO.selectParticipantExcelListStream(dto, handler);
     }
 
+    @Override
+    public void getAdminExcelLinkageStream(AdminDTO dto, ResultHandler<AdminDTO> handler) {
+        adminDAO.selectAdminExcelLinkageStream(dto, handler);
+    }
+
+    @Override
+    public void getAdminExcelPlacementStream(AdminDTO dto, ResultHandler<AdminDTO> handler) {
+        adminDAO.selectAdminExcelPlacementStream(dto, handler);
+    }
+
+    @Override
+    public void getAdminExcelScheduleStream(AdminDTO dto, ResultHandler<AdminDTO> handler) {
+        adminDAO.selectAdminExcelScheduleStream(dto, handler);
+    }
+
     // ===== 상담사별 통계 =====
     @Override
     public List<AdminDTO> getPlacementStatsByCounselor(AdminDTO dto) {

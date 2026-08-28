@@ -155,6 +155,21 @@ public class ParticipantAllExcel {
             createSheetHeader(trainingSheet, new String[]{"구직번호", "상담사명", "참여자명", "직업훈련명"});
             streamSheet(participantDTO, "participantExcelTraining", trainingSheet, this::writeTrainingRow);
 
+            // 연계 시트 생성 (타사연계 다중등록: J_참여자관리_연계 1:N)
+            Sheet linkageSheet = workbook.createSheet("연계");
+            createSheetHeader(linkageSheet, new String[]{"구직번호", "상담사명", "참여자명", "연계일", "연계유형", "연계비고"});
+            streamSheet(participantDTO, "participantExcelLinkage", linkageSheet, this::writeLinkageRow);
+
+            // 알선상세 시트 생성 (J_참여자관리_알선상세정보)
+            Sheet placementSheet = workbook.createSheet("알선상세");
+            createSheetHeader(placementSheet, new String[]{"구직번호", "상담사명", "참여자명", "상세정보", "추천사", "등록일", "수정일"});
+            streamSheet(participantDTO, "participantExcelPlacement", placementSheet, this::writePlacementRow);
+
+            // 상담일정 시트 생성 (J_참여자관리_상담일정, 삭제건 제외)
+            Sheet scheduleSheet = workbook.createSheet("상담일정");
+            createSheetHeader(scheduleSheet, new String[]{"구직번호", "상담사명", "참여자명", "일정날짜", "시작시간", "종료시간", "일정유형", "메모", "상담사ID"});
+            streamSheet(participantDTO, "participantExcelSchedule", scheduleSheet, this::writeScheduleRow);
+
             // 수식 평가(evaluateAll) 제거: 템플릿에 수식이 없어 불필요하며, SXSSF는 미지원.
 
             //지점 전체 참여자 다운 요청이면 앞 부분을 지점으로 변경
@@ -351,5 +366,72 @@ public class ParticipantAllExcel {
         setStringCellValue(row, col++, data.getParticipantUserName());
         setStringCellValue(row, col++, data.getParticipantPartic());
         setStringCellValue(row, col, data.getExcelTrainingName());
+    }
+
+    /**
+     * 연계 시트 행 1건 기록 (스트리밍) — 타사연계 다중등록
+     */
+    private void writeLinkageRow(Row row, ParticipantDTO data) {
+        int col = 0;
+        setStringCellValue(row, col++, data.getParticipantJobNo());
+        setStringCellValue(row, col++, data.getParticipantUserName());
+        setStringCellValue(row, col++, data.getParticipantPartic());
+        setStringCellValue(row, col++, data.getExcelLinkageDate());
+        setStringCellValue(row, col++, data.getExcelLinkageType());
+        setStringCellValue(row, col, data.getExcelLinkageNote());
+    }
+
+    /**
+     * 알선상세 시트 행 1건 기록 (스트리밍) — 상세정보/추천사는 HTML 태그 제거 후 출력
+     */
+    private void writePlacementRow(Row row, ParticipantDTO data) {
+        int col = 0;
+        setStringCellValue(row, col++, data.getParticipantJobNo());
+        setStringCellValue(row, col++, data.getParticipantUserName());
+        setStringCellValue(row, col++, data.getParticipantPartic());
+        setStringCellValue(row, col++, stripHtml(data.getExcelPlacementDetail()));
+        setStringCellValue(row, col++, stripHtml(data.getExcelSuggestion()));
+        setStringCellValue(row, col++, data.getExcelPlacementRegDate());
+        setStringCellValue(row, col, data.getExcelPlacementModDate());
+    }
+
+    /**
+     * 상담일정 시트 행 1건 기록 (스트리밍)
+     */
+    private void writeScheduleRow(Row row, ParticipantDTO data) {
+        int col = 0;
+        setStringCellValue(row, col++, data.getParticipantJobNo());
+        setStringCellValue(row, col++, data.getParticipantUserName());
+        setStringCellValue(row, col++, data.getParticipantPartic());
+        setStringCellValue(row, col++, data.getExcelScheduleDate());
+        setStringCellValue(row, col++, data.getExcelScheduleStart());
+        setStringCellValue(row, col++, data.getExcelScheduleEnd());
+        setStringCellValue(row, col++, data.getExcelScheduleType());
+        setStringCellValue(row, col++, data.getExcelScheduleMemo());
+        setStringCellValue(row, col, data.getExcelScheduleCounselor());
+    }
+
+    /**
+     * HTML 태그 및 기본 엔티티를 제거하여 셀에 담기 좋은 평문으로 변환한다.
+     * 알선상세정보(상세정보/추천사)는 에디터에서 HTML로 저장되므로 엑셀 가독성을 위해 정리한다.
+     *
+     * @param html 원본 문자열 (null 허용)
+     * @return 태그·엔티티가 제거된 평문 (null이면 빈 문자열)
+     */
+    private String stripHtml(String html) {
+        if (html == null || html.isEmpty()) {
+            return "";
+        }
+        return html
+                .replaceAll("(?i)<br\\s*/?>", "\n")   // 줄바꿈 태그는 개행으로
+                .replaceAll("(?i)</p>", "\n")          // 문단 종료도 개행으로
+                .replaceAll("<[^>]*>", "")             // 나머지 태그 제거
+                .replace("&nbsp;", " ")
+                .replace("&amp;", "&")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&quot;", "\"")
+                .replace("&#39;", "'")
+                .trim();
     }
 }

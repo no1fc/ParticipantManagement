@@ -42,6 +42,27 @@ public interface AdminService {
      */
     void getParticipantExcelListStream(AdminDTO dto, ResultHandler<AdminDTO> handler);
 
+    /**
+     * 참여자 Excel 연계 시트(J_참여자관리_연계 1:N)를 스트리밍 조회한다.
+     * @param dto 검색 조건이 담긴 DTO
+     * @param handler 행 1건씩 전달받는 ResultHandler
+     */
+    void getAdminExcelLinkageStream(AdminDTO dto, ResultHandler<AdminDTO> handler);
+
+    /**
+     * 참여자 Excel 알선상세 시트(J_참여자관리_알선상세정보)를 스트리밍 조회한다.
+     * @param dto 검색 조건이 담긴 DTO
+     * @param handler 행 1건씩 전달받는 ResultHandler
+     */
+    void getAdminExcelPlacementStream(AdminDTO dto, ResultHandler<AdminDTO> handler);
+
+    /**
+     * 참여자 Excel 상담일정 시트(J_참여자관리_상담일정, 삭제건 제외)를 스트리밍 조회한다.
+     * @param dto 검색 조건이 담긴 DTO
+     * @param handler 행 1건씩 전달받는 ResultHandler
+     */
+    void getAdminExcelScheduleStream(AdminDTO dto, ResultHandler<AdminDTO> handler);
+
     // ===== 상담사별 통계 =====
 
     /**
