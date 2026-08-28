@@ -71,6 +71,11 @@ public class LinkageDashboardController {
         List<LinkageDashboardDTO> counselorList = linkageDashboardService.selectAll(dto);
         model.addAttribute("linkageByCounselor", buildRowsJson(counselorList, true));
 
+        // 6. 지점별 × 연계유형별 (스택 차트용, 실적 인정 5종)
+        dto.setCondition("selectLinkageByBranchType");
+        List<LinkageDashboardDTO> branchTypeList = linkageDashboardService.selectAll(dto);
+        model.addAttribute("linkageByBranchType", buildBranchTypeRowsJson(branchTypeList));
+
         model.addAttribute("linkageStartDate", startDate);
         model.addAttribute("linkageEndDate", endDate);
         model.addAttribute("linkageIsManager", isManager);
@@ -110,6 +115,22 @@ public class LinkageDashboardController {
                     String.format(
                             "\"fullPeriodEventCount\":%d,\"terminatedEventCount\":%d}",
                             d.getFullPeriodEventCount(), d.getTerminatedEventCount());
+        });
+    }
+
+    /**
+     * 지점별 × 연계유형별 목록을 JSON 배열 문자열로 변환한다(스택 차트용).
+     *
+     * @param rows 지점×유형 집계 행 목록(실적 인정 5종)
+     * @return {@code [{"branch":"..","linkageType":"..","fullPeriodEventCount":..,"terminatedEventCount":..}]} 형식 JSON 배열
+     */
+    private String buildBranchTypeRowsJson(List<LinkageDashboardDTO> rows) {
+        return changeJson.convertListToJsonArray(rows, item -> {
+            LinkageDashboardDTO d = (LinkageDashboardDTO) item;
+            return String.format(
+                    "{\"branch\":\"%s\",\"linkageType\":\"%s\",\"fullPeriodEventCount\":%d,\"terminatedEventCount\":%d}",
+                    nullSafe(d.getBranch()), nullSafe(d.getLinkageType()),
+                    d.getFullPeriodEventCount(), d.getTerminatedEventCount());
         });
     }
 

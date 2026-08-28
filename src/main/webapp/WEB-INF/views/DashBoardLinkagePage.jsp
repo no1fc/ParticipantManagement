@@ -71,9 +71,14 @@
                                         실적기간 중 연계일이 있는 참여자를 전체/종료자 기준으로 집계합니다. 참여자 수(중복제거)와 연계 건수를 함께 확인할 수 있습니다.
                                     </p>
                                 </div>
-                                <span class="badge bg-light text-dark border fs-6 period-badge">
-                                    실적기간 ${linkageStartDate} ~ ${linkageEndDate}
-                                </span>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="badge bg-light text-dark border fs-6 period-badge">
+                                        실적기간 ${linkageStartDate} ~ ${linkageEndDate}
+                                    </span>
+                                    <button type="button" id="linkageExcelBtn" class="btn btn-success btn-sm">
+                                        <i class="bi bi-file-earmark-excel-fill"></i> 엑셀 다운로드
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -99,18 +104,41 @@
                     </div>
                 </div>
 
-                <!-- 차트 영역 -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card-modern border-0 shadow-sm">
+                <!-- 차트 영역 (일반 지점 / 컨소시엄 지점 좌우 분리) — 연계유형 5종 스택형 -->
+                <div class="row g-3 mb-4">
+                    <div class="col-lg-6 d-flex">
+                        <div class="card-modern border-0 shadow-sm w-100">
                             <div class="card-header bg-transparent">
                                 <h5 class="card-title fw-bold mb-0">
-                                    <i class="bi bi-bar-chart-line"></i> 지점별 연계 현황
+                                    <i class="bi bi-bar-chart-line"></i> 현재 연계 현황
                                 </h5>
-                                <small class="text-muted">막대 = 연계 건수 · 실적 기간 전체(연계일 기준) / 종료일 기준(실제종료일이 실적기간 내)</small>
+                                <br>
+                                <small class="text-muted">연계 건수(실적 확정): 10월 31일 이내 기간만료 예정자를 포함하여, 취업·중단·기간만료 등으로 종료가 확정된 참여자</small>
+                                <br>
+                                <small class="text-muted">연계 건수(종료 미확정): 10월 31일 이내 종료 여부가 아직 확정되지 않은 참여자</small>
                             </div>
                             <div class="card-body">
-                                <div id="linkageBranchChart"></div>
+                                <div class="text-muted small fw-semibold mb-1">실적 확정 (종료일 기준)</div>
+                                <div id="linkageBranchChartTerm"></div>
+                                <div class="text-muted small fw-semibold mt-3 mb-1">실적 기간 전체 (연계일 기준)</div>
+                                <div id="linkageBranchChartFull"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 d-flex">
+                        <div class="card-modern border-0 shadow-sm w-100">
+                            <div class="card-header bg-transparent">
+                                <h5 class="card-title fw-bold mb-0">
+                                    <i class="bi bi-diagram-2"></i> 컨소시엄 지점 분리 현황
+                                </h5>
+                                <br>
+                                <small class="text-muted">컨소시엄 지점(의정부·북부·광명·성남·인천서부)를 별도 표시</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="text-muted small fw-semibold mb-1">실적 확정 (종료일 기준)</div>
+                                <div id="linkageConsortiumChartTerm"></div>
+                                <div class="text-muted small fw-semibold mt-3 mb-1">실적 기간 전체 (연계일 기준)</div>
+                                <div id="linkageConsortiumChartFull"></div>
                             </div>
                         </div>
                     </div>
@@ -130,8 +158,8 @@
                                             <tr>
                                                 <th>순위</th>
                                                 <th>지점</th>
-                                                <th>연계 건수<br>(실적 기간 전체)</th>
-                                                <th>연계 건수<br>(종료일 기준)</th>
+                                                <th>연계 건수<br>(실적 확정)</th>
+                                                <th>연계 건수<br>(종료 미확정자 포함)</th>
                                             </tr>
                                         </thead>
                                         <tbody id="branchTableBody">
@@ -148,8 +176,9 @@
                 <div class="row mb-4">
                     <div class="col-12">
                         <div class="card-modern border-0 shadow-sm">
-                            <div class="card-header bg-transparent">
+                            <div class="card-header bg-transparent d-flex justify-content-between align-items-center flex-wrap gap-2">
                                 <h5 class="card-title fw-bold mb-0"><i class="bi bi-person-lines-fill"></i> 상담사별 상세</h5>
+                                <div id="counselorBranchFilter" class="btn-group btn-group-sm flex-wrap" role="group" aria-label="지점 필터"></div>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
@@ -159,8 +188,8 @@
                                                 <th>순위</th>
                                                 <th>지점</th>
                                                 <th>상담사</th>
-                                                <th>연계 건수<br>(실적 기간 전체)</th>
-                                                <th>연계 건수<br>(종료일 기준)</th>
+                                                <th>연계 건수<br>(실적 확정)</th>
+                                                <th>연계 건수<br>(종료 미확정자 포함)</th>
                                             </tr>
                                         </thead>
                                         <tbody id="counselorTableBody">
@@ -200,6 +229,7 @@
     const LINKAGE_TOTALS = ${empty linkageTotals ? '{}' : linkageTotals};
     const LINKAGE_BY_BRANCH = ${empty linkageByBranch ? '[]' : linkageByBranch};
     const LINKAGE_BY_COUNSELOR = ${empty linkageByCounselor ? '[]' : linkageByCounselor};
+    const LINKAGE_BY_BRANCH_TYPE = ${empty linkageByBranchType ? '[]' : linkageByBranchType};
 </script>
 
 <!-- OverlayScrollbars Configure -->
@@ -225,7 +255,7 @@
 </script>
 
 <!-- 페이지 전용 JS -->
-<script defer src="/js/dashboard_linkage_visualization_0.0.2.js"></script>
+<script defer src="/js/dashboard_linkage_visualization_0.0.6.js"></script>
 
 </body>
 </html>

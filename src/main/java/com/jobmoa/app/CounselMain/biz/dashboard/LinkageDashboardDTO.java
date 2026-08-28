@@ -23,10 +23,11 @@ public class LinkageDashboardDTO {
     private String scopeAccount;   // 권한 스코프: 일반 상담사는 본인 전담자_계정, 관리자는 null(전체)
     private String condition;      // MyBatis 매퍼 ID 디스패치용
 
-    // ===== 축 라벨 (지점별/상담사별) =====
+    // ===== 축 라벨 (지점별/상담사별/유형별) =====
     private String branch;             // 지점
     private String counselorAccount;   // 상담사 계정(전담자_계정)
     private String counselorName;      // 상담사 이름
+    private String linkageType;        // 연계유형(실적 인정 5종)
 
     // ===== 지표: 연계 건수 2기준 (COUNT(*)) =====
     private int fullPeriodEventCount; // 연계 건수 · 실적 기간 전체 (연계일이 실적기간 내)

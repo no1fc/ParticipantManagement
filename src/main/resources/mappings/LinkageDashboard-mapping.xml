@@ -36,6 +36,8 @@
             AND B.아이디사용여부 = '사용'
             AND B.지점 <![CDATA[<>]]> '테스트'
             AND B.권한 IN ('상담', '팀장', '파트장', 'PRA', '총괄', '사원')
+            <!-- 실적 인정 연계유형 5종만 집계 (N 접두사: nvarchar 매칭) -->
+            AND L.연계유형 IN (N'미래내일일경험', N'지자체일경험', N'심리안정(정신건강복지센터)', N'기타 일경험', N'희망리턴패키지')
         <if test="scopeAccount != null and scopeAccount != ''">
             AND A.전담자_계정 = #{scopeAccount}
         </if>
@@ -73,7 +75,7 @@
             GROUP BY B.지점
         ) S ON BR.지점 = S.지점
         WHERE BR.사용여부 = '사용' AND BR.지점 <![CDATA[<>]]> '테스트'
-        ORDER BY fullPeriodEventCount DESC, branch ASC
+        ORDER BY terminatedEventCount DESC, fullPeriodEventCount DESC, branch ASC
     </select>
 
     <!-- ===== 상담사별 (실적기간 전체 또는 종료일 기준 연계가 있는 상담사만) ===== -->
@@ -89,7 +91,21 @@
                          WHEN L.연계일 BETWEEN #{startDate} AND #{endDate} THEN 1
                          WHEN <include refid="actualEndDate"/> BETWEEN #{startDate} AND #{endDate} THEN 1
                      END) > 0
-        ORDER BY fullPeriodEventCount DESC, counselorName ASC
+        ORDER BY terminatedEventCount DESC, fullPeriodEventCount DESC, counselorName ASC
+    </select>
+
+    <!--
+      ===== 지점별 × 연계유형별 (실적 인정 5종, 스택 차트용) =====
+      데이터 있는 (지점,유형) 조합만 반환 → 없는 조합은 FE에서 0으로 채운다.
+      5종 필터는 linkageBase가 이미 보장.
+    -->
+    <select id="selectLinkageByBranchType" resultType="linkageDashboard">
+        SELECT
+            B.지점 AS branch,
+            L.연계유형 AS linkageType,
+            <include refid="linkageMetrics"/>
+        <include refid="linkageBase"/>
+        GROUP BY B.지점, L.연계유형
     </select>
 
 </mapper>
