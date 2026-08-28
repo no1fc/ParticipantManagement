@@ -583,6 +583,83 @@
     </select>
     <!-- 엑셀 직업훈련 시트 쿼리 끝 -->
 
+    <!-- 엑셀 연계 시트 쿼리 시작 (타사연계 다중등록: J_참여자관리_연계 1:N) -->
+    <select id="participantExcelLinkage" resultType="participant" fetchSize="500">
+        SELECT
+            A.구직번호 AS participantJobNo,
+            ISNULL(B.이름, '') AS participantUserName,
+            ISNULL(A.참여자, '') AS participantPartic,
+            ISNULL(CONVERT(varchar, C.연계일, 23), '') AS excelLinkageDate,
+            ISNULL(C.연계유형, '') AS excelLinkageType,
+            ISNULL(C.연계비고, '') AS excelLinkageNote
+        FROM J_참여자관리 A
+        LEFT JOIN J_참여자관리_로그인정보 B
+            ON A.전담자_계정 = B.아이디
+        INNER JOIN J_참여자관리_연계 C
+            ON A.구직번호 = C.구직번호
+        WHERE
+            <include refid="participantAuthCondition"/>
+            <if test="searchOption != null">
+                <include refid="participantSearchCondition"/>
+                <include refid="participantSearchFiterCondition"/>
+            </if>
+        ORDER BY A.구직번호 DESC, C.연계일 DESC, C.PK ASC
+    </select>
+    <!-- 엑셀 연계 시트 쿼리 끝 -->
+
+    <!-- 엑셀 알선상세 시트 쿼리 시작 (J_참여자관리_알선상세정보) -->
+    <select id="participantExcelPlacement" resultType="participant" fetchSize="500">
+        SELECT
+            A.구직번호 AS participantJobNo,
+            ISNULL(B.이름, '') AS participantUserName,
+            ISNULL(A.참여자, '') AS participantPartic,
+            ISNULL(C.상세정보, '') AS excelPlacementDetail,
+            ISNULL(C.추천사, '') AS excelSuggestion,
+            ISNULL(CONVERT(varchar, C.등록일, 23), '') AS excelPlacementRegDate,
+            ISNULL(CONVERT(varchar, C.수정일, 23), '') AS excelPlacementModDate
+        FROM J_참여자관리 A
+        LEFT JOIN J_참여자관리_로그인정보 B
+            ON A.전담자_계정 = B.아이디
+        INNER JOIN J_참여자관리_알선상세정보 C
+            ON A.구직번호 = C.구직번호
+        WHERE
+            <include refid="participantAuthCondition"/>
+            <if test="searchOption != null">
+                <include refid="participantSearchCondition"/>
+                <include refid="participantSearchFiterCondition"/>
+            </if>
+        ORDER BY A.구직번호 DESC, C.등록번호 ASC
+    </select>
+    <!-- 엑셀 알선상세 시트 쿼리 끝 -->
+
+    <!-- 엑셀 상담일정 시트 쿼리 시작 (J_참여자관리_상담일정, 삭제여부='N'만) -->
+    <select id="participantExcelSchedule" resultType="participant" fetchSize="500">
+        SELECT
+            A.구직번호 AS participantJobNo,
+            ISNULL(B.이름, '') AS participantUserName,
+            ISNULL(A.참여자, '') AS participantPartic,
+            ISNULL(CONVERT(varchar, C.일정날짜, 23), '') AS excelScheduleDate,
+            ISNULL(CONVERT(varchar, C.시작시간, 108), '') AS excelScheduleStart,
+            ISNULL(CONVERT(varchar, C.종료시간, 108), '') AS excelScheduleEnd,
+            ISNULL(C.일정유형, '') AS excelScheduleType,
+            ISNULL(C.메모, '') AS excelScheduleMemo,
+            ISNULL(C.상담사ID, '') AS excelScheduleCounselor
+        FROM J_참여자관리 A
+        LEFT JOIN J_참여자관리_로그인정보 B
+            ON A.전담자_계정 = B.아이디
+        INNER JOIN J_참여자관리_상담일정 C
+            ON A.구직번호 = C.구직번호
+        WHERE
+            C.삭제여부 = 'N'
+            AND <include refid="participantAuthCondition"/>
+            <if test="searchOption != null">
+                <include refid="participantSearchCondition"/>
+                <include refid="participantSearchFiterCondition"/>
+            </if>
+        ORDER BY A.구직번호 DESC, C.일정날짜 DESC, C.일정ID ASC
+    </select>
+    <!-- 엑셀 상담일정 시트 쿼리 끝 -->
+
     <!-- 데이터 이전 쿼리 시작 -->
     <select id="transferSelect" resultType="participant">
         SELECT

@@ -141,6 +141,25 @@ public class ParticipantDTO {
     private String excelCertificateName;  // 자격증 시트 자격증명
     private String excelTrainingName;     // 직업훈련 시트 직업훈련명
 
+    // 연계 시트 (J_참여자관리_연계)
+    private String excelLinkageDate;      // 연계일
+    private String excelLinkageType;      // 연계유형
+    private String excelLinkageNote;      // 연계비고
+
+    // 알선상세 시트 (J_참여자관리_알선상세정보)
+    private String excelPlacementDetail;  // 상세정보 (HTML 제거 후 출력)
+    private String excelSuggestion;       // 추천사 (HTML 제거 후 출력)
+    private String excelPlacementRegDate; // 등록일
+    private String excelPlacementModDate; // 수정일
+
+    // 상담일정 시트 (J_참여자관리_상담일정)
+    private String excelScheduleDate;     // 일정날짜
+    private String excelScheduleStart;    // 시작시간
+    private String excelScheduleEnd;      // 종료시간
+    private String excelScheduleType;     // 일정유형
+    private String excelScheduleMemo;     // 메모
+    private String excelScheduleCounselor;// 상담사ID
+
     // 이력서 요청 관련 필드들
     private String companyName; // 기업명
     private String contactName; // 담당자명

@@ -76,6 +76,39 @@ public class AdminDAO {
         sqlSession.select(ns + "selectParticipantExcelList", dto, handler);
     }
 
+    /**
+     * 참여자 Excel 연계 시트(J_참여자관리_연계 1:N)를 스트리밍 조회한다.
+     *
+     * @param dto     검색 조건이 담긴 DTO
+     * @param handler 행 1건씩 전달받는 ResultHandler
+     */
+    public void selectAdminExcelLinkageStream(AdminDTO dto, ResultHandler<AdminDTO> handler) {
+        log.info("AdminDAO selectAdminExcelLinkageStream");
+        sqlSession.select(ns + "selectAdminExcelLinkage", dto, handler);
+    }
+
+    /**
+     * 참여자 Excel 알선상세 시트(J_참여자관리_알선상세정보)를 스트리밍 조회한다.
+     *
+     * @param dto     검색 조건이 담긴 DTO
+     * @param handler 행 1건씩 전달받는 ResultHandler
+     */
+    public void selectAdminExcelPlacementStream(AdminDTO dto, ResultHandler<AdminDTO> handler) {
+        log.info("AdminDAO selectAdminExcelPlacementStream");
+        sqlSession.select(ns + "selectAdminExcelPlacement", dto, handler);
+    }
+
+    /**
+     * 참여자 Excel 상담일정 시트(J_참여자관리_상담일정, 삭제건 제외)를 스트리밍 조회한다.
+     *
+     * @param dto     검색 조건이 담긴 DTO
+     * @param handler 행 1건씩 전달받는 ResultHandler
+     */
+    public void selectAdminExcelScheduleStream(AdminDTO dto, ResultHandler<AdminDTO> handler) {
+        log.info("AdminDAO selectAdminExcelScheduleStream");
+        sqlSession.select(ns + "selectAdminExcelSchedule", dto, handler);
+    }
+
     // ===== 상담사별 통계 =====
 
     /**

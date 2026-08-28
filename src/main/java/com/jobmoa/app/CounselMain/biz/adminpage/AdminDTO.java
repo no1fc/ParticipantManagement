@@ -233,6 +233,25 @@ public class AdminDTO {
     // Excel 빌더 - 직업훈련 시트
     private String excelTrainingName;
 
+    // Excel 빌더 - 연계 시트 (J_참여자관리_연계)
+    private String excelLinkageDate;      // 연계일
+    private String excelLinkageType;      // 연계유형
+    private String excelLinkageNote;      // 연계비고
+
+    // Excel 빌더 - 알선상세 시트 (J_참여자관리_알선상세정보, 상세정보/추천사는 HTML 제거 후 출력)
+    private String excelPlacementDetail;  // 상세정보
+    private String excelSuggestion;       // 추천사
+    private String excelPlacementRegDate; // 등록일
+    private String excelPlacementModDate; // 수정일
+
+    // Excel 빌더 - 상담일정 시트 (J_참여자관리_상담일정)
+    private String excelScheduleDate;     // 일정날짜
+    private String excelScheduleStart;    // 시작시간
+    private String excelScheduleEnd;      // 종료시간
+    private String excelScheduleType;     // 일정유형
+    private String excelScheduleMemo;     // 메모
+    private String excelScheduleCounselor;// 상담사ID
+
     // Excel 빌더 - 시트 선택 파라미터
     private String excelSheets;
 
