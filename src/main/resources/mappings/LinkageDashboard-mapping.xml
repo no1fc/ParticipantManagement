@@ -24,10 +24,11 @@
     </sql>
 
     <!--
-      공통 FROM/WHERE: 국취 모집단. 권한 스코프(scopeAccount)가 있으면 해당 상담사로 한정.
+      공통 FROM/WHERE: 국취 모집단(연계유형 무관). 권한 스코프(scopeAccount)가 있으면 해당 상담사로 한정.
       ※ 연계일 필터는 두 기준을 조건부 합(SUM CASE)으로 산출하므로 여기서 걸지 않는다.
+      ※ 5종 필터는 recognizedTypeFilter로 분리 → 실적인정/미인정 2분류 차트는 이 base만 사용.
     -->
-    <sql id="linkageBase">
+    <sql id="linkageBaseCommon">
         FROM J_참여자관리_연계 L
         JOIN J_참여자관리 A ON L.구직번호 = A.구직번호
         JOIN J_참여자관리_로그인정보 B ON A.전담자_계정 = B.아이디
@@ -36,11 +37,34 @@
             AND B.아이디사용여부 = '사용'
             AND B.지점 <![CDATA[<>]]> '테스트'
             AND B.권한 IN ('상담', '팀장', '파트장', 'PRA', '총괄', '사원')
-            <!-- 실적 인정 연계유형 5종만 집계 (N 접두사: nvarchar 매칭) -->
-            AND L.연계유형 IN (N'미래내일일경험', N'지자체일경험', N'심리안정(정신건강복지센터)', N'기타 일경험', N'희망리턴패키지')
         <if test="scopeAccount != null and scopeAccount != ''">
             AND A.전담자_계정 = #{scopeAccount}
         </if>
+    </sql>
+
+    <!--
+      실적 인정 연계유형 5종 필터 (N 접두사: nvarchar 매칭).
+      ※ recognizedCategoryExpr의 CASE 목록과 반드시 동기 유지.
+    -->
+    <sql id="recognizedTypeFilter">
+        AND L.연계유형 IN (N'미래내일일경험', N'지자체일경험', N'심리안정(정신건강복지센터)', N'기타 일경험', N'희망리턴패키지')
+    </sql>
+
+    <!--
+      실적인정/미인정 2분류 식. 5종은 '실적인정', 그 외(기타·복지연계·빈값 등) 전부 '실적미인정'.
+      ※ recognizedTypeFilter의 5종 목록과 반드시 동기 유지.
+    -->
+    <sql id="recognizedCategoryExpr">
+        CASE WHEN L.연계유형 IN (N'미래내일일경험', N'지자체일경험', N'심리안정(정신건강복지센터)', N'기타 일경험', N'희망리턴패키지')
+             THEN N'실적인정' ELSE N'실적미인정' END
+    </sql>
+
+    <!--
+      실적 인정 5종 한정 base. KPI 합계/지점별/상담사별이 공유(기존 동작 불변).
+    -->
+    <sql id="linkageBase">
+        <include refid="linkageBaseCommon"/>
+        <include refid="recognizedTypeFilter"/>
     </sql>
 
     <!--
@@ -95,17 +119,17 @@
     </select>
 
     <!--
-      ===== 지점별 × 연계유형별 (실적 인정 5종, 스택 차트용) =====
-      데이터 있는 (지점,유형) 조합만 반환 → 없는 조합은 FE에서 0으로 채운다.
-      5종 필터는 linkageBase가 이미 보장.
+      ===== 지점별 × 실적인정/미인정 2분류 (스택 차트용) =====
+      linkageBaseCommon(5종 필터 없음) + recognizedCategoryExpr로 실적인정/미인정을 나눠 집계.
+      → 실적 미인정(기타·복지연계·빈값 등 5종 외 전부)도 포함. 없는 (지점,분류)는 FE에서 0으로 채운다.
     -->
-    <select id="selectLinkageByBranchType" resultType="linkageDashboard">
+    <select id="selectLinkageByBranchCategory" resultType="linkageDashboard">
         SELECT
             B.지점 AS branch,
-            L.연계유형 AS linkageType,
+            <include refid="recognizedCategoryExpr"/> AS linkageCategory,
             <include refid="linkageMetrics"/>
-        <include refid="linkageBase"/>
-        GROUP BY B.지점, L.연계유형
+        <include refid="linkageBaseCommon"/>
+        GROUP BY B.지점, <include refid="recognizedCategoryExpr"/>
     </select>
 
 </mapper>

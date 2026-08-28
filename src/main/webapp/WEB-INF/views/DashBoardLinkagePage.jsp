@@ -104,7 +104,7 @@
                     </div>
                 </div>
 
-                <!-- 차트 영역 (일반 지점 / 컨소시엄 지점 좌우 분리) — 연계유형 5종 스택형 -->
+                <!-- 차트 영역 (일반 지점 / 컨소시엄 지점 좌우 분리) — 실적 인정/미인정 2종 스택형 -->
                 <div class="row g-3 mb-4">
                     <div class="col-lg-6 d-flex">
                         <div class="card-modern border-0 shadow-sm w-100">
@@ -229,7 +229,7 @@
     const LINKAGE_TOTALS = ${empty linkageTotals ? '{}' : linkageTotals};
     const LINKAGE_BY_BRANCH = ${empty linkageByBranch ? '[]' : linkageByBranch};
     const LINKAGE_BY_COUNSELOR = ${empty linkageByCounselor ? '[]' : linkageByCounselor};
-    const LINKAGE_BY_BRANCH_TYPE = ${empty linkageByBranchType ? '[]' : linkageByBranchType};
+    const LINKAGE_BY_BRANCH_CATEGORY = ${empty linkageByBranchCategory ? '[]' : linkageByBranchCategory};
 </script>
 
 <!-- OverlayScrollbars Configure -->
@@ -255,7 +255,7 @@
 </script>
 
 <!-- 페이지 전용 JS -->
-<script defer src="/js/dashboard_linkage_visualization_0.0.6.js"></script>
+<script defer src="/js/dashboard_linkage_visualization_0.0.7.js"></script>
 
 </body>
 </html>

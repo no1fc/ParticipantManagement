@@ -27,7 +27,7 @@ public class LinkageDashboardDTO {
     private String branch;             // 지점
     private String counselorAccount;   // 상담사 계정(전담자_계정)
     private String counselorName;      // 상담사 이름
-    private String linkageType;        // 연계유형(실적 인정 5종)
+    private String linkageCategory;    // 연계 실적 카테고리(실적인정/실적미인정)
 
     // ===== 지표: 연계 건수 2기준 (COUNT(*)) =====
     private int fullPeriodEventCount; // 연계 건수 · 실적 기간 전체 (연계일이 실적기간 내)

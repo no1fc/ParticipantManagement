@@ -71,10 +71,10 @@ public class LinkageDashboardController {
         List<LinkageDashboardDTO> counselorList = linkageDashboardService.selectAll(dto);
         model.addAttribute("linkageByCounselor", buildRowsJson(counselorList, true));
 
-        // 6. 지점별 × 연계유형별 (스택 차트용, 실적 인정 5종)
-        dto.setCondition("selectLinkageByBranchType");
-        List<LinkageDashboardDTO> branchTypeList = linkageDashboardService.selectAll(dto);
-        model.addAttribute("linkageByBranchType", buildBranchTypeRowsJson(branchTypeList));
+        // 6. 지점별 × 실적인정/미인정 2분류 (스택 차트용, 5종 외 전부를 미인정으로 포함)
+        dto.setCondition("selectLinkageByBranchCategory");
+        List<LinkageDashboardDTO> branchCategoryList = linkageDashboardService.selectAll(dto);
+        model.addAttribute("linkageByBranchCategory", buildBranchCategoryRowsJson(branchCategoryList));
 
         model.addAttribute("linkageStartDate", startDate);
         model.addAttribute("linkageEndDate", endDate);
@@ -119,17 +119,17 @@ public class LinkageDashboardController {
     }
 
     /**
-     * 지점별 × 연계유형별 목록을 JSON 배열 문자열로 변환한다(스택 차트용).
+     * 지점별 × 실적인정/미인정 2분류 목록을 JSON 배열 문자열로 변환한다(스택 차트용).
      *
-     * @param rows 지점×유형 집계 행 목록(실적 인정 5종)
-     * @return {@code [{"branch":"..","linkageType":"..","fullPeriodEventCount":..,"terminatedEventCount":..}]} 형식 JSON 배열
+     * @param rows 지점×분류 집계 행 목록(실적인정 5종 vs 미인정 그 외 전부)
+     * @return {@code [{"branch":"..","linkageCategory":"..","fullPeriodEventCount":..,"terminatedEventCount":..}]} 형식 JSON 배열
      */
-    private String buildBranchTypeRowsJson(List<LinkageDashboardDTO> rows) {
+    private String buildBranchCategoryRowsJson(List<LinkageDashboardDTO> rows) {
         return changeJson.convertListToJsonArray(rows, item -> {
             LinkageDashboardDTO d = (LinkageDashboardDTO) item;
             return String.format(
-                    "{\"branch\":\"%s\",\"linkageType\":\"%s\",\"fullPeriodEventCount\":%d,\"terminatedEventCount\":%d}",
-                    nullSafe(d.getBranch()), nullSafe(d.getLinkageType()),
+                    "{\"branch\":\"%s\",\"linkageCategory\":\"%s\",\"fullPeriodEventCount\":%d,\"terminatedEventCount\":%d}",
+                    nullSafe(d.getBranch()), nullSafe(d.getLinkageCategory()),
                     d.getFullPeriodEventCount(), d.getTerminatedEventCount());
         });
     }
