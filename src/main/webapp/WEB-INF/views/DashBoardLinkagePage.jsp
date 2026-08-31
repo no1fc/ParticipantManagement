@@ -118,9 +118,9 @@
                                 <small class="text-muted">연계 건수(종료 미확정): 10월 31일 이내 종료 여부가 아직 확정되지 않은 참여자</small>
                             </div>
                             <div class="card-body">
-                                <div class="text-muted small fw-semibold mb-1">실적 확정 (종료일 기준)</div>
+                                <div class="text-muted small fw-semibold mb-1">연계 건수(실적 확정)</div>
                                 <div id="linkageBranchChartTerm"></div>
-                                <div class="text-muted small fw-semibold mt-3 mb-1">실적 기간 전체 (연계일 기준)</div>
+                                <div class="text-muted small fw-semibold mt-3 mb-1">연계 건수(종료일 미확정)</div>
                                 <div id="linkageBranchChartFull"></div>
                             </div>
                         </div>
@@ -135,9 +135,9 @@
                                 <small class="text-muted">컨소시엄 지점(의정부·북부·광명·성남·인천서부)를 별도 표시</small>
                             </div>
                             <div class="card-body">
-                                <div class="text-muted small fw-semibold mb-1">실적 확정 (종료일 기준)</div>
+                                <div class="text-muted small fw-semibold mb-1">연계 건수(실적 확정)</div>
                                 <div id="linkageConsortiumChartTerm"></div>
-                                <div class="text-muted small fw-semibold mt-3 mb-1">실적 기간 전체 (연계일 기준)</div>
+                                <div class="text-muted small fw-semibold mt-3 mb-1">연계 건수(종료일 미확정)</div>
                                 <div id="linkageConsortiumChartFull"></div>
                             </div>
                         </div>
