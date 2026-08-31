@@ -24,9 +24,10 @@
     </sql>
 
     <!--
-      공통 FROM/WHERE: 국취 모집단(연계유형 무관). 권한 스코프(scopeAccount)가 있으면 해당 상담사로 한정.
+      공통 FROM/WHERE: 국취 모집단(연계유형 무관, 전체 유형). 권한 스코프(scopeAccount)가 있으면 해당 상담사로 한정.
       ※ 연계일 필터는 두 기준을 조건부 합(SUM CASE)으로 산출하므로 여기서 걸지 않는다.
-      ※ 5종 필터는 recognizedTypeFilter로 분리 → 실적인정/미인정 2분류 차트는 이 base만 사용.
+      ※ KPI 합계·지점별·상담사별·차트 모든 집계가 이 base(전체 유형)를 공유한다.
+        차트만 recognizedCategoryExpr로 1순위/2순위 연계 2분류로 나눠 스택 표시한다.
     -->
     <sql id="linkageBaseCommon">
         FROM J_참여자관리_연계 L
@@ -43,29 +44,13 @@
     </sql>
 
     <!--
-      실적 인정 연계유형 5종 필터 (N 접두사: nvarchar 매칭).
-      ※ recognizedCategoryExpr의 CASE 목록과 반드시 동기 유지.
-    -->
-    <sql id="recognizedTypeFilter">
-        AND L.연계유형 IN (N'미래내일일경험', N'지자체일경험', N'심리안정(정신건강복지센터)', N'기타 일경험', N'희망리턴패키지')
-    </sql>
-
-    <!--
-      1순위/2순위 연계 2분류 식. 5종은 '1순위 연계(일경험·희리패·심리상담)', 그 외(기타·복지연계·빈값 등) 전부 '2순위 연계'.
-      ※ recognizedTypeFilter의 5종 목록과 반드시 동기 유지.
+      1순위/2순위 연계 2분류 식(차트 전용). 5종은 '1순위 연계(일경험·희리패·심리상담)', 그 외(기타·복지연계·빈값 등) 전부 '2순위 연계'.
+      ※ 실적 인정 5종 목록의 유일한 정의처 — 5종 변경 시 이 CASE만 갱신하면 된다.
       ※ 출력 문자열은 차트 시리즈명이자 JS LINKAGE_CATEGORIES 조회 키 → dashboard_linkage_visualization JS와 바이트 단위 일치 필수.
     -->
     <sql id="recognizedCategoryExpr">
         CASE WHEN L.연계유형 IN (N'미래내일일경험', N'지자체일경험', N'심리안정(정신건강복지센터)', N'기타 일경험', N'희망리턴패키지')
              THEN N'1순위 연계(일경험·희리패·심리상담)' ELSE N'2순위 연계' END
-    </sql>
-
-    <!--
-      실적 인정 5종 한정 base. KPI 합계/지점별/상담사별이 공유(기존 동작 불변).
-    -->
-    <sql id="linkageBase">
-        <include refid="linkageBaseCommon"/>
-        <include refid="recognizedTypeFilter"/>
     </sql>
 
     <!--
@@ -78,14 +63,14 @@
         SUM(CASE WHEN <include refid="actualEndDate"/> BETWEEN #{startDate} AND #{endDate} THEN 1 ELSE 0 END) AS terminatedEventCount
     </sql>
 
-    <!-- ===== 전체 합계 (단건) ===== -->
+    <!-- ===== 전체 합계 (단건, 전체 유형) ===== -->
     <select id="selectLinkageTotals" resultType="linkageDashboard">
         SELECT
             <include refid="linkageMetrics"/>
-        <include refid="linkageBase"/>
+        <include refid="linkageBaseCommon"/>
     </select>
 
-    <!-- ===== 지점별 (모든 활성 지점 포함, 데이터 없으면 0) ===== -->
+    <!-- ===== 지점별 (모든 활성 지점 포함, 데이터 없으면 0, 전체 유형) ===== -->
     <select id="selectLinkageByBranch" resultType="linkageDashboard">
         SELECT
             BR.지점 AS branch,
@@ -96,21 +81,21 @@
             SELECT
                 B.지점 AS 지점,
                 <include refid="linkageMetrics"/>
-            <include refid="linkageBase"/>
+            <include refid="linkageBaseCommon"/>
             GROUP BY B.지점
         ) S ON BR.지점 = S.지점
         WHERE BR.사용여부 = '사용' AND BR.지점 <![CDATA[<>]]> '테스트'
         ORDER BY terminatedEventCount DESC, fullPeriodEventCount DESC, branch ASC
     </select>
 
-    <!-- ===== 상담사별 (실적기간 전체 또는 종료일 기준 연계가 있는 상담사만) ===== -->
+    <!-- ===== 상담사별 (실적기간 전체 또는 종료일 기준 연계가 있는 상담사만, 전체 유형) ===== -->
     <select id="selectLinkageByCounselor" resultType="linkageDashboard">
         SELECT
             B.지점 AS branch,
             A.전담자_계정 AS counselorAccount,
             B.이름 AS counselorName,
             <include refid="linkageMetrics"/>
-        <include refid="linkageBase"/>
+        <include refid="linkageBaseCommon"/>
         GROUP BY B.지점, A.전담자_계정, B.이름
         HAVING COUNT(CASE
                          WHEN L.연계일 BETWEEN #{startDate} AND #{endDate} THEN 1
