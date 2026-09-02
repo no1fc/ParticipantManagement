@@ -21,6 +21,7 @@ public class LinkageDashboardDTO {
     private String startDate;      // 실적기간 시작일 (전년 11/1)
     private String endDate;        // 실적기간 종료일 (당해 10/31)
     private String scopeAccount;   // 권한 스코프: 일반 상담사는 본인 전담자_계정, 관리자는 null(전체)
+    private String scopeBranch;    // 권한 스코프: 상담사별 상세를 소속 지점으로 한정(파트장·팀장·총괄·차장). null이면 미적용
     private String condition;      // MyBatis 매퍼 ID 디스패치용
 
     // ===== 축 라벨 (지점별/상담사별/유형별) =====

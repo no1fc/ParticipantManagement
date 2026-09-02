@@ -96,6 +96,9 @@
             B.이름 AS counselorName,
             <include refid="linkageMetrics"/>
         <include refid="linkageBaseCommon"/>
+        <if test="scopeBranch != null and scopeBranch != ''">
+            AND B.지점 = #{scopeBranch}
+        </if>
         GROUP BY B.지점, A.전담자_계정, B.이름
         HAVING COUNT(CASE
                          WHEN L.연계일 BETWEEN #{startDate} AND #{endDate} THEN 1

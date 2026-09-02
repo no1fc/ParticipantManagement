@@ -66,10 +66,18 @@ public class LinkageDashboardController {
         List<LinkageDashboardDTO> branchList = linkageDashboardService.selectAll(dto);
         model.addAttribute("linkageByBranch", buildRowsJson(branchList, false));
 
-        // 5. 상담사별
+        // 5. 상담사별 — 지점 한정 직급(파트장·팀장·총괄·차장)이면 소속 지점으로, 아니면 현행 스코프 유지
         dto.setCondition("selectLinkageByCounselor");
+        String branchScope = LinkageScopeSupport.resolveCounselorBranchScope(loginBean);
+        String savedAccount = dto.getScopeAccount();
+        if (branchScope != null) {
+            dto.setScopeBranch(branchScope);
+            dto.setScopeAccount(null); // 지점 스코프가 우선(계정 한정 해제)
+        }
         List<LinkageDashboardDTO> counselorList = linkageDashboardService.selectAll(dto);
         model.addAttribute("linkageByCounselor", buildRowsJson(counselorList, true));
+        dto.setScopeBranch(null);       // 이후 차트 쿼리에 영향 없도록 원복
+        dto.setScopeAccount(savedAccount);
 
         // 6. 지점별 × 실적인정/미인정 2분류 (스택 차트용, 5종 외 전부를 미인정으로 포함)
         dto.setCondition("selectLinkageByBranchCategory");
@@ -79,6 +87,11 @@ public class LinkageDashboardController {
         model.addAttribute("linkageStartDate", startDate);
         model.addAttribute("linkageEndDate", endDate);
         model.addAttribute("linkageIsManager", isManager);
+
+        // 일반(상담·PRA)에게는 연계 현황 차트·지점별 상세를 숨긴다(본인 KPI·상담사별 상세만 노출).
+        boolean hideBranchViews = loginBean != null
+                && "NORMAL".equals(loginBean.getPermissionGroup());
+        model.addAttribute("linkageHideBranchViews", hideBranchViews);
 
         return "views/DashBoardLinkagePage";
     }

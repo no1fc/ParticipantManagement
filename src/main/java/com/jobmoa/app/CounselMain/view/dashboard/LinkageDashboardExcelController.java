@@ -77,8 +77,17 @@ public class LinkageDashboardExcelController {
             dto.setCondition("selectLinkageByBranch");
             List<LinkageDashboardDTO> branchList = linkageDashboardService.selectAll(dto);
 
+            // 상담사별 시트 — 지점 한정 직급(파트장·팀장·총괄·차장)이면 소속 지점으로 한정(화면 상담사별 상세 표와 동일 범위, 누수 방지)
             dto.setCondition("selectLinkageByCounselor");
+            String branchScope = LinkageScopeSupport.resolveCounselorBranchScope(loginBean);
+            String savedAccount = dto.getScopeAccount();
+            if (branchScope != null) {
+                dto.setScopeBranch(branchScope);
+                dto.setScopeAccount(null); // 지점 스코프가 우선(계정 한정 해제)
+            }
             List<LinkageDashboardDTO> counselorList = linkageDashboardService.selectAll(dto);
+            dto.setScopeBranch(null);       // 원복(지점별 시트는 이미 조회 완료)
+            dto.setScopeAccount(savedAccount);
 
             int fullTotal = totals != null ? totals.getFullPeriodEventCount() : 0;
             int termTotal = totals != null ? totals.getTerminatedEventCount() : 0;

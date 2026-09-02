@@ -104,6 +104,8 @@
                     </div>
                 </div>
 
+                <%-- 일반(상담·PRA)에게는 연계 현황 차트·지점별 상세를 숨긴다 --%>
+                <c:if test="${!linkageHideBranchViews}">
                 <!-- 차트 영역 (일반 지점 / 컨소시엄 지점 좌우 분리) — 실적 인정/미인정 2종 스택형 -->
                 <div class="row g-3 mb-4">
                     <div class="col-lg-6 d-flex">
@@ -171,6 +173,8 @@
                         </div>
                     </div>
                 </div>
+
+                </c:if>
 
                 <!-- 상담사별 상세 테이블 -->
                 <div class="row mb-4">
