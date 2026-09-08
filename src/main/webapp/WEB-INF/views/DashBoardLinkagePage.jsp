@@ -160,12 +160,13 @@
                                             <tr>
                                                 <th>순위</th>
                                                 <th>지점</th>
+                                                <th>1순위 연계<br>(실적 확정)</th>
                                                 <th>연계 건수<br>(실적 확정)</th>
                                                 <th>연계 건수<br>(종료 미확정자 포함)</th>
                                             </tr>
                                         </thead>
                                         <tbody id="branchTableBody">
-                                            <tr><td colspan="4" class="text-center text-muted py-3">로딩 중...</td></tr>
+                                            <tr><td colspan="5" class="text-center text-muted py-3">로딩 중...</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -192,12 +193,13 @@
                                                 <th>순위</th>
                                                 <th>지점</th>
                                                 <th>상담사</th>
+                                                <th>1순위 연계<br>(실적 확정)</th>
                                                 <th>연계 건수<br>(실적 확정)</th>
                                                 <th>연계 건수<br>(종료 미확정자 포함)</th>
                                             </tr>
                                         </thead>
                                         <tbody id="counselorTableBody">
-                                            <tr><td colspan="5" class="text-center text-muted py-3">로딩 중...</td></tr>
+                                            <tr><td colspan="6" class="text-center text-muted py-3">로딩 중...</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -259,7 +261,7 @@
 </script>
 
 <!-- 페이지 전용 JS -->
-<script defer src="/js/dashboard_linkage_visualization_0.0.9.js"></script>
+<script defer src="/js/dashboard_linkage_visualization_0.0.10.js"></script>
 
 </body>
 </html>

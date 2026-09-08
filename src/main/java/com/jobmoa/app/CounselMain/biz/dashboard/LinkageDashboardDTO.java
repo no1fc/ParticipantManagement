@@ -33,4 +33,5 @@ public class LinkageDashboardDTO {
     // ===== 지표: 연계 건수 2기준 (COUNT(*)) =====
     private int fullPeriodEventCount; // 연계 건수 · 실적 기간 전체 (연계일이 실적기간 내)
     private int terminatedEventCount; // 연계 건수 · 종료일 기준 (실제종료일이 실적기간 내)
+    private int rank1TerminatedEventCount; // 1순위 연계(5종) · 실적 확정 (실제종료일이 실적기간 내)
 }

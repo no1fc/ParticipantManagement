@@ -44,12 +44,19 @@
     </sql>
 
     <!--
+      실적 인정 5종(1순위 연계) 판별식.
+      ※ 5종 목록의 유일한 정의처 — 5종 변경 시 이 IN 절만 갱신하면 recognizedCategoryExpr·rank1 지표 모두 반영된다.
+    -->
+    <sql id="rank1Predicate">
+        L.연계유형 IN (N'미래내일일경험', N'지자체일경험', N'심리안정(정신건강복지센터)', N'기타 일경험', N'희망리턴패키지')
+    </sql>
+
+    <!--
       1순위/2순위 연계 2분류 식(차트 전용). 5종은 '1순위 연계(일경험·희리패·심리상담)', 그 외(기타·복지연계·빈값 등) 전부 '2순위 연계'.
-      ※ 실적 인정 5종 목록의 유일한 정의처 — 5종 변경 시 이 CASE만 갱신하면 된다.
       ※ 출력 문자열은 차트 시리즈명이자 JS LINKAGE_CATEGORIES 조회 키 → dashboard_linkage_visualization JS와 바이트 단위 일치 필수.
     -->
     <sql id="recognizedCategoryExpr">
-        CASE WHEN L.연계유형 IN (N'미래내일일경험', N'지자체일경험', N'심리안정(정신건강복지센터)', N'기타 일경험', N'희망리턴패키지')
+        CASE WHEN <include refid="rank1Predicate"/>
              THEN N'1순위 연계(일경험·희리패·심리상담)' ELSE N'2순위 연계' END
     </sql>
 
@@ -60,7 +67,9 @@
     -->
     <sql id="linkageMetrics">
         SUM(CASE WHEN L.연계일 BETWEEN #{startDate} AND #{endDate} THEN 1 ELSE 0 END) AS fullPeriodEventCount,
-        SUM(CASE WHEN <include refid="actualEndDate"/> BETWEEN #{startDate} AND #{endDate} THEN 1 ELSE 0 END) AS terminatedEventCount
+        SUM(CASE WHEN <include refid="actualEndDate"/> BETWEEN #{startDate} AND #{endDate} THEN 1 ELSE 0 END) AS terminatedEventCount,
+        SUM(CASE WHEN <include refid="actualEndDate"/> BETWEEN #{startDate} AND #{endDate}
+                  AND <include refid="rank1Predicate"/> THEN 1 ELSE 0 END) AS rank1TerminatedEventCount
     </sql>
 
     <!-- ===== 전체 합계 (단건, 전체 유형) ===== -->
@@ -75,7 +84,8 @@
         SELECT
             BR.지점 AS branch,
             ISNULL(S.fullPeriodEventCount, 0) AS fullPeriodEventCount,
-            ISNULL(S.terminatedEventCount, 0) AS terminatedEventCount
+            ISNULL(S.terminatedEventCount, 0) AS terminatedEventCount,
+            ISNULL(S.rank1TerminatedEventCount, 0) AS rank1TerminatedEventCount
         FROM J_참여자관리_지점 BR
         LEFT JOIN (
             SELECT

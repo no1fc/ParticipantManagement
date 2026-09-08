@@ -4,7 +4,8 @@
  * KPI 카드(연계 건수 2기준) / 지점별 스택 막대차트(일반·컨소시엄 분리, 1순위·2순위 연계 2분류 누적, 실적확정·전체 2차트) /
  * 지점·상담사별 상세 테이블을 렌더링한다.
  * 지표: 연계 건수 · 종료일 기준(실제종료일이 실적기간 내) / 실적 기간 전체(연계일 기준).
- * ※ KPI·테이블·엑셀·차트 모두 전체 유형(1순위 연계 5종 + 2순위 연계 그 외 전부) 기준. 차트만 1순위/2순위 2분류로 스택 표시.
+ * ※ KPI·엑셀·차트는 전체 유형(1순위 연계 5종 + 2순위 연계 그 외 전부) 기준. 차트만 1순위/2순위 2분류로 스택 표시.
+ * ※ 지점·상담사별 상세 테이블은 "1순위 연계(실적 확정)" 컬럼을 "연계 건수(실적 확정)" 왼쪽에 추가로 노출한다(5종 부분집합).
  * + 엑셀 다운로드 버튼 핸들러(집계표를 지점별/상담사별 시트로 내려받음).
  */
 (function () {
@@ -126,13 +127,14 @@
             return;
         }
         if (branchRows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">데이터가 없습니다.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">데이터가 없습니다.</td></tr>';
             return;
         }
         tbody.innerHTML = branchRows.map((r, idx) =>
             '<tr>' +
             '<td>' + (idx + 1) + '</td>' +
             '<td>' + escapeHtml(branchLabel(r.branch)) + '</td>' +
+            '<td class="fw-semibold">' + fmt(r.rank1TerminatedEventCount) + '</td>' +
             '<td class="fw-semibold">' + fmt(r.terminatedEventCount) + '</td>' +
             '<td class="fw-semibold">' + fmt(r.fullPeriodEventCount) + '</td>' +
             '</tr>'
@@ -146,7 +148,7 @@
             return;
         }
         if (!rows || rows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">데이터가 없습니다.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">데이터가 없습니다.</td></tr>';
             return;
         }
         tbody.innerHTML = rows.map((r, idx) =>
@@ -154,6 +156,7 @@
             '<td>' + (idx + 1) + '</td>' +
             '<td>' + escapeHtml(branchLabel(r.branch)) + '</td>' +
             '<td>' + escapeHtml(r.counselorName || r.counselorAccount) + '</td>' +
+            '<td class="fw-semibold">' + fmt(r.rank1TerminatedEventCount) + '</td>' +
             '<td class="fw-semibold">' + fmt(r.terminatedEventCount) + '</td>' +
             '<td class="fw-semibold">' + fmt(r.fullPeriodEventCount) + '</td>' +
             '</tr>'

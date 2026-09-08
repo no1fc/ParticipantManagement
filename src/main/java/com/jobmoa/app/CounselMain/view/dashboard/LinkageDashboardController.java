@@ -126,8 +126,8 @@ public class LinkageDashboardController {
                     : String.format("\"branch\":\"%s\",", nullSafe(d.getBranch()));
             return "{" + label +
                     String.format(
-                            "\"fullPeriodEventCount\":%d,\"terminatedEventCount\":%d}",
-                            d.getFullPeriodEventCount(), d.getTerminatedEventCount());
+                            "\"rank1TerminatedEventCount\":%d,\"fullPeriodEventCount\":%d,\"terminatedEventCount\":%d}",
+                            d.getRank1TerminatedEventCount(), d.getFullPeriodEventCount(), d.getTerminatedEventCount());
         });
     }
 
