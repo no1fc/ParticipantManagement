@@ -49,10 +49,12 @@ public class LinkageDashboardController {
         dto.setStartDate(startDate);
         dto.setEndDate(endDate);
 
-        // 2. 권한 스코프: 관리자가 아니면 본인 전담자_계정으로 한정
+        // 2. 권한 스코프: 지점 관리직(파트장·팀장·총괄·차장)은 집계·차트를 전 지점 전체로 보되
+        //    상담사별 상세만 소속 지점 한정. 그 외 비관리자(상담·PRA)만 본인 전담자_계정으로 집계 한정.
         boolean isManager = Boolean.TRUE.equals(session.getAttribute("IS_MANAGER"));
         LoginBean loginBean = (LoginBean) session.getAttribute("JOBMOA_LOGIN_DATA");
-        if (!isManager && loginBean != null) {
+        String branchScope = LinkageScopeSupport.resolveCounselorBranchScope(loginBean);
+        if (!isManager && branchScope == null && loginBean != null) {
             dto.setScopeAccount(loginBean.getMemberUserID());
         }
 
@@ -68,7 +70,6 @@ public class LinkageDashboardController {
 
         // 5. 상담사별 — 지점 한정 직급(파트장·팀장·총괄·차장)이면 소속 지점으로, 아니면 현행 스코프 유지
         dto.setCondition("selectLinkageByCounselor");
-        String branchScope = LinkageScopeSupport.resolveCounselorBranchScope(loginBean);
         String savedAccount = dto.getScopeAccount();
         if (branchScope != null) {
             dto.setScopeBranch(branchScope);

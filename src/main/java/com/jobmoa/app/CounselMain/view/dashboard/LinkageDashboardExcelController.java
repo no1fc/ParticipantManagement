@@ -64,9 +64,11 @@ public class LinkageDashboardExcelController {
             dto.setStartDate(startDate);
             dto.setEndDate(endDate);
 
-            // 2. 권한 스코프: 관리자가 아니면 본인 전담자_계정으로 한정(IDOR 방지)
+            // 2. 권한 스코프: 지점 관리직(파트장·팀장·총괄·차장)은 지점별 시트를 전 지점 전체로,
+            //    그 외 비관리자(상담·PRA)만 본인 전담자_계정으로 한정(IDOR 방지). 화면 컨트롤러와 동일.
             boolean isManager = Boolean.TRUE.equals(session.getAttribute("IS_MANAGER"));
-            if (!isManager) {
+            String branchScope = LinkageScopeSupport.resolveCounselorBranchScope(loginBean);
+            if (!isManager && branchScope == null) {
                 dto.setScopeAccount(loginBean.getMemberUserID());
             }
 
@@ -79,7 +81,6 @@ public class LinkageDashboardExcelController {
 
             // 상담사별 시트 — 지점 한정 직급(파트장·팀장·총괄·차장)이면 소속 지점으로 한정(화면 상담사별 상세 표와 동일 범위, 누수 방지)
             dto.setCondition("selectLinkageByCounselor");
-            String branchScope = LinkageScopeSupport.resolveCounselorBranchScope(loginBean);
             String savedAccount = dto.getScopeAccount();
             if (branchScope != null) {
                 dto.setScopeBranch(branchScope);
